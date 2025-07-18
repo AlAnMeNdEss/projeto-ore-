@@ -61,7 +61,28 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Cores específicas do sistema de oração
+				prayer: {
+					primary: 'hsl(var(--prayer-primary))',
+					secondary: 'hsl(var(--prayer-secondary))',
+					accent: 'hsl(var(--prayer-accent))',
+					success: 'hsl(var(--prayer-success))',
+					muted: 'hsl(var(--prayer-muted))'
 				}
+			},
+			backgroundImage: {
+				'gradient-prayer': 'var(--gradient-prayer)',
+				'gradient-peace': 'var(--gradient-peace)',
+				'gradient-hope': 'var(--gradient-hope)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'prayer': 'var(--shadow-prayer)',
+				'gentle': 'var(--shadow-gentle)'
+			},
+			transitionTimingFunction: {
+				'gentle': 'var(--transition-gentle)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
