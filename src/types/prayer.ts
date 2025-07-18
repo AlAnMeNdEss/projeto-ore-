@@ -26,12 +26,12 @@ export interface Profile {
 }
 
 export const PRAYER_CATEGORIES = {
-  saude: '🙏 Saúde',
+  saude: '❤️ Saúde',
   familia: '👨‍👩‍👧‍👦 Família',
   trabalho: '💼 Trabalho',
   financeiro: '💰 Financeiro',
-  espiritual: '✨ Espiritual',
-  outros: '💝 Outros'
+  espiritual: '🙏 Espiritual',
+  outros: '✨ Outros'
 } as const;
 
 export type PrayerCategory = keyof typeof PRAYER_CATEGORIES;
