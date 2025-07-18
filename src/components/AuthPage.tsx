@@ -41,7 +41,8 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peace flex items-center justify-center p-4">
+    <div className="min-h-screen bg-spiritual bg-cover bg-center bg-fixed">
+      <div className="min-h-screen bg-gradient-spiritual backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
@@ -157,6 +158,7 @@ export function AuthPage() {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

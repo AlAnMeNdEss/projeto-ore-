@@ -47,6 +47,7 @@ All colors MUST be HSL.
     --gradient-prayer: linear-gradient(135deg, hsl(262 83% 57%), hsl(280 70% 65%));
     --gradient-peace: linear-gradient(180deg, hsl(220 70% 98%), hsl(262 20% 96%));
     --gradient-hope: linear-gradient(45deg, hsl(45 100% 90%), hsl(262 50% 95%));
+    --gradient-spiritual: linear-gradient(135deg, hsl(250 100% 99% / 0.95), hsl(262 20% 96% / 0.9));
 
     /* Sombras suaves */
     --shadow-soft: 0 4px 20px hsl(262 83% 57% / 0.1);
@@ -55,6 +56,9 @@ All colors MUST be HSL.
 
     /* Transições suaves */
     --transition-gentle: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Fundo espiritual */
+    --bg-spiritual: url('/src/assets/spiritual-background.jpg');
 
     --radius: 0.5rem;
 

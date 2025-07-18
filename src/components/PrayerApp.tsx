@@ -15,7 +15,8 @@ export function PrayerApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peace">
+    <div className="min-h-screen bg-spiritual bg-cover bg-center bg-fixed">
+      <div className="min-h-screen bg-gradient-spiritual backdrop-blur-sm">
       {/* Header */}
       <header className="bg-background/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -120,6 +121,7 @@ export function PrayerApp() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

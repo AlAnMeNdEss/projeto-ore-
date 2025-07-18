@@ -74,7 +74,9 @@ export default {
 			backgroundImage: {
 				'gradient-prayer': 'var(--gradient-prayer)',
 				'gradient-peace': 'var(--gradient-peace)',
-				'gradient-hope': 'var(--gradient-hope)'
+				'gradient-hope': 'var(--gradient-hope)',
+				'gradient-spiritual': 'var(--gradient-spiritual)',
+				'spiritual': 'var(--bg-spiritual)'
 			},
 			boxShadow: {
 				'soft': 'var(--shadow-soft)',
