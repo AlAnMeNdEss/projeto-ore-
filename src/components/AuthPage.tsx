@@ -146,7 +146,7 @@ export function AuthPage() {
                     placeholder="Mínimo 6 caracteres"
                     className="text-white placeholder:text-gray-300"
                   />
-                  <p className="text-xs text-[#b2a4ff] font-medium">💡 Dica: Use uma senha segura com letras, números e símbolos</p>
+                  <p className="text-sm text-[#8b5cf6] font-semibold">💡 Dica: Use uma senha segura com letras, números e símbolos</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-white">Confirmar Senha</Label>
@@ -172,9 +172,9 @@ export function AuthPage() {
         </CardContent>
       </Card>
       {/* Versículo bíblico */}
-      <p className="mt-8 text-center text-xs italic text-gray-400 drop-shadow-sm max-w-xs mx-auto">
+      <p className="mt-8 text-center text-sm italic text-[#b2a4ff] drop-shadow-sm max-w-xs mx-auto font-medium">
         "Não andem ansiosos por coisa alguma, mas em tudo, pela oração e súplicas, e com ação de graças, apresentem seus pedidos a Deus."<br/>
-        <span className="text-[11px] text-gray-500">Filipenses 4:6</span>
+        <span className="text-xs text-[#8b5cf6] font-semibold">Filipenses 4:6</span>
       </p>
       <a href="#" className="block text-center text-sm text-gray-200 underline mb-6">Ainda não tenho uma conta</a>
     </div>
