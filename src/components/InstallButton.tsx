@@ -68,7 +68,7 @@ Agora o Ore+ aparecerá na sua tela inicial como um app! 🎉
 
   const getInstallText = () => {
     if (isIOS) return "Instalar no iPhone";
-    if (isAndroid) return "Instalar no Android";
+    if (isAndroid) return "Instalar";
     return "Instalar App";
   };
 
