@@ -43,31 +43,33 @@ export function PrayerApp() {
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
       {/* Banner de instalação PWA */}
       {showInstallBanner && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2d1457] text-white rounded-2xl shadow-lg px-6 py-4 flex items-center gap-4 animate-fade-in">
-          <span className="text-lg font-semibold">Instale o Ore+ no seu dispositivo para uma experiência melhor!</span>
-          <button
-            onClick={handleInstallClick}
-            className="bg-[#8b5cf6] hover:bg-[#6d28d9] text-white font-bold px-4 py-2 rounded-lg transition-all"
-          >
-            Instalar Ore+
-          </button>
-          <button
-            onClick={() => setShowInstallBanner(false)}
-            className="ml-2 text-gray-300 hover:text-white text-xl"
-            title="Fechar"
-          >
-            ×
-          </button>
+        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2d1457] text-white rounded-2xl shadow-lg px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 animate-fade-in max-w-[90vw] sm:max-w-none">
+          <span className="text-sm sm:text-lg font-semibold text-center sm:text-left">Instale o Ore+ no seu dispositivo para uma experiência melhor!</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleInstallClick}
+              className="bg-[#8b5cf6] hover:bg-[#6d28d9] text-white font-bold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm"
+            >
+              Instalar Ore+
+            </button>
+            <button
+              onClick={() => setShowInstallBanner(false)}
+              className="text-gray-300 hover:text-white text-lg sm:text-xl"
+              title="Fechar"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
       {/* Imagem de fundo de adoração */}
       <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
       {/* Fundo glassmorphism */}
       <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#2d1457] via-[#8b5cf6]/60 to-[#181824] backdrop-blur-2xl bg-opacity-70" />
-      <div className="relative z-20 w-full max-w-3xl w-full mx-auto p-4 flex flex-col min-h-screen">
+      <div className="relative z-20 w-full max-w-4xl mx-auto px-2 sm:px-4 flex flex-col min-h-screen">
         {/* Conteúdo do PrayerApp */}
         {/* Header minimalista */}
-        <header className="flex flex-col items-center justify-center mb-8 gap-2 animate-fade-in">
+        <header className="flex flex-col items-center justify-center mb-4 sm:mb-8 gap-2 animate-fade-in">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
             <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -89,7 +91,7 @@ export function PrayerApp() {
           </div>
         </header>
         {/* Navegação - botão rolável animado */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4 sm:mb-8">
           <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner">
             <button
               className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${activeTab === 'list' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
@@ -109,15 +111,15 @@ export function PrayerApp() {
         </div>
         {/* Conteúdo principal em cards glassmorphism animados */}
         <main className="flex-1">
-          <div className="w-full max-w-4xl mx-auto px-4 py-2 flex flex-col items-center">
+          <div className="w-full mx-auto px-1 sm:px-4 py-2 flex flex-col items-center">
             {/* Substituir o bloco de gamificação e manter apenas o conteúdo principal */}
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full max-w-4xl mx-auto">
               {activeTab === 'list' ? (
                 <div className="animate-fade-slide-in">
-                  <Card className="rounded-3xl shadow-2xl border-0 bg-[#2d1457]/80 shadow-xl mb-8 p-0 backdrop-blur-md overflow-hidden">
+                  <Card className="rounded-3xl shadow-2xl border-0 bg-[#2d1457]/80 shadow-xl mb-4 sm:mb-8 p-0 backdrop-blur-md overflow-hidden">
                     {/* Detalhe decorativo no topo */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] opacity-40 rounded-t-3xl" />
-                    <CardHeader className="pb-2 flex flex-row items-center gap-3 border-b border-white/10 px-6 pt-6">
+                    <CardHeader className="pb-2 flex flex-row items-center gap-3 border-b border-white/10 px-4 sm:px-6 pt-6">
                       <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
                         🙏
                       </span>
@@ -127,9 +129,9 @@ export function PrayerApp() {
                         </span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-2 pb-4 px-6">
-                      <h2 className="text-xl font-bold mb-2 text-gray-100">Pedidos de Oração</h2>
-                      <p className="text-white font-bold text-base drop-shadow-md">
+                    <CardContent className="pt-2 pb-4 px-4 sm:px-6">
+                      <h2 className="text-lg sm:text-xl font-bold mb-2 text-gray-100">Pedidos de Oração</h2>
+                      <p className="text-white font-bold text-sm sm:text-base drop-shadow-md">
                         Clique em "Orar" para registrar sua oração e apoio
                       </p>
                       <PrayerRequestsList />
@@ -138,10 +140,10 @@ export function PrayerApp() {
                 </div>
               ) : (
                 <div className="animate-fade-slide-in">
-                  <Card className="rounded-3xl shadow-2xl border-0 bg-[#2d1457]/80 shadow-xl mb-8 p-0 backdrop-blur-md overflow-hidden">
+                  <Card className="rounded-3xl shadow-2xl border-0 bg-[#2d1457]/80 shadow-xl mb-4 sm:mb-8 p-0 backdrop-blur-md overflow-hidden">
                     {/* Detalhe decorativo no topo */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] opacity-40 rounded-t-3xl" />
-                    <CardHeader className="pb-2 flex flex-row items-center gap-3 border-b border-white/10 px-6 pt-6">
+                    <CardHeader className="pb-2 flex flex-row items-center gap-3 border-b border-white/10 px-4 sm:px-6 pt-6">
                       <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
                         ✍️
                       </span>
@@ -151,12 +153,12 @@ export function PrayerApp() {
                         </span>
                       </div>
                     </CardHeader>
-                    <CardContent className="pt-2 pb-4 px-6">
-                      <h2 className="text-xl font-bold mb-2 text-gray-100">Novo Pedido</h2>
+                    <CardContent className="pt-2 pb-4 px-4 sm:px-6">
+                      <h2 className="text-lg sm:text-xl font-bold mb-2 text-gray-100">Novo Pedido</h2>
                       <p className="text-gray-300">
                         Compartilhe seu pedido com nossa comunidade
                       </p>
-                      <div className="max-w-2xl mx-auto">
+                      <div className="w-full max-w-2xl mx-auto">
                         <PrayerRequestForm />
                       </div>
                     </CardContent>
@@ -167,12 +169,12 @@ export function PrayerApp() {
           </div>
         </main>
         {/* Footer minimalista */}
-        <footer className="mt-auto py-6 text-center text-xs animate-fade-in">
+        <footer className="mt-auto py-4 sm:py-6 text-center text-xs animate-fade-in">
           <div className="flex items-center justify-center gap-2 mb-2 text-[#8b5cf6] drop-shadow">
-            <Heart className="h-4 w-4 text-[#8b5cf6] animate-pulse" />
-            <span className="font-semibold">Feito com amor e fé</span>
+            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-[#8b5cf6] animate-pulse" />
+            <span className="font-semibold text-xs sm:text-sm">Feito com amor e fé</span>
           </div>
-          <p className="text-sm text-white drop-shadow-sm font-medium">"Orai uns pelos outros, para que sareis." - Tiago 5:16</p>
+          <p className="text-xs sm:text-sm text-white drop-shadow-sm font-medium">"Orai uns pelos outros, para que sareis." - Tiago 5:16</p>
         </footer>
       </div>
     </div>
