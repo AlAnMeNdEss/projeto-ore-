@@ -7,7 +7,11 @@ interface WelcomePageProps {
 
 export default function WelcomePage({ onStart }: WelcomePageProps) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4 relative">
+      {/* Botão de instalação no topo direito */}
+      <div className="absolute top-6 right-6 z-50 animate-bounce">
+        <InstallButton />
+      </div>
       <div className="w-full max-w-xl mx-auto py-20 text-center flex flex-col items-center">
         {/* Logo minimalista */}
         <div className="flex items-center justify-center w-20 h-20 rounded-full bg-[#8b5cf6] mb-6">
@@ -45,16 +49,11 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
         </div>
         {/* Chamada para ação */}
         <Button
-          className="w-full max-w-xs bg-[#8b5cf6] text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-[#6d28d9] transition-all duration-200 mb-4"
+          className="w-full max-w-xs bg-[#8b5cf6] text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-[#6d28d9] transition-all duration-200"
           onClick={onStart}
         >
           Começar agora
         </Button>
-        
-        {/* Botão de instalação */}
-        <div className="w-full max-w-xs">
-          <InstallButton />
-        </div>
       </div>
     </div>
   );
