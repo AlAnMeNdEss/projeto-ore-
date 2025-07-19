@@ -88,7 +88,7 @@ export function AuthPage() {
                     required
                     disabled={loading}
                     placeholder="Digite seu email"
-                    className="text-white placeholder:text-gray-300"
+                    className="placeholder:text-gray-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -101,7 +101,7 @@ export function AuthPage() {
                     required
                     disabled={loading}
                     placeholder="Digite sua senha"
-                    className="text-white placeholder:text-gray-300"
+                    className="placeholder:text-gray-300"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white font-semibold py-3 rounded-xl shadow-md hover:brightness-110 transition-all duration-200" disabled={loading}>
@@ -135,7 +135,7 @@ export function AuthPage() {
                     required
                     disabled={loading}
                     placeholder="Digite seu email"
-                    className="text-white placeholder:text-gray-300"
+                    className="placeholder:text-gray-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -149,7 +149,7 @@ export function AuthPage() {
                     disabled={loading}
                     minLength={6}
                     placeholder="Mínimo 6 caracteres"
-                    className="text-white placeholder:text-gray-300"
+                    className="placeholder:text-gray-300"
                   />
                   <p className="text-sm text-[#8b5cf6] font-semibold">💡 Dica: Use uma senha segura com letras, números e símbolos</p>
                 </div>
@@ -164,7 +164,7 @@ export function AuthPage() {
                     disabled={loading}
                     minLength={6}
                     placeholder="Digite a senha novamente"
-                    className="text-white placeholder:text-gray-300"
+                    className="placeholder:text-gray-300"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-gradient-prayer" disabled={loading}>
