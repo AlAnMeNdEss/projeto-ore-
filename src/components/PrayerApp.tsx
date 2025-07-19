@@ -20,6 +20,10 @@ export function PrayerApp() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+      {/* Botão de instalação no topo direito */}
+      <div className="absolute top-6 right-6 z-50">
+        <InstallButton />
+      </div>
 
       {/* Imagem de fundo de adoração */}
       <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
@@ -37,7 +41,6 @@ export function PrayerApp() {
           <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
           <p className="text-xs text-gray-300 text-center">Comunidade de oração e fé</p>
           <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap justify-center">
-            <InstallButton />
             {user && (
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <User className="h-4 w-4" />
