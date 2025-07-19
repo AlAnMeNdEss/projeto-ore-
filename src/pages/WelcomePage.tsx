@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { InstallButton } from '@/components/InstallButton';
 
 interface WelcomePageProps {
   onStart: () => void;
@@ -44,11 +45,16 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
         </div>
         {/* Chamada para ação */}
         <Button
-          className="w-full max-w-xs bg-[#8b5cf6] text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-[#6d28d9] transition-all duration-200"
+          className="w-full max-w-xs bg-[#8b5cf6] text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-[#6d28d9] transition-all duration-200 mb-4"
           onClick={onStart}
         >
           Começar agora
         </Button>
+        
+        {/* Botão de instalação */}
+        <div className="w-full max-w-xs">
+          <InstallButton />
+        </div>
       </div>
     </div>
   );
