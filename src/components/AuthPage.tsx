@@ -41,9 +41,9 @@ export function AuthPage() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       {/* Conteúdo do AuthPage */}
-      <div className="flex flex-col items-center justify-center mb-4 gap-2">
+      <div className="flex flex-col items-center justify-center mb-4 gap-2 relative z-10">
         {/* Logo minimalista: círculo com mãos em oração */}
         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] shadow-md">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -54,10 +54,10 @@ export function AuthPage() {
           Ore+
         </h1>
       </div>
-      <p className="text-base text-gray-200 mb-6 text-center">
+      <p className="text-base text-gray-200 mb-6 text-center relative z-10">
         Compartilhe, ore e fortaleça sua fé em comunidade
       </p>
-      <Card className="rounded-2xl shadow-xl border border-white/20 bg-white/10 backdrop-blur-lg p-8" style={{boxShadow:'0 8px 32px 0 rgba(31, 38, 135, 0.12)'}}>
+      <Card className="rounded-2xl shadow-xl border border-white/20 bg-white/10 backdrop-blur-lg p-8 relative z-20" style={{boxShadow:'0 8px 32px 0 rgba(31, 38, 135, 0.12)'}}>
         <CardHeader className="pb-4">
           <CardTitle className="text-center text-xl text-white">Bem-vindo</CardTitle>
           <CardDescription className="text-center text-gray-300">
@@ -66,7 +66,7 @@ export function AuthPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="flex w-full gap-2 mb-6 overflow-x-auto scrollbar-hide rounded-xl bg-black/30 p-1">
+            <TabsList className="flex w-full gap-2 mb-6 overflow-x-auto scrollbar-hide rounded-xl bg-black/30 p-1 relative z-10">
               <TabsTrigger value="login" className="flex-1 min-w-[120px] text-white rounded-lg px-4 py-2 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">Entrar</TabsTrigger>
               <TabsTrigger value="signup" className="flex-1 min-w-[120px] text-white rounded-lg px-4 py-2 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">Cadastrar</TabsTrigger>
             </TabsList>

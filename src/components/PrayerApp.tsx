@@ -5,34 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { PrayerRequestForm } from './PrayerRequestForm';
 import { PrayerRequestsList } from './PrayerRequestsList';
 import { Heart, Plus, List, LogOut, User } from 'lucide-react';
+import { InstallButton } from './InstallButton';
 
 export function PrayerApp() {
   const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'list' | 'create'>('list');
 
-  // Banner de instalação PWA
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowInstallBanner(false);
-      }
-    }
-  };
   // Remover toda a lógica de gamificação
 
   const handleSignOut = async () => {
@@ -41,27 +20,7 @@ export function PrayerApp() {
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-      {/* Banner de instalação PWA */}
-      {showInstallBanner && (
-        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2d1457] text-white rounded-2xl shadow-lg px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center gap-2 sm:gap-4 animate-fade-in max-w-[90vw] sm:max-w-none">
-          <span className="text-sm sm:text-lg font-semibold text-center sm:text-left">Instale o Ore+ no seu dispositivo para uma experiência melhor!</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleInstallClick}
-              className="bg-[#8b5cf6] hover:bg-[#6d28d9] text-white font-bold px-3 sm:px-4 py-2 rounded-lg transition-all text-sm"
-            >
-              Instalar Ore+
-            </button>
-            <button
-              onClick={() => setShowInstallBanner(false)}
-              className="text-gray-300 hover:text-white text-lg sm:text-xl"
-              title="Fechar"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
+
       {/* Imagem de fundo de adoração */}
       <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
       {/* Fundo glassmorphism */}
@@ -77,7 +36,8 @@ export function PrayerApp() {
           </div>
           <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
           <p className="text-xs text-gray-300 text-center">Comunidade de oração e fé</p>
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-2 sm:gap-4 mt-2 flex-wrap justify-center">
+            <InstallButton />
             {user && (
               <div className="flex items-center gap-2 text-xs text-gray-400">
                 <User className="h-4 w-4" />
