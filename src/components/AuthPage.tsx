@@ -82,6 +82,8 @@ export function AuthPage() {
                     onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
                     required
                     disabled={loading}
+                    placeholder="Digite seu email"
+                    className="text-white placeholder:text-gray-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -93,6 +95,8 @@ export function AuthPage() {
                     onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
                     required
                     disabled={loading}
+                    placeholder="Digite sua senha"
+                    className="text-white placeholder:text-gray-300"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white font-semibold py-3 rounded-xl shadow-md hover:brightness-110 transition-all duration-200" disabled={loading}>
@@ -125,6 +129,8 @@ export function AuthPage() {
                     onChange={(e) => setSignupForm({...signupForm, email: e.target.value})}
                     required
                     disabled={loading}
+                    placeholder="Digite seu email"
+                    className="text-white placeholder:text-gray-300"
                   />
                 </div>
                 <div className="space-y-2">
@@ -137,7 +143,10 @@ export function AuthPage() {
                     required
                     disabled={loading}
                     minLength={6}
+                    placeholder="Mínimo 6 caracteres"
+                    className="text-white placeholder:text-gray-300"
                   />
+                  <p className="text-xs text-gray-400">💡 Dica: Use uma senha segura com letras, números e símbolos</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-white">Confirmar Senha</Label>
@@ -149,6 +158,8 @@ export function AuthPage() {
                     required
                     disabled={loading}
                     minLength={6}
+                    placeholder="Digite a senha novamente"
+                    className="text-white placeholder:text-gray-300"
                   />
                 </div>
                 <Button type="submit" className="w-full bg-gradient-prayer" disabled={loading}>
