@@ -43,6 +43,10 @@ export function AuthPage() {
 
   return (
     <div className="w-full relative">
+      {/* Botão de instalação no topo direito */}
+      <div className="absolute top-6 right-6 z-50">
+        <InstallButton />
+      </div>
       {/* Conteúdo do AuthPage */}
       <div className="flex flex-col items-center justify-center mb-4 gap-2 relative z-30">
         {/* Logo minimalista: círculo com mãos em oração */}
@@ -58,9 +62,6 @@ export function AuthPage() {
       <p className="text-base text-gray-200 mb-6 text-center relative z-30">
         Compartilhe, ore e fortaleça sua fé em comunidade
       </p>
-      <div className="flex justify-center mb-4 relative z-30">
-        <InstallButton />
-      </div>
       <Card className="rounded-2xl shadow-xl border border-white/20 bg-white/10 backdrop-blur-lg p-8 relative z-20" style={{boxShadow:'0 8px 32px 0 rgba(31, 38, 135, 0.12)'}}>
         <CardHeader className="pb-4">
           <CardTitle className="text-center text-xl text-white">Bem-vindo</CardTitle>

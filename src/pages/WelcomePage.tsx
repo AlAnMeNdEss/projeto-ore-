@@ -9,7 +9,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white px-4 relative">
       {/* Botão de instalação no topo direito */}
-      <div className="absolute top-6 right-6 z-50 animate-bounce">
+      <div className="absolute top-6 right-6 z-50">
         <InstallButton />
       </div>
       <div className="w-full max-w-xl mx-auto py-20 text-center flex flex-col items-center">
