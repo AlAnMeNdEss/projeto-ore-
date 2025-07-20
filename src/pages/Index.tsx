@@ -29,11 +29,16 @@ const Index = () => {
   // Se o usuário está logado, mostra o app
   if (user) {
     return (
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-        {/* Imagem de fundo de adoração */}
-        <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
-        {/* Fundo glassmorphism */}
-        <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#2d1457] via-[#8b5cf6]/60 to-[#181824] backdrop-blur-2xl bg-opacity-70" />
+      <div
+        className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
+        style={{
+          backgroundImage: `url(/src/assets/spiritual-background.jpg)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        {/* Overlay para escurecer o fundo e dar contraste */}
+        <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
         <div className="relative z-20 w-full">
           <PrayerApp />
         </div>
@@ -48,11 +53,16 @@ const Index = () => {
 
   // Se não está logado mas clicou em 'Começar', mostra o login
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Imagem de fundo de adoração */}
-      <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
-      {/* Fundo glassmorphism */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#2d1457] via-[#8b5cf6]/60 to-[#181824] backdrop-blur-2xl bg-opacity-70" />
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden"
+      style={{
+        backgroundImage: `url(/src/assets/spiritual-background.jpg)`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Overlay para escurecer o fundo e dar contraste */}
+      <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
       <div className="relative z-20 w-full max-w-md mx-auto p-6">
         <AuthPage />
       </div>

@@ -62,7 +62,7 @@ export function AuthPage() {
       <p className="text-base text-gray-200 mb-6 text-center relative z-30">
         Compartilhe, ore e fortaleça sua fé em comunidade
       </p>
-      <Card className="rounded-2xl shadow-xl border border-white/20 bg-white/10 backdrop-blur-lg p-8 relative z-20" style={{boxShadow:'0 8px 32px 0 rgba(31, 38, 135, 0.12)'}}>
+      <Card className="rounded-2xl shadow-xl border border-white/20 bg-white/5 p-4 relative z-20" style={{boxShadow:'0 8px 32px 0 rgba(31, 38, 135, 0.12)'}}>
         <CardHeader className="pb-4">
           <CardTitle className="text-center text-xl text-white">Bem-vindo</CardTitle>
           <CardDescription className="text-center text-gray-300">
