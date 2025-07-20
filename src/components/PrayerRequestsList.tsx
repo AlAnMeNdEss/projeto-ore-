@@ -10,10 +10,11 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Heart, Trash2, Filter } from 'lucide-react';
 
-export function PrayerRequestsList() {
+export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () => void }) {
   const { requests, loading, prayForRequest, deleteRequest } = usePrayerRequests();
   const { user } = useAuth();
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [orouIds, setOrouIds] = useState<string[]>([]);
 
   const filteredRequests = requests.filter(request => {
     if (filterCategory === 'all') return true;
@@ -23,11 +24,14 @@ export function PrayerRequestsList() {
   const handlePray = async (requestId: string) => {
     if (!user) return;
     await prayForRequest(requestId, user.id);
+    setOrouIds((prev) => [...prev, requestId]);
+    if (refreshRequests) refreshRequests();
   };
 
   const handleDelete = async (requestId: string) => {
     if (!user) return;
     await deleteRequest(requestId);
+    if (refreshRequests) refreshRequests();
   };
 
   const canDelete = (request: any) => {
@@ -46,9 +50,9 @@ export function PrayerRequestsList() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         {[1, 2, 3].map(i => (
-          <Card key={i} className="animate-pulse rounded-2xl border border-white/20 bg-white/5 p-4">
+          <Card key={i} className="animate-pulse rounded-2xl border border-white/20 bg-white/5 p-4 shadow-none">
             <CardContent className="p-6">
               <div className="space-y-3">
                 <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -62,9 +66,21 @@ export function PrayerRequestsList() {
     );
   }
 
+  if (filteredRequests.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="bg-white/10 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-none border border-white/10">
+          <Heart className="h-10 w-10 text-[#8b5cf6] mb-2 animate-pulse" />
+          <p className="text-lg text-[#8b5cf6] font-semibold">Nenhum pedido de oração ainda</p>
+          <p className="text-sm text-gray-300">Seja o primeiro a compartilhar um pedido!</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center gap-2 sm:gap-4">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex items-center gap-2 sm:gap-4 mb-2">
         <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-full sm:w-[200px] text-sm">
@@ -80,86 +96,68 @@ export function PrayerRequestsList() {
           </SelectContent>
         </Select>
       </div>
-
-      {filteredRequests.length === 0 ? (
-        <Card className="text-center py-8 sm:py-12 rounded-2xl border border-white/20 bg-white/5 p-4">
-          <CardContent>
-            <Heart className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-            <p className="text-muted-foreground text-sm sm:text-base">
-              {filterCategory === 'all' 
-                ? 'Nenhum pedido de oração foi compartilhado ainda.'
-                : 'Nenhum pedido encontrado nesta categoria.'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3 sm:space-y-4">
-          {filteredRequests.map(request => (
-            <Card key={request.id} className="relative rounded-2xl border border-white/20 bg-white/5 p-4 shadow-xl mb-3 sm:mb-6 overflow-hidden">
-              {/* Detalhe decorativo no topo */}
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] opacity-40 rounded-t-3xl" />
-              <CardHeader className="pb-2 flex flex-row items-center gap-2 sm:gap-3 border-b border-white/10 px-4 sm:px-6 pt-6">
-                <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] text-white text-xl sm:text-2xl shadow-md">
+      <div className="space-y-6">
+        {filteredRequests.map(request => (
+          <Card key={request.id} className="relative rounded-2xl border border-white/15 bg-white/10 p-0 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow">
                   {CATEGORY_ICONS[request.category] || '✨'}
                 </span>
-                <div className="flex-1">
-                  <span className="font-semibold text-[#b2a4ff] text-sm sm:text-base mr-2">
-                    {PRAYER_CATEGORIES[request.category] || 'Categoria desconhecida'}
-                  </span>
-                  <span className="text-xs text-gray-200/80">
-                    {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: ptBR })}
-                    <span className="mx-1">•</span>
-                    {format(new Date(request.created_at), 'dd/MM/yyyy')}
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20">
+                  {PRAYER_CATEGORIES[request.category] || 'Categoria desconhecida'}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-1 whitespace-pre-wrap leading-snug">{request.text}</h3>
+              <div className="flex items-center justify-between mt-2 mb-1 text-xs text-gray-300">
+                <span>
+                  {request.name ? <span>Por: <span className="font-semibold text-[#b2a4ff]">{request.name}</span></span> : <span>Anônimo</span>}
+                </span>
+                <span>
+                  {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: ptBR })}
+                  <span className="mx-1">•</span>
+                  {format(new Date(request.created_at), 'dd/MM/yyyy')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-[#b2a4ff] font-semibold">
+                  <Heart className="h-4 w-4 text-pink-400" />
+                  <span>
+                    {request.prayer_count} {request.prayer_count === 1 ? 'oração' : 'orações'}
                   </span>
                 </div>
-              </CardHeader>
-              <CardContent className="pt-2 pb-4 px-4 sm:px-6">
-                {request.name && (
-                  <div className="text-xs text-gray-300 mb-1">
-                    <span className="font-semibold">Por:</span> {request.name}
-                  </div>
-                )}
-                <p className="text-white mb-4 whitespace-pre-wrap leading-relaxed text-sm sm:text-base font-medium">
-                  {request.text}
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-[#b2a4ff] font-semibold">
-                    <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-pink-400" />
-                    <span>
-                      {request.prayer_count} {request.prayer_count === 1 ? 'oração' : 'orações'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {user && (
-                      <Button
-                        onClick={() => handlePray(request.id)}
-                        variant="outline"
-                        size="sm"
-                        className="border-[#b2a4ff] text-[#b2a4ff] bg-[#3a1c71]/60 hover:bg-[#8b5cf6]/80 hover:text-[#3a1c71] transition-colors duration-200 rounded-full px-3 sm:px-5 py-1 text-xs sm:text-sm font-semibold shadow-md"
-                      >
-                        <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        Orar
-                      </Button>
-                    )}
-                    {canDelete(request) && (
-                      <Button
-                        onClick={() => handleDelete(request.id)}
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-400 hover:bg-red-100/10 hover:text-red-600 rounded-full ml-1"
-                        title="Apagar pedido"
-                      >
-                        <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </Button>
-                    )}
-                  </div>
+                <div className="flex gap-2">
+                  {user && (
+                    <Button
+                      onClick={() => handlePray(request.id)}
+                      variant={orouIds.includes(request.id) ? 'default' : 'outline'}
+                      size="sm"
+                      className={orouIds.includes(request.id)
+                        ? 'bg-[#8b5cf6] text-white border-[#8b5cf6] cursor-default rounded-full px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm'
+                        : 'border-[#b2a4ff] text-[#b2a4ff] bg-white/20 hover:bg-[#8b5cf6]/80 hover:text-white transition-colors duration-200 rounded-full px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm'}
+                      disabled={orouIds.includes(request.id)}
+                    >
+                      <Heart className="h-4 w-4 mr-1" />
+                      {orouIds.includes(request.id) ? 'Orado' : 'Orar'}
+                    </Button>
+                  )}
+                  {canDelete(request) && (
+                    <Button
+                      onClick={() => handleDelete(request.id)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-400 hover:bg-red-100/10 hover:text-red-600 rounded-full ml-1"
+                      title="Apagar pedido"
+                    >
+                      <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

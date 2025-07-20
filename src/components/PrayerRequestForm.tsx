@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { PRAYER_CATEGORIES, PrayerCategory } from '@/types/prayer';
 import { Send, Heart, Loader2 } from 'lucide-react';
 
-export function PrayerRequestForm() {
+export function PrayerRequestForm({ refreshRequests }: { refreshRequests?: () => void }) {
   const { createRequest } = usePrayerRequests();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -42,6 +42,7 @@ export function PrayerRequestForm() {
     if (result.success) {
       setForm({ text: '', category: '' as PrayerCategory, name: '' });
       setIsAnonymous(false);
+      if (refreshRequests) refreshRequests();
     }
     
     setLoading(false);

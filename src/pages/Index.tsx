@@ -2,16 +2,72 @@ import { useAuth } from '@/hooks/useAuth';
 import { AuthPage } from '@/components/AuthPage';
 import { PrayerApp, UserMenu } from '@/components/PrayerApp';
 import WelcomePage from './WelcomePage';
-import { Loader2, Heart } from 'lucide-react';
+import { Loader2, Heart, User as UserIcon, Send, Users, BarChart2 } from 'lucide-react';
 import { useState } from 'react';
 import bgImage from '@/assets/spiritual-background.jpg';
 import { BottomNavBar } from '@/components/BottomNavBar';
+import { usePrayerRequests } from '@/hooks/usePrayerRequests';
+import { ChartContainer } from '@/components/ui/chart';
+import { PieChart, Pie, Tooltip as PieTooltip, ResponsiveContainer as PieResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
+import { PRAYER_CATEGORIES } from '@/types/prayer';
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const { requests } = usePrayerRequests();
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pedidos' | 'biblia'>('pedidos');
+  const [activeTab, setActiveTab] = useState<'pedidos' | 'biblia' | 'perfil'>('pedidos');
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
+
+  const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
+  const totalOracoesRecebidas = pedidosDoUsuario.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
+  // Ordenar pedidos do usuário por data de criação (mais recente primeiro)
+  const pedidosOrdenados = [...pedidosDoUsuario].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const ultimoPedido = pedidosOrdenados[0];
+  const primeiroPedido = pedidosOrdenados.length > 0 ? pedidosOrdenados[pedidosOrdenados.length - 1] : undefined;
+  // Estatísticas simples
+  const mediaOracoes = pedidosDoUsuario.length > 0 ? (totalOracoesRecebidas / pedidosDoUsuario.length).toFixed(1) : '0';
+  const pedidoMaisOrado = pedidosDoUsuario.reduce((max, r) => (r.prayer_count > (max?.prayer_count || 0) ? r : max), undefined as typeof pedidosDoUsuario[0] | undefined);
+
+  // Gráfico de linha: evolução das orações nos últimos 7 dias
+  const dias = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const oracoesPorDia = dias.map((dia) => {
+    const diaStr = dia.toISOString().slice(0, 10);
+    const total = pedidosDoUsuario.reduce((acc, p) => {
+      const pedidoDia = new Date(p.created_at).toISOString().slice(0, 10);
+      return pedidoDia === diaStr ? acc + (p.prayer_count || 0) : acc;
+    }, 0);
+    return {
+      dia: dia.toLocaleDateString('pt-BR', { weekday: 'short' }),
+      oracoes: total,
+    };
+  });
+
+  // Gráfico de pizza: proporção de pedidos criados e orações recebidas por categoria
+  const categorias = Object.keys(PRAYER_CATEGORIES);
+  const dataPedidos = categorias.map(cat => ({
+    name: PRAYER_CATEGORIES[cat],
+    value: pedidosDoUsuario.filter(p => p.category === cat).length
+  })).filter(d => d.value > 0);
+  const dataOracoes = categorias.map(cat => ({
+    name: PRAYER_CATEGORIES[cat],
+    value: pedidosDoUsuario.filter(p => p.category === cat).reduce((acc, p) => acc + (p.prayer_count || 0), 0)
+  })).filter(d => d.value > 0);
+  const pieColors = ['#8b5cf6', '#f3e8ff', '#6d28d9', '#a78bfa', '#b2a4ff', '#e0c3fc'];
+
+  // Gráfico de barras agrupadas: pedidos criados e orações recebidas por categoria
+  const dataCategorias = categorias.map(cat => ({
+    categoria: PRAYER_CATEGORIES[cat],
+    pedidos: pedidosDoUsuario.filter(p => p.category === cat).length,
+    oracoes: pedidosDoUsuario.filter(p => p.category === cat).reduce((acc, p) => acc + (p.prayer_count || 0), 0)
+  })).filter(d => d.pedidos > 0 || d.oracoes > 0);
+
+  // Emojis/carinhas para o topo das barras
+  const barEmojis = ['😐', '😏', '😕', '😃', '😒', '😎'];
 
   // Debug: verificar estados
   console.log('Index - user:', user, 'loading:', loading, 'showAuth:', showAuth);
@@ -41,10 +97,6 @@ const Index = () => {
           backgroundPosition: 'center',
         }}
       >
-        {/* Botão/avatar de usuário no canto superior direito absoluto */}
-        <div className="absolute top-4 right-4 z-50">
-          <UserMenu />
-        </div>
         {/* Overlay para escurecer o fundo e dar contraste */}
         <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
         <div className="relative z-20 w-full">
@@ -81,6 +133,36 @@ const Index = () => {
           {activeTab === 'biblia' && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-2xl font-bold opacity-80">
               <span>Em breve: Bíblia</span>
+            </div>
+          )}
+          {activeTab === 'perfil' && user && (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-white gap-8 w-full">
+              {/* Topo: Avatar, nome, email */}
+              <div className="flex flex-col items-center gap-2 w-full">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] flex items-center justify-center text-4xl font-bold text-white shadow-lg mb-2">
+                  {user.email?.[0]?.toUpperCase() || <UserIcon className="w-10 h-10" />}
+                </div>
+                <div className="text-base text-[#8b5cf6] font-medium">{user.email}</div>
+                <button
+                  onClick={signOut}
+                  className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white font-semibold shadow-md hover:brightness-110 transition-all duration-200"
+                >
+                  Sair
+                </button>
+              </div>
+              {/* Estatísticas em cards */}
+              <div className="flex flex-row flex-wrap gap-4 justify-center w-full max-w-2xl">
+                <div className="flex flex-col items-center bg-white/10 rounded-xl p-4 min-w-[120px] shadow-md">
+                  <BarChart2 className="w-7 h-7 text-[#8b5cf6] mb-1" />
+                  <div className="text-xl font-bold">{pedidosDoUsuario.length}</div>
+                  <div className="text-xs text-[#8b5cf6] font-semibold uppercase tracking-wide">Pedidos criados</div>
+                </div>
+                <div className="flex flex-col items-center bg-white/10 rounded-xl p-4 min-w-[120px] shadow-md">
+                  <Send className="w-7 h-7 text-[#6d28d9] mb-1" />
+                  <div className="text-xl font-bold">{totalOracoesRecebidas}</div>
+                  <div className="text-xs text-[#6d28d9] font-semibold uppercase tracking-wide">Orações recebidas</div>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -6,6 +6,7 @@ import { PrayerRequestForm } from './PrayerRequestForm';
 import { PrayerRequestsList } from './PrayerRequestsList';
 import { Heart, Plus, List, LogOut, User } from 'lucide-react';
 import { InstallButton } from './InstallButton';
+import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
@@ -60,6 +61,7 @@ export function UserMenu() {
 
 export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
   const { user, signOut } = useAuth();
+  const { refreshRequests } = usePrayerRequests();
   const [internalTab, setInternalTab] = useState<'list' | 'create'>('list');
   const tab = activeTab ?? internalTab;
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -145,7 +147,7 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
                       <p className="text-white font-bold text-sm sm:text-base drop-shadow-md">
                         Clique em "Orar" para registrar sua oração e apoio
                       </p>
-                      <PrayerRequestsList />
+                      <PrayerRequestsList refreshRequests={refreshRequests} />
                     </CardContent>
                   </Card>
                 </div>
@@ -170,7 +172,7 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
                         Compartilhe seu pedido com nossa comunidade
                       </p>
                       <div className="w-full max-w-2xl mx-auto">
-                        <PrayerRequestForm />
+                        <PrayerRequestForm refreshRequests={refreshRequests} />
                       </div>
                     </CardContent>
                   </Card>
