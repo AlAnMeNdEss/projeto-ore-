@@ -1,14 +1,17 @@
 import { useAuth } from '@/hooks/useAuth';
 import { AuthPage } from '@/components/AuthPage';
-import { PrayerApp } from '@/components/PrayerApp';
+import { PrayerApp, UserMenu } from '@/components/PrayerApp';
 import WelcomePage from './WelcomePage';
 import { Loader2, Heart } from 'lucide-react';
 import { useState } from 'react';
 import bgImage from '@/assets/spiritual-background.jpg';
+import { BottomNavBar } from '@/components/BottomNavBar';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pedidos' | 'biblia'>('pedidos');
+  const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
 
   // Debug: verificar estados
   console.log('Index - user:', user, 'loading:', loading, 'showAuth:', showAuth);
@@ -38,11 +41,50 @@ const Index = () => {
           backgroundPosition: 'center',
         }}
       >
+        {/* Botão/avatar de usuário no canto superior direito absoluto */}
+        <div className="absolute top-4 right-4 z-50">
+          <UserMenu />
+        </div>
         {/* Overlay para escurecer o fundo e dar contraste */}
         <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
         <div className="relative z-20 w-full">
-          <PrayerApp />
+          {activeTab === 'pedidos' && (
+            <>
+              {/* Logo e nome acima dos botões de pedidos */}
+              <div className="flex flex-col items-center justify-center mb-2">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
+                  <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
+              </div>
+              <div className="flex justify-center mb-4 sm:mb-8">
+                <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner">
+                  <button
+                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'list' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
+                    onClick={() => setPedidosTab('list')}
+                  >
+                    Ver Pedidos
+                  </button>
+                  <button
+                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'create' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
+                    onClick={() => setPedidosTab('create')}
+                  >
+                    Criar Pedido
+                  </button>
+                </div>
+              </div>
+              <PrayerApp activeTab={pedidosTab} />
+            </>
+          )}
+          {activeTab === 'biblia' && (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-2xl font-bold opacity-80">
+              <span>Em breve: Bíblia</span>
+            </div>
+          )}
         </div>
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
     );
   }
