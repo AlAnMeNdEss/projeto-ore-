@@ -25,10 +25,6 @@ export function PrayerApp() {
         <InstallButton />
       </div>
 
-      {/* Imagem de fundo de adoração */}
-      <img src="/worship-bg.jpg" alt="Fundo de adoração" className="absolute inset-0 w-full h-full object-cover z-0 opacity-30 blur-sm" />
-      {/* Fundo glassmorphism */}
-      <div className="absolute inset-0 z-10 bg-gradient-to-br from-[#2d1457] via-[#8b5cf6]/60 to-[#181824] backdrop-blur-2xl bg-opacity-70" />
       <div className="relative z-20 w-full max-w-4xl mx-auto px-2 sm:px-4 flex flex-col min-h-screen">
         {/* Conteúdo do PrayerApp */}
         {/* Header minimalista */}

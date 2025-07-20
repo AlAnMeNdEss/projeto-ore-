@@ -48,7 +48,7 @@ export function PrayerRequestsList() {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map(i => (
-          <Card key={i} className="animate-pulse">
+          <Card key={i} className="animate-pulse rounded-2xl border border-white/20 bg-white/5 p-4">
             <CardContent className="p-6">
               <div className="space-y-3">
                 <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -82,7 +82,7 @@ export function PrayerRequestsList() {
       </div>
 
       {filteredRequests.length === 0 ? (
-        <Card className="text-center py-8 sm:py-12">
+        <Card className="text-center py-8 sm:py-12 rounded-2xl border border-white/20 bg-white/5 p-4">
           <CardContent>
             <Heart className="h-8 w-8 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
             <p className="text-muted-foreground text-sm sm:text-base">
@@ -96,7 +96,7 @@ export function PrayerRequestsList() {
       ) : (
         <div className="space-y-3 sm:space-y-4">
           {filteredRequests.map(request => (
-            <Card key={request.id} className="relative rounded-3xl border-0 bg-[#2d1457]/80 shadow-xl mb-3 sm:mb-6 p-0 backdrop-blur-md overflow-hidden">
+            <Card key={request.id} className="relative rounded-2xl border border-white/20 bg-white/5 p-4 shadow-xl mb-3 sm:mb-6 overflow-hidden">
               {/* Detalhe decorativo no topo */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] opacity-40 rounded-t-3xl" />
               <CardHeader className="pb-2 flex flex-row items-center gap-2 sm:gap-3 border-b border-white/10 px-4 sm:px-6 pt-6">
