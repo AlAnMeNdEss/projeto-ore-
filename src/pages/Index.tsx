@@ -4,6 +4,7 @@ import { PrayerApp } from '@/components/PrayerApp';
 import WelcomePage from './WelcomePage';
 import { Loader2, Heart } from 'lucide-react';
 import { useState } from 'react';
+import bgImage from '@/assets/spiritual-background.jpg';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -32,7 +33,7 @@ const Index = () => {
       <div
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
         style={{
-          backgroundImage: `url(/src/assets/spiritual-background.jpg)`,
+          backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -56,7 +57,7 @@ const Index = () => {
     <div
       className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden"
       style={{
-        backgroundImage: `url(/src/assets/spiritual-background.jpg)`,
+        backgroundImage: `url(${bgImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
