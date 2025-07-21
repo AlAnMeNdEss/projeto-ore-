@@ -78,7 +78,10 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
           style={{ maxWidth: '100vw' }}
         >
           <h2 className="text-4xl md:text-5xl font-bold text-black mb-4 text-center">Como Funciona?</h2>
-          <p className="text-lg md:text-xl text-gray-500 text-center mb-10">Em 3 passos simples, você conecta-se em fé.</p>
+          <p className="text-lg md:text-xl text-gray-500 text-center mb-10">
+            Em 3 passos simples,<br />
+            você conecta-se em fé.
+          </p>
 
           {/* Passo 1 */}
           <motion.div
