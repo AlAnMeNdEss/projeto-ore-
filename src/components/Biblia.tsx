@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { KEYWORDS, KeywordVerse } from "@/data/keywords";
 import bgImage from '@/assets/spiritual-background.jpg';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const livros = [
   { nome: "Gênesis", api: "gn", testamento: "antigo", capitulos: 50 },
@@ -92,6 +93,12 @@ export default function Biblia() {
   const [versiculos, setVersiculos] = useState<any[]>([]);
   const [carregandoVersiculos, setCarregandoVersiculos] = useState(false);
   const [erroVersiculos, setErroVersiculos] = useState("");
+  // Remover estados e funções do modo pergaminho
+  // const [modoPergaminho, setModoPergaminho] = useState(false);
+  // const [pergaminhoCapitulos, setPergaminhoCapitulos] = useState<any[]>([]);
+  // const [carregandoPergaminho, setCarregandoPergaminho] = useState(false);
+  // async function carregarPergaminho(livroApi: string) { ... }
+
   // Função para buscar um devocional temático
   function buscarDevocionalTematico() {
     setCarregandoDevocional(true);
@@ -106,6 +113,62 @@ export default function Biblia() {
   // Ajustar o tipo do devocional para incluir tema
   const [devocional, setDevocional] = useState<{reference: string, text: string, tema: string} | null>(null);
   const [carregandoDevocional, setCarregandoDevocional] = useState(false);
+
+  // Marca-texto: estado para versículos marcados
+  const [marcados, setMarcados] = useState<{ [key: string]: string }>({}); // key: 'livro:capitulo:verso', value: cor
+  const [menuCor, setMenuCor] = useState<{ key: string, x: number, y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const cores = [
+    { nome: 'Amarelo', cor: 'rgba(254, 240, 138, 0.6)' }, // amarelo translúcido
+    { nome: 'Verde', cor: 'rgba(187, 247, 208, 0.6)' },   // verde translúcido
+    { nome: 'Rosa', cor: 'rgba(251, 207, 232, 0.6)' },    // rosa translúcido
+    { nome: 'Azul', cor: 'rgba(186, 230, 253, 0.6)' },    // azul translúcido
+    { nome: 'Laranja', cor: 'rgba(253, 186, 116, 0.6)' }, // laranja translúcido
+  ];
+
+  // Fecha menu de cor ao clicar fora
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuCor(null);
+      }
+    }
+    if (menuCor) {
+      document.addEventListener('mousedown', handleClick);
+    } else {
+      document.removeEventListener('mousedown', handleClick);
+    }
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [menuCor]);
+
+  // Função utilitária para detectar long press (mouse e touch)
+  function getLongPressHandlers(callback: (e: React.MouseEvent | React.TouchEvent) => void, ms = 400) {
+    let timer: NodeJS.Timeout | null = null;
+    let moved = false;
+    return {
+      onMouseDown: (e: React.MouseEvent) => {
+        moved = false;
+        timer = setTimeout(() => callback(e), ms);
+      },
+      onMouseUp: () => {
+        if (timer) clearTimeout(timer);
+      },
+      onMouseLeave: () => {
+        if (timer) clearTimeout(timer);
+      },
+      onTouchStart: (e: React.TouchEvent) => {
+        moved = false;
+        timer = setTimeout(() => callback(e), ms);
+      },
+      onTouchEnd: () => {
+        if (timer) clearTimeout(timer);
+      },
+      onTouchMove: () => {
+        moved = true;
+        if (timer) clearTimeout(timer);
+      }
+    };
+  }
 
   useEffect(() => {
     buscarDevocionalTematico();
@@ -251,7 +314,7 @@ export default function Biblia() {
               </button>
             ))}
             <button
-              className="w-full mt-4 py-2 rounded-xl border border-[#8b5cf6] bg-[#181824] text-[#b2a4ff] font-bold text-base transition-all duration-200 hover:scale-105"
+              className="w-full mt-2 py-2 rounded-xl border border-[#8b5cf6] bg-[#181824] text-[#b2a4ff] font-bold text-base transition-all duration-200 hover:scale-105"
               onClick={() => setLivroSelecionado(null)}
             >
               Voltar aos livros
@@ -285,7 +348,41 @@ export default function Biblia() {
         )}
         {/* Versículos do capítulo */}
         {capituloSelecionado && !modoBusca && (
-          <div className="w-full max-w-2xl mx-auto mt-6">
+          <div className="w-full max-w-2xl mx-auto mt-6 relative">
+            {/* Menu de seleção de cor */}
+            {menuCor && (
+              <div
+                ref={menuRef}
+                className="absolute z-[9999] flex gap-2 p-2 bg-white rounded-xl shadow-lg border border-[#b2a4ff]/40 animate-fade-in"
+                style={{ left: menuCor.x, top: menuCor.y }}
+              >
+                {cores.map(c => (
+                  <button
+                    key={c.cor}
+                    className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 hover:scale-110 transition-all"
+                    style={{ background: c.cor }}
+                    onClick={() => {
+                      setMarcados(m => ({ ...m, [menuCor.key]: c.cor }));
+                      setMenuCor(null);
+                    }}
+                  />
+                ))}
+                <button
+                  className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 flex items-center justify-center text-[#b2a4ff] bg-white hover:scale-110 transition-all"
+                  onClick={() => {
+                    setMarcados(m => {
+                      const novo = { ...m };
+                      delete novo[menuCor.key];
+                      return novo;
+                    });
+                    setMenuCor(null);
+                  }}
+                  title="Remover marcação"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#2d1457]/80 shadow-xl backdrop-blur-xl p-6 overflow-hidden">
               <div className="pb-2 flex flex-row items-center gap-3 border-b border-[#a78bfa]/20 px-2 pt-2">
                 <span className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
@@ -299,14 +396,140 @@ export default function Biblia() {
                 ) : erroVersiculos ? (
                   <div className="text-center text-red-400">{erroVersiculos}</div>
                 ) : (
-                  versiculos.map((v, i) => (
-                    <div key={i} className="rounded-xl bg-[#1a093e]/60 border border-[#8b5cf6]/20 p-4 text-white/90 shadow-sm mb-3">
-                      <span className="font-bold text-[#b2a4ff] mr-2">{v.verse}</span>
-                      {v.text}
-                    </div>
-                  ))
+                  versiculos.map((v, i) => {
+                    const key = `${livroSelecionado}:${capituloSelecionado}:${v.verse}`;
+                    const cor = marcados[key];
+                    let longPressTimer: NodeJS.Timeout | null = null;
+                    let pressed = false;
+                    const handleLongPress = (e: React.MouseEvent | React.TouchEvent) => {
+                      let rect;
+                      if ('touches' in e && e.touches.length > 0) {
+                        rect = (e.target as HTMLElement).getBoundingClientRect();
+                      } else {
+                        rect = (e.target as HTMLElement).getBoundingClientRect();
+                      }
+                      const x = Math.min(rect.left + 40, window.innerWidth - 180);
+                      const y = Math.max(rect.top - 10, 20);
+                      setMenuCor({ key, x, y });
+                    };
+                    return (
+                      <div
+                        key={i}
+                        className={`rounded-xl border border-[#8b5cf6]/20 p-4 text-white/90 shadow-sm mb-3 relative select-none transition-transform duration-150 flex items-center`}
+                        onMouseDown={e => {
+                          pressed = true;
+                          e.preventDefault();
+                          longPressTimer = setTimeout(() => { handleLongPress(e); pressed = false; }, 350);
+                        }}
+                        onMouseUp={() => {
+                          pressed = false;
+                          if (longPressTimer) clearTimeout(longPressTimer);
+                        }}
+                        onMouseLeave={() => {
+                          pressed = false;
+                          if (longPressTimer) clearTimeout(longPressTimer);
+                        }}
+                        onTouchStart={e => {
+                          pressed = true;
+                          e.preventDefault();
+                          longPressTimer = setTimeout(() => { handleLongPress(e); pressed = false; }, 350);
+                        }}
+                        onTouchEnd={() => {
+                          pressed = false;
+                          if (longPressTimer) clearTimeout(longPressTimer);
+                        }}
+                        onTouchMove={() => {
+                          pressed = false;
+                          if (longPressTimer) clearTimeout(longPressTimer);
+                        }}
+                        onContextMenu={e => {
+                          e.preventDefault();
+                          handleLongPress(e);
+                        }}
+                        style={{
+                          background: cor ? cor : '#1a093e99',
+                          color: '#fff',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s, transform 0.15s',
+                          transform: pressed ? 'scale(0.97)' : 'scale(1)'
+                        }}
+                      >
+                        <span className="font-bold text-[#b2a4ff] mr-2">{v.verse}</span>
+                        <span className="flex-1">{v.text}</span>
+                        <button
+                          className="ml-2 p-2 rounded-full bg-[#25d366]/20 hover:bg-[#25d366]/40 transition-colors"
+                          title="Compartilhar no WhatsApp"
+                          onClick={() => {
+                            const livroNome = livros.find(l => l.api === livroSelecionado)?.nome || '';
+                            const referencia = `${livroNome} ${capituloSelecionado}:${v.verse}`;
+                            const texto = `${referencia} — ${v.text}`;
+                            const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+                            window.open(url, '_blank');
+                          }}
+                        >
+                          <FaWhatsapp className="text-[#25d366] w-5 h-5" />
+                        </button>
+                      </div>
+                    );
+                  })
                 )}
               </div>
+              {/* Setas de navegação entre capítulos na leitura de capítulo único */}
+              {(() => {
+                const livroObj = livros.find(l => l.api === livroSelecionado);
+                if (!livroObj) return null;
+                const idxLivro = livros.findIndex(l => l.api === livroSelecionado);
+                const ehPrimeiroCapitulo = capituloSelecionado === 1;
+                const ehUltimoCapitulo = capituloSelecionado === livroObj.capitulos;
+                const existeProximoLivro = idxLivro < livros.length - 1;
+                const existeLivroAnterior = idxLivro > 0;
+                return (
+                  <div className="flex justify-between items-center mt-8 px-4">
+                    {/* Seta para capítulo anterior */}
+                    {(!ehPrimeiroCapitulo || existeLivroAnterior) ? (
+                      <button
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#8b5cf6]/80 text-white shadow-lg hover:scale-110 transition-all duration-200"
+                        onClick={() => {
+                          if (!ehPrimeiroCapitulo) {
+                            setCapituloSelecionado(capituloSelecionado - 1);
+                          } else if (existeLivroAnterior) {
+                            const livroAnterior = livros[idxLivro - 1];
+                            setLivroSelecionado(livroAnterior.api);
+                            setCapituloSelecionado(livroAnterior.capitulos);
+                          }
+                        }}
+                        aria-label="Capítulo anterior"
+                      >
+                        {/* Ícone SVG seta esquerda */}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                      </button>
+                    ) : <div className="w-14" />} {/* Espaço para alinhar */}
+                    {/* Seta para próximo capítulo */}
+                    {(!ehUltimoCapitulo || existeProximoLivro) ? (
+                      <button
+                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#8b5cf6]/80 text-white shadow-lg hover:scale-110 transition-all duration-200"
+                        onClick={() => {
+                          if (!ehUltimoCapitulo) {
+                            setCapituloSelecionado(capituloSelecionado + 1);
+                          } else if (existeProximoLivro) {
+                            const proximoLivro = livros[idxLivro + 1];
+                            setLivroSelecionado(proximoLivro.api);
+                            setCapituloSelecionado(1);
+                          }
+                        }}
+                        aria-label="Próximo capítulo"
+                      >
+                        {/* Ícone SVG seta direita */}
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                      </button>
+                    ) : <div className="w-14" />} {/* Espaço para alinhar */}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}

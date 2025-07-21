@@ -79,7 +79,7 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="w-full px-1 space-y-4">
       <div className="flex items-center gap-2 sm:gap-4 mb-2">
         <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
         <Select value={filterCategory} onValueChange={setFilterCategory}>
@@ -98,8 +98,8 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
       </div>
       <div className="space-y-6">
         {filteredRequests.map(request => (
-          <Card key={request.id} className="relative rounded-2xl border border-white/15 bg-white/10 p-0 shadow-md hover:shadow-lg transition-shadow duration-200">
-            <CardContent className="p-6">
+          <Card key={request.id} className="relative rounded-2xl border border-white/15 bg-white/10 p-0 shadow-md hover:shadow-lg transition-shadow duration-200 w-full max-w-full">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-2">
                 <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow">
                   {CATEGORY_ICONS[request.category] || '✨'}

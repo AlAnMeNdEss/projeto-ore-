@@ -12,12 +12,17 @@ import { PieChart, Pie, Tooltip as PieTooltip, ResponsiveContainer as PieRespons
 import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { PRAYER_CATEGORIES } from '@/types/prayer';
 import Biblia from '@/components/Biblia';
+import { useSwipeable } from 'react-swipeable';
+
+const tabs = ['pedidos', 'biblia', 'perfil'] as const;
+
+type Tab = typeof tabs[number];
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState<'pedidos' | 'biblia' | 'perfil'>('pedidos');
+  const [activeTab, setActiveTab] = useState<Tab>('pedidos');
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
@@ -73,6 +78,19 @@ const Index = () => {
   // Debug: verificar estados
   console.log('Index - user:', user, 'loading:', loading, 'showAuth:', showAuth);
 
+  // Swipe handlers para alternar abas
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      const idx = tabs.indexOf(activeTab);
+      if (idx < tabs.length - 1) setActiveTab(tabs[idx + 1]);
+    },
+    onSwipedRight: () => {
+      const idx = tabs.indexOf(activeTab);
+      if (idx > 0) setActiveTab(tabs[idx - 1]);
+    },
+    trackMouse: true,
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-spiritual bg-cover bg-center bg-fixed">
@@ -91,6 +109,7 @@ const Index = () => {
   if (user) {
     return (
       <div
+        {...handlers} // Adiciona swipe na tela principal
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
         style={{
           backgroundImage: `url(${bgImage})`,
