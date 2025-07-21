@@ -1,5 +1,5 @@
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { InstallButton } from '@/components/InstallButton';
 import bgImage from '../assets/spiritual-background.jpg';
 
 interface WelcomePageProps {
@@ -10,60 +10,155 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      style={{}}
     >
-      {/* Overlay para escurecer o fundo e dar contraste */}
-      <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
-      {/* Botão de instalação no topo direito */}
-      <div className="absolute top-6 right-6 z-50">
-        <InstallButton />
-      </div>
-      <div className="w-full max-w-xl mx-auto py-20 text-center flex flex-col items-center relative z-10">
-        {/* Logo minimalista */}
-        <div className="flex items-center justify-center w-20 h-20 rounded-full bg-[#8b5cf6] mb-6">
-          <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 24V12M16 12L12 16M16 12L20 16" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
-        {/* Título grande */}
-        <h1 className="text-4xl md:text-5xl font-extrabold text-[#2d1457] mb-4 leading-tight">
-          Ore+<br/>
-          <span className="text-[#8b5cf6]">Sua comunidade de oração online</span>
-        </h1>
-        {/* Subtítulo persuasivo */}
-        <p className="text-lg md:text-xl text-white font-semibold mb-8 max-w-2xl drop-shadow-lg" style={{textShadow: '0 2px 8px #2d1457'}}>
-          Compartilhe pedidos, apoie outras pessoas e fortaleça sua fé em um ambiente seguro, acolhedor e sem julgamentos.
-        </p>
-        {/* Benefícios */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 w-full">
-          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-            <span className="text-2xl">🙏</span>
-            <span className="text-gray-700 text-base">Pedidos anônimos ou identificados</span>
-          </div>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-            <span className="text-2xl">🤝</span>
-            <span className="text-gray-700 text-base">Apoie e ore por outros</span>
-          </div>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-            <span className="text-2xl">🔒</span>
-            <span className="text-gray-700 text-base">Ambiente seguro e respeitoso</span>
-          </div>
-          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3 border border-gray-100">
-            <span className="text-2xl">📱</span>
-            <span className="text-gray-700 text-base">Instale o app no seu celular</span>
-          </div>
-        </div>
-        {/* Chamada para ação */}
+      {/* Fundo animado */}
+      <div
+        className="absolute inset-0 w-full h-full z-0 animate-bg-move"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      {/* Overlay colorido lilás */}
+      <div className="absolute inset-0 bg-[#8b5cf6]/40 z-0" />
+      {/* Topo fixo */}
+      <div className="fixed top-0 left-0 right-0 flex justify-between items-center z-50 w-full px-6 py-5 bg-white/70 backdrop-blur-md shadow-md">
+        {/* Nome Ore+ no canto superior esquerdo */}
+        <span className="text-3xl font-extrabold text-[#8b5cf6] tracking-wide select-none font-serif">Ore+</span>
+        {/* Botão Entrar no canto superior direito */}
         <Button
-          className="w-full max-w-xs bg-[#8b5cf6] text-white font-bold text-lg py-4 rounded-xl shadow-lg hover:bg-[#6d28d9] transition-all duration-200"
+          onClick={onStart}
+          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold px-8 py-2 rounded-full shadow transition-all duration-200 text-xl font-sans"
+        >
+          Entrar
+        </Button>
+      </div>
+      {/* Espaço para não sobrepor o conteúdo */}
+      <div className="h-[80px] w-full" />
+      {/* Conteúdo central */}
+      <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center relative z-10 pt-32 pb-10">
+        <h1 className="text-5xl md:text-6xl font-bold font-serif text-[#2d1457] text-center mb-8 leading-tight drop-shadow-sm">
+          A Sua<br />Comunidade de<br />Oração
+        </h1>
+        <p className="text-lg md:text-xl text-gray-800 text-center mb-10 font-sans max-w-xl">
+          Um espaço sagrado para partilhar pedidos, orar por outros e fortalecer a sua fé.
+        </p>
+        <Button
+          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold text-2xl py-4 px-10 rounded-full shadow-lg transition-all duration-200 font-sans"
           onClick={onStart}
         >
-          Começar agora
+          Junte-se Agora
         </Button>
+        {/* Mockup de iPhone moderno */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+          viewport={{ once: true, amount: 0.3 }}
+          className="mt-10 flex justify-center w-full"
+        >
+          <div className="relative w-[210px] h-[440px] bg-[#f3e8ff] rounded-[48px] border-[6px] border-white flex flex-col items-center shadow-2xl overflow-hidden">
+            {/* Dynamic Island */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-5 rounded-full bg-black/80 opacity-80 z-10" />
+            {/* Tela do celular */}
+            <div className="flex-1 w-full flex items-center justify-center">
+              <span className="text-2xl font-bold text-[#7c3aed] font-sans">Ore+ App</span>
+            </div>
+          </div>
+        </motion.div>
+        {/* Nova seção: Como funciona? */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+          viewport={{ once: true, amount: 0.3 }}
+          className="fixed left-0 right-0 w-screen bg-white mt-16 pt-10 pb-8 flex flex-col items-center z-20 relative"
+          style={{ maxWidth: '100vw' }}
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-black mb-4 text-center">Como Funciona?</h2>
+          <p className="text-lg md:text-xl text-gray-500 text-center mb-10">Em 3 passos simples, você conecta-se em fé.</p>
+
+          {/* Passo 1 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="flex flex-col items-center w-full mb-16 card-anim"
+          >
+            <span className="w-24 h-24 rounded-full bg-[#ede9fe] flex items-center justify-center mb-8" style={{ boxShadow: '0 4px 24px 0 #fff, 0 2px 8px 0 #d1d5db' }}>
+              <span className="text-4xl md:text-5xl font-extrabold text-[#8b5cf6]">1</span>
+            </span>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-black text-center mb-5">Crie o seu Perfil</h3>
+            <p className="text-lg md:text-xl text-gray-600 text-center max-w-xl mb-2">
+              Registe-se de forma rápida e segura.<br />
+              A sua jornada de fé<br />
+              começa aqui.
+            </p>
+          </motion.div>
+
+          {/* Passo 2 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="flex flex-col items-center w-full mb-16 card-anim"
+          >
+            <span className="w-24 h-24 rounded-full bg-[#ede9fe] flex items-center justify-center mb-8" style={{ boxShadow: '0 4px 24px 0 #fff, 0 2px 8px 0 #d1d5db' }}>
+              <span className="text-4xl md:text-5xl font-extrabold text-[#8b5cf6]">2</span>
+            </span>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-black text-center mb-5">Partilhe e Ore</h3>
+            <p className="text-lg md:text-xl text-gray-600 text-center max-w-xl mb-2">
+              Publique os seus pedidos e interceda<br />
+              pela comunidade.<br />
+              Cada oração conta.
+            </p>
+          </motion.div>
+
+          {/* Passo 3 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="flex flex-col items-center w-full mb-0 card-anim"
+          >
+            <span className="w-24 h-24 rounded-full bg-[#ede9fe] flex items-center justify-center mb-8" style={{ boxShadow: '0 4px 24px 0 #fff, 0 2px 8px 0 #d1d5db' }}>
+              <span className="text-4xl md:text-5xl font-extrabold text-[#8b5cf6]">3</span>
+            </span>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-black text-center mb-5">Forme a sua Equipa</h3>
+            <p className="text-lg md:text-xl text-gray-600 text-center max-w-xl mb-2">
+              Crie grupos privados para orar com a sua família,<br />
+              amigos ou membros<br />
+              da igreja.
+            </p>
+          </motion.div>
+        </motion.div>
+        {/* Seção final: call to action, ocupa todo o final da página */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+          viewport={{ once: true, amount: 0.3 }}
+          className="w-screen min-h-[420px] flex flex-col items-center justify-center bg-gradient-to-b from-[#8b5cf6] to-[#7c3aed] px-4 py-16"
+          style={{ maxWidth: '100vw' }}
+        >
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white text-center mb-6">Pronto para se Conectar?</h2>
+          <p className="text-lg md:text-2xl text-[#ede9fe] text-center mb-10 max-w-2xl">
+            Aceda ao PWA no seu telemóvel e<br />
+            comece a sua jornada de fé connosco hoje.
+          </p>
+          <button
+            onClick={onStart}
+            className="bg-white text-[#7c3aed] font-extrabold text-xl md:text-2xl px-10 py-4 rounded-full shadow-lg hover:bg-[#ede9fe] transition-all duration-200"
+            style={{ minWidth: '280px' }}
+          >
+            Entrar na Comunidade
+          </button>
+        </motion.div>
       </div>
     </div>
   );
