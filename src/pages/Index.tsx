@@ -11,6 +11,7 @@ import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Tooltip as PieTooltip, ResponsiveContainer as PieResponsiveContainer, Cell } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { PRAYER_CATEGORIES } from '@/types/prayer';
+import Biblia from '@/components/Biblia';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -131,9 +132,7 @@ const Index = () => {
             </>
           )}
           {activeTab === 'biblia' && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-white text-2xl font-bold opacity-80">
-              <span>Em breve: Bíblia</span>
-            </div>
+            <Biblia />
           )}
           {activeTab === 'perfil' && user && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-white gap-8 w-full">

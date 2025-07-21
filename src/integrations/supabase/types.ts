@@ -540,7 +540,31 @@ export type Database = {
             referencedColumns: ["codigo_equipe"]
           },
         ]
-      }
+      },
+      biblia: {
+        Row: {
+          id: number;
+          livro: string;
+          capitulo: number;
+          versiculo: number;
+          texto: string;
+        };
+        Insert: {
+          id?: number;
+          livro: string;
+          capitulo: number;
+          versiculo: number;
+          texto: string;
+        };
+        Update: {
+          id?: number;
+          livro?: string;
+          capitulo?: number;
+          versiculo?: number;
+          texto?: string;
+        };
+        Relationships: [];
+      },
     }
     Views: {
       [_ in never]: never
