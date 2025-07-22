@@ -195,22 +195,7 @@ const Index = () => {
   }
 
   // Se não está logado mas clicou em 'Começar', mostra o login
-  return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center px-4 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {/* Overlay para escurecer o fundo e dar contraste */}
-      <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
-      <div className="relative z-20 w-full max-w-md mx-auto p-6">
-        <AuthPage />
-      </div>
-    </div>
-  );
+  return <AuthPage />;
 };
 
 export default Index;
