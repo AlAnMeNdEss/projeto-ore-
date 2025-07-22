@@ -1,17 +1,31 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import bgImage from '../assets/spiritual-background.jpg';
+import { SplashScreen } from '@/components/SplashScreen';
 
 interface WelcomePageProps {
   onStart: () => void;
 }
 
 export default function WelcomePage({ onStart }: WelcomePageProps) {
+  const [loading, setLoading] = useState(false);
+
+  function handleStart() {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onStart();
+    }, 1000); // 1 segundo de splash
+  }
+
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
       style={{}}
     >
+      {/* Splash de carregamento */}
+      {loading && <SplashScreen />}
       {/* Fundo animado */}
       <div
         className="absolute inset-0 w-full h-full z-0 animate-bg-move"
@@ -29,7 +43,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
         <span className="text-3xl font-extrabold text-[#8b5cf6] tracking-wide select-none font-serif">Ore+</span>
         {/* Botão Entrar no canto superior direito */}
         <Button
-          onClick={onStart}
+          onClick={handleStart}
           className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold px-8 py-2 rounded-full shadow transition-all duration-200 text-xl font-sans"
         >
           Entrar
@@ -47,7 +61,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
         </p>
         <Button
           className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-bold text-2xl py-4 px-10 rounded-full shadow-lg transition-all duration-200 font-sans"
-          onClick={onStart}
+          onClick={handleStart}
         >
           Junte-se Agora
         </Button>
@@ -155,7 +169,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
             comece a sua jornada de fé connosco hoje.
           </p>
           <button
-            onClick={onStart}
+            onClick={handleStart}
             className="bg-white text-[#7c3aed] font-extrabold text-xl md:text-2xl px-10 py-4 rounded-full shadow-lg hover:bg-[#ede9fe] transition-all duration-200"
             style={{ minWidth: '280px' }}
           >
