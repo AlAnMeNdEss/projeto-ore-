@@ -101,12 +101,39 @@ export function useAuth() {
     }
   };
 
+  const sendPasswordResetEmail = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`, // You might want a dedicated page for password reset
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erro ao redefinir senha",
+          description: error.message
+        });
+        return { error };
+      }
+
+      toast({
+        title: "Email de redefinição enviado!",
+        description: "Verifique sua caixa de entrada para as instruções de redefinição de senha."
+      });
+      return { error: null };
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      return { error };
+    }
+  };
+
   return {
     user,
     session,
     loading,
     signUp,
     signIn,
-    signOut
+    signOut,
+    sendPasswordResetEmail
   };
 }
