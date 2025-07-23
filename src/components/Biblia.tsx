@@ -229,17 +229,39 @@ export default function Biblia() {
       {/* Overlay para escurecer o fundo e dar contraste */}
       <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
       <div className="relative z-20 w-full">
-        {/* Logo igual tela de pedidos */}
+        {/* Título */}
         <div className="flex flex-col items-center justify-center mb-2 mt-6 animate-fade-in">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
+          <h1 className="text-2xl font-bold text-[#181824] text-center mb-4 bg-white/80 rounded-xl px-4 py-2 shadow">Bíblia Sagrada</h1>
         </div>
-        {/* Cabeçalho removido conforme solicitado */}
-        {/* Abas */}
+        {/* Selects de livro e capítulo */}
+        <div className="flex flex-row gap-3 w-full max-w-md mx-auto mb-4 animate-fade-in">
+          <select
+            className="flex-1 p-3 rounded-xl border border-[#8b5cf6] bg-white text-[#2d1457] text-base focus:ring-2 focus:ring-[#b2a4ff] outline-none"
+            value={livroSelecionado || ''}
+            onChange={e => {
+              setLivroSelecionado(e.target.value);
+              setCapituloSelecionado(null);
+            }}
+          >
+            <option value="" disabled>Livro</option>
+            {livros.filter(l => l.testamento === testamento).map(livro => (
+              <option key={livro.api} value={livro.api}>{livro.nome}</option>
+            ))}
+          </select>
+          <select
+            className="flex-1 p-3 rounded-xl border border-[#8b5cf6] bg-white text-[#2d1457] text-base focus:ring-2 focus:ring-[#b2a4ff] outline-none"
+            value={capituloSelecionado || ''}
+            onChange={e => setCapituloSelecionado(Number(e.target.value))}
+            disabled={!livroSelecionado}
+          >
+            <option value="" disabled>Capítulo</option>
+            {livroSelecionado &&
+              Array.from({ length: livros.find(l => l.api === livroSelecionado)?.capitulos || 1 }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+          </select>
+        </div>
+        {/* Abas de testamento */}
         <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner mb-4 animate-fade-in">
           <button
             className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${testamento === 'antigo' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
@@ -249,7 +271,7 @@ export default function Biblia() {
               setCapituloSelecionado(null);
             }}
           >
-            ANTIGO TESTAMEN...
+            ANTIGO TESTAMENTO
           </button>
           <button
             className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${testamento === 'novo' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
@@ -289,38 +311,6 @@ export default function Biblia() {
             </div>
           )}
         </div>
-        {/* Lista de livros ou capítulos */}
-        {!livroSelecionado ? (
-          <div className="w-full max-w-md mx-auto flex flex-col gap-3 px-2 pb-28 animate-fade-slide-in">
-            {livros.filter(l => l.testamento === testamento).map(livro => (
-              <button
-                key={livro.api}
-                className="w-full py-4 rounded-2xl border border-[#8b5cf6] bg-[#2d1457] text-[#b2a4ff] font-bold text-lg shadow-sm transition-all duration-200 hover:scale-105 hover:bg-[#8b5cf6]/10"
-                onClick={() => setLivroSelecionado(livro.api)}
-              >
-                {livro.nome}
-              </button>
-            ))}
-          </div>
-        ) : !capituloSelecionado ? (
-          <div className="w-full max-w-md mx-auto flex flex-wrap gap-2 px-2 justify-center pb-28 animate-fade-slide-in">
-            {Array.from({ length: livros.find(l => l.api === livroSelecionado)?.capitulos || 1 }, (_, i) => i + 1).map(n => (
-              <button
-                key={n}
-                className="w-16 h-12 rounded-xl border border-[#8b5cf6] bg-[#2d1457] text-[#b2a4ff] font-bold text-lg shadow-sm transition-all duration-200 hover:scale-110 hover:bg-[#8b5cf6]/10"
-                onClick={() => setCapituloSelecionado(n)}
-              >
-                {n}
-              </button>
-            ))}
-            <button
-              className="w-full mt-2 py-2 rounded-xl border border-[#8b5cf6] bg-[#181824] text-[#b2a4ff] font-bold text-base transition-all duration-200 hover:scale-105"
-              onClick={() => setLivroSelecionado(null)}
-            >
-              Voltar aos livros
-            </button>
-          </div>
-        ) : null}
         {/* Resultados de busca por palavra-chave */}
         {modoBusca && (
           <div className="w-full max-w-2xl mx-auto mt-6">
@@ -474,62 +464,6 @@ export default function Biblia() {
                   })
                 )}
               </div>
-              {/* Setas de navegação entre capítulos na leitura de capítulo único */}
-              {(() => {
-                const livroObj = livros.find(l => l.api === livroSelecionado);
-                if (!livroObj) return null;
-                const idxLivro = livros.findIndex(l => l.api === livroSelecionado);
-                const ehPrimeiroCapitulo = capituloSelecionado === 1;
-                const ehUltimoCapitulo = capituloSelecionado === livroObj.capitulos;
-                const existeProximoLivro = idxLivro < livros.length - 1;
-                const existeLivroAnterior = idxLivro > 0;
-                return (
-                  <div className="flex justify-between items-center mt-8 px-4">
-                    {/* Seta para capítulo anterior */}
-                    {(!ehPrimeiroCapitulo || existeLivroAnterior) ? (
-                      <button
-                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#8b5cf6]/80 text-white shadow-lg hover:scale-110 transition-all duration-200"
-                        onClick={() => {
-                          if (!ehPrimeiroCapitulo) {
-                            setCapituloSelecionado(capituloSelecionado - 1);
-                          } else if (existeLivroAnterior) {
-                            const livroAnterior = livros[idxLivro - 1];
-                            setLivroSelecionado(livroAnterior.api);
-                            setCapituloSelecionado(livroAnterior.capitulos);
-                          }
-                        }}
-                        aria-label="Capítulo anterior"
-                      >
-                        {/* Ícone SVG seta esquerda */}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
-                      </button>
-                    ) : <div className="w-14" />} {/* Espaço para alinhar */}
-                    {/* Seta para próximo capítulo */}
-                    {(!ehUltimoCapitulo || existeProximoLivro) ? (
-                      <button
-                        className="flex items-center justify-center w-14 h-14 rounded-full bg-[#8b5cf6]/80 text-white shadow-lg hover:scale-110 transition-all duration-200"
-                        onClick={() => {
-                          if (!ehUltimoCapitulo) {
-                            setCapituloSelecionado(capituloSelecionado + 1);
-                          } else if (existeProximoLivro) {
-                            const proximoLivro = livros[idxLivro + 1];
-                            setLivroSelecionado(proximoLivro.api);
-                            setCapituloSelecionado(1);
-                          }
-                        }}
-                        aria-label="Próximo capítulo"
-                      >
-                        {/* Ícone SVG seta direita */}
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                        </svg>
-                      </button>
-                    ) : <div className="w-14" />} {/* Espaço para alinhar */}
-                  </div>
-                );
-              })()}
             </div>
           </div>
         )}
