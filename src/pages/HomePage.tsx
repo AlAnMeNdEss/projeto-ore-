@@ -1,22 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, Plus, Sparkles } from 'lucide-react';
 import { User as UserIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HomePageProps {
   user: any;
 }
 
 export default function HomePage({ user }: HomePageProps) {
-  const [communitySummary] = useState({
-    oracoesHoje: 52,
-    novosPedidos: 3,
+  const [communitySummary, setCommunitySummary] = useState({
+    oracoesHoje: 0,
+    novosPedidos: 0,
   });
   const [devocional, setDevocional] = useState<string | null>(null);
   const [loadingDevocional, setLoadingDevocional] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchCommunitySummary() {
+      // Data de hoje no formato YYYY-MM-DD
+      const hoje = new Date().toISOString().slice(0, 10);
+
+      // Buscar número de pedidos de oração criados hoje
+      const { count: novosPedidos } = await supabase
+        .from('prayer_requests')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', `${hoje}T00:00:00.000Z`)
+        .lte('created_at', `${hoje}T23:59:59.999Z`);
+
+      // Buscar número de orações feitas hoje
+      const { count: oracoesHoje } = await supabase
+        .from('prayer_interactions')
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', `${hoje}T00:00:00.000Z`)
+        .lte('created_at', `${hoje}T23:59:59.999Z`);
+
+      setCommunitySummary({
+        oracoesHoje: oracoesHoje || 0,
+        novosPedidos: novosPedidos || 0,
+      });
+    }
+    fetchCommunitySummary();
+  }, []);
 
   function gerarDevocional() {
     setLoadingDevocional(true);
