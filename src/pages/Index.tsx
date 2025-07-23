@@ -13,8 +13,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, Resp
 import { PRAYER_CATEGORIES } from '@/types/prayer';
 import Biblia from '@/components/Biblia';
 import { useSwipeable } from 'react-swipeable';
+import HomePage from '@/pages/HomePage';
 
-const tabs = ['pedidos', 'biblia', 'perfil'] as const;
+const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
 type Tab = typeof tabs[number];
 
@@ -22,7 +23,7 @@ const Index = () => {
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('pedidos');
+  const [activeTab, setActiveTab] = useState<Tab>('inicio');
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
@@ -107,9 +108,16 @@ const Index = () => {
 
   // Se o usuário está logado, mostra o app
   if (user) {
+    if (activeTab === 'inicio') {
+      // HomePage já tem o fundo lavanda, mas a BottomNavBar deve aparecer
+      return <>
+        <HomePage user={user} />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab as (tab: 'inicio' | 'comunidades' | 'biblia' | 'perfil') => void} />
+      </>;
+    }
     return (
       <div
-        {...handlers} // Adiciona swipe na tela principal
+        {...handlers}
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
         style={{
           backgroundImage: `url(${bgImage})`,
@@ -120,7 +128,7 @@ const Index = () => {
         {/* Overlay para escurecer o fundo e dar contraste */}
         <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
         <div className="relative z-20 w-full">
-          {activeTab === 'pedidos' && (
+          {activeTab === 'comunidades' && (
             <>
               {/* Logo e nome acima dos botões de pedidos */}
               <div className="flex flex-col items-center justify-center mb-2">
@@ -184,7 +192,7 @@ const Index = () => {
             </div>
           )}
         </div>
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab as (tab: 'inicio' | 'comunidades' | 'biblia' | 'perfil') => void} />
       </div>
     );
   }

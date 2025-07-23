@@ -29,11 +29,11 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
       {/* Fundo animado */}
       <div
         className="absolute inset-0 w-full h-full z-0 animate-bg-move"
-        style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
       />
       {/* Overlay colorido lilás */}
       <div className="absolute inset-0 bg-[#8b5cf6]/40 z-0" />

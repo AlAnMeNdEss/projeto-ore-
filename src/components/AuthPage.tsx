@@ -2,34 +2,27 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
-
+import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
+const fadeUp = {
+  initial: { opacity: 0, y: 32 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6 }
+};
+
 export function AuthPage() {
-  const { signIn, signUp, user, sendPasswordResetEmail } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [signupForm, setSignupForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [resetEmail, setResetEmail] = useState('');
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [registerForm, setRegisterForm] = useState({ email: '', password: '', confirmPassword: '', name: '' });
+  const [resetSent, setResetSent] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+  const [signupError, setSignupError] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  // Handle ESC key press
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setShowResetModal(false);
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-
-    return () => {
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -44,22 +37,33 @@ export function AuthPage() {
     setLoading(false);
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (registerForm.password !== registerForm.confirmPassword) {
-      alert('As senhas não coincidem');
+    setSignupError(null);
+    setSignupSuccess(false);
+    if (signupForm.password !== signupForm.confirmPassword) {
+      setSignupError('As senhas não coincidem.');
       return;
     }
     setLoading(true);
-    await signUp(registerForm.email, registerForm.password, registerForm.name);
+    const { error } = await signUp(signupForm.email, signupForm.password, signupForm.name);
+    setLoading(false);
+    if (error) {
+      setSignupError(error.message || 'Erro ao criar conta.');
+    } else {
+      setSignupSuccess(true);
+      setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
+    }
+  };
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { supabase } = await import('@/integrations/supabase/client');
+    await supabase.auth.resetPasswordForEmail(resetEmail);
+    setResetSent(true);
     setLoading(false);
   };
-
-  const toggleMode = () => {
-    setIsLoginMode(!isLoginMode);
-  };
-
-
 
   return (
     <motion.div
@@ -71,168 +75,198 @@ export function AuthPage() {
         background: 'linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 100%)',
       }}
     >
-      {/* Logo e slogan */}
-      <div className="mb-8 flex flex-col items-center">
-        <h1 className="font-logo text-6xl font-extrabold select-none mb-3">
+      <motion.div {...fadeUp} className="mb-8 flex flex-col items-center">
+        <h1 className="font-logo text-5xl font-extrabold select-none mb-2">
           <span style={{ color: '#673AB7' }}>Ore</span>
           <span style={{ color: '#9575CD' }}>+</span>
         </h1>
-        <p className="text-xl text-[#757575] text-center font-medium">{isLoginMode ? "A conectar corações em fé" : "Crie a sua conta de fé"}</p>
-      </div>
-      {/* Formulário */}
-      <form onSubmit={isLoginMode ? handleLogin : handleRegister} className="w-full max-w-md flex flex-col gap-6" autoComplete="on">
-        
-        {!isLoginMode && (
-          <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#673AB7] text-2xl">
-              <FaUser />
+        <p className="text-lg text-[#757575] text-center font-medium mb-6">A conectar corações em fé</p>
+      </motion.div>
+      {mode === 'login' && (
+        <motion.form {...fadeUp} onSubmit={handleLogin} className="w-full max-w-md flex flex-col gap-6" autoComplete="on">
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.1 }} className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9575CD] text-xl">
+              <FaEnvelope />
             </span>
             <Input
-              type="text"
-              placeholder="Nome Completo"
-              value={registerForm.name}
-              onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })}
+              type="email"
+              placeholder="E-mail"
+              value={loginForm.email}
+              onChange={e => setLoginForm({ ...loginForm, email: e.target.value })}
               required
-              className="pl-12 pr-4 py-4 w-full bg-transparent text-gray-700 text-lg border-none focus:ring-0 placeholder:text-gray-500"
+              className="pl-12 pr-4 py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="username"
               disabled={loading}
             />
-          </div>
-        )}
-        
-        <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#673AB7] text-2xl">
-            <FaEnvelope />
-          </span>
-          <Input
-            type="email"
-            placeholder="E-mail"
-            value={isLoginMode ? loginForm.email : registerForm.email}
-            onChange={e => isLoginMode 
-              ? setLoginForm({ ...loginForm, email: e.target.value })
-              : setRegisterForm({ ...registerForm, email: e.target.value })
-            }
-            required
-            className="pl-12 pr-4 py-4 w-full bg-transparent text-gray-700 text-lg border-none focus:ring-0 placeholder:text-gray-500"
-            autoComplete="username"
-            disabled={loading}
-          />
-        </div>
-        <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#673AB7] text-2xl">
-            <FaLock />
-          </span>
-          <Input
-            type="password"
-            placeholder="Senha"
-            value={isLoginMode ? loginForm.password : registerForm.password}
-            onChange={e => isLoginMode 
-              ? setLoginForm({ ...loginForm, password: e.target.value })
-              : setRegisterForm({ ...registerForm, password: e.target.value })
-            }
-            required
-            className="pl-12 pr-4 py-4 w-full bg-transparent text-gray-700 text-lg border-none focus:ring-0 placeholder:text-gray-500"
-            autoComplete={isLoginMode ? "current-password" : "new-password"}
-            disabled={loading}
-          />
-        </div>
-        {!isLoginMode && (
-          <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#673AB7] text-2xl">
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.2 }} className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9575CD] text-xl">
               <FaLock />
             </span>
             <Input
               type="password"
-              placeholder="Confirmar Senha"
-              value={registerForm.confirmPassword}
-              onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+              placeholder="Senha"
+              value={loginForm.password}
+              onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
               required
-              className="pl-12 pr-4 py-4 w-full bg-transparent text-gray-700 text-lg border-none focus:ring-0 placeholder:text-gray-500"
+              className="pl-12 pr-4 py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="current-password"
+              disabled={loading}
+            />
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.3 }} className="flex justify-end">
+            <button
+              type="button"
+              className="text-[#673AB7] font-semibold text-base hover:underline transition-all"
+              onClick={() => setMode('reset')}
+              disabled={loading}
+            >
+              Esqueci a senha
+            </button>
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.4 }}>
+            <Button
+              type="submit"
+              className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-xl py-4 rounded-lg shadow-lg transition-all duration-200 mt-2"
+              style={{ boxShadow: '0 8px 32px #9575CD44' }}
+              disabled={loading}
+            >
+              Entrar
+            </Button>
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.5 }}>
+            <button
+              type="button"
+              className="w-full text-[#757575] text-center font-medium mt-2 hover:underline"
+              onClick={() => setMode('signup')}
+              disabled={loading}
+            >
+              Criar conta
+            </button>
+          </motion.div>
+        </motion.form>
+      )}
+      {mode === 'signup' && (
+        <motion.form {...fadeUp} onSubmit={handleSignup} className="w-full max-w-md flex flex-col gap-6" autoComplete="on">
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.1 }}>
+            <Input
+              type="text"
+              placeholder="Nome (opcional)"
+              value={signupForm.name}
+              onChange={e => setSignupForm({ ...signupForm, name: e.target.value })}
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="name"
+              disabled={loading}
+            />
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.2 }}>
+            <Input
+              type="email"
+              placeholder="E-mail"
+              value={signupForm.email}
+              onChange={e => setSignupForm({ ...signupForm, email: e.target.value })}
+              required
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="username"
+              disabled={loading}
+            />
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.3 }}>
+            <Input
+              type="password"
+              placeholder="Senha"
+              value={signupForm.password}
+              onChange={e => setSignupForm({ ...signupForm, password: e.target.value })}
+              required
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
               autoComplete="new-password"
               disabled={loading}
             />
-          </div>
-        )}
-        {isLoginMode && (
-          <div className="text-right mt-4 mb-8">
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.4 }}>
+            <Input
+              type="password"
+              placeholder="Confirmar senha"
+              value={signupForm.confirmPassword}
+              onChange={e => setSignupForm({ ...signupForm, confirmPassword: e.target.value })}
+              required
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="new-password"
+              disabled={loading}
+            />
+          </motion.div>
+          {signupError && (
+            <div className="text-red-600 text-center font-medium mb-2">{signupError}</div>
+          )}
+          {signupSuccess && (
+            <div className="text-green-600 text-center font-medium mb-2">
+              Cadastro realizado! Verifique seu e-mail para confirmar sua conta.
+            </div>
+          )}
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.5 }}>
+            <Button
+              type="submit"
+              className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-xl py-4 rounded-lg shadow-lg transition-all duration-200 mt-2"
+              style={{ boxShadow: '0 8px 32px #9575CD44' }}
+              disabled={loading}
+            >
+              {loading ? 'Criando conta...' : 'Criar conta'}
+            </Button>
             <button
               type="button"
-              onClick={() => setShowResetModal(true)}
-              className="text-[#673AB7] hover:text-[#5e35b1] font-medium text-lg"
+              className="w-full text-[#757575] text-center font-medium mt-2 hover:underline"
+              onClick={() => setMode('login')}
+              disabled={loading}
             >
-              Esqueceu a senha?
+              Já tenho uma conta
             </button>
-          </div>
-        )}
-          {showResetModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-[#EDE7F6] flex flex-col items-center justify-center z-50 px-4"
+          </motion.div>
+        </motion.form>
+      )}
+      {mode === 'reset' && (
+        <motion.form {...fadeUp} onSubmit={handleReset} className="w-full max-w-md flex flex-col gap-6" autoComplete="on">
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.1 }}>
+            <Input
+              type="email"
+              placeholder="Digite seu e-mail para redefinir a senha"
+              value={resetEmail}
+              onChange={e => setResetEmail(e.target.value)}
+              required
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="username"
+              disabled={loading}
+            />
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.2 }}>
+            <Button
+              type="submit"
+              className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-xl py-4 rounded-lg shadow-lg transition-all duration-200 mt-2"
+              style={{ boxShadow: '0 8px 32px #9575CD44' }}
+              disabled={loading}
             >
-              <div className="w-full max-w-md flex flex-col items-center">
-                <h1 className="text-[#673AB7] text-5xl font-bold mb-4">Recuperar</h1>
-                <h2 className="text-[#673AB7] text-5xl font-bold mb-12">Senha</h2>
-                <p className="text-gray-600 text-2xl text-center mb-12">Insira o seu e-mail para continuar</p>
-                <div className="w-full relative bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#673AB7] text-2xl">
-                    <FaEnvelope />
-                  </span>
-                  <Input
-                    type="email"
-                    placeholder="O seu e-mail"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    className="pl-12 pr-4 py-4 w-full bg-transparent text-gray-700 text-lg border-none focus:ring-0 placeholder:text-gray-500"
-                    disabled={loading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  onClick={async () => {
-                    if (resetEmail) {
-                      setLoading(true);
-                      await sendPasswordResetEmail(resetEmail);
-                      setLoading(false);
-                      setShowResetModal(false);
-                      setResetEmail('');
-                    }
-                  }}
-                  className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-2xl py-5 rounded-2xl transition-all duration-200 shadow-lg mb-8"
-                  disabled={loading || !resetEmail}
-                >
-                  Enviar Link
-                </Button>
-                <button
-                  type="button"
-                  onClick={() => setShowResetModal(false)}
-                  className="text-[#673AB7] hover:text-[#5e35b1] font-medium text-2xl"
-                >
-                  Voltar ao Login
-                </button>
-              </div>
-            </motion.div>
-          )}
-        <Button
-          type="submit"
-          className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-2xl py-5 rounded-2xl transition-all duration-200 shadow-lg"
-          disabled={loading}
-        >
-          {isLoginMode ? "Entrar" : "Criar Conta"}
-        </Button>
-        <div className="text-center mt-8">
-          <p className="text-gray-600 text-lg">
-            {isLoginMode ? "Não tem uma conta? " : "Já tem uma conta? "}
-            <button 
-              type="button" 
-              onClick={toggleMode} 
-              className="text-[#673AB7] hover:text-[#5e35b1] font-medium"
+              Enviar link de redefinição
+            </Button>
+            {resetSent && (
+              <p className="text-green-600 text-center font-medium">Verifique seu e-mail para redefinir a senha.</p>
+            )}
+            <button
+              type="button"
+              className="w-full text-[#757575] text-center font-medium mt-2 hover:underline"
+              onClick={() => setMode('login')}
+              disabled={loading}
             >
-              {isLoginMode ? "Crie uma agora" : "Entre aqui"}
+              Voltar para login
             </button>
-          </p>
-        </div>
-      </form>
+          </motion.div>
+        </motion.form>
+      )}
     </motion.div>
   );
 }
