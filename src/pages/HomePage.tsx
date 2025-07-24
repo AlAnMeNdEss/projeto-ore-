@@ -97,12 +97,12 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         </div>
       </div>
       {/* Saudação removida daqui, agora está no topo */}
-      {/* Card de Resumo da Comunidade - mesmo espaçamento do devocional, mais afastado do topo */}
+      {/* Card de Resumo da Comunidade - largura igual ao botão de Comunidade Global, borda visível no mobile */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md mx-auto bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 border border-purple-100 mt-8"
+        className="w-full max-w-md mx-auto bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 border border-purple-200"
         style={{boxShadow: '0 2px 16px #e9d8fd'}}
       >
         <h2 className="text-lg font-bold text-[#6d28d9] mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
@@ -117,10 +117,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           </div>
         </div>
       </motion.div>
-      {/* Dois cards de ação lado a lado, mesmo espaçamento do devocional */}
+      {/* Dois cards de ação lado a lado, largura igual ao botão de Comunidade Global, borda visível no mobile */}
       <div className="w-full flex flex-row gap-4 mb-4 max-w-md mx-auto">
         <button
-          className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-100 hover:scale-105 transition-transform duration-200"
+          className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-200 hover:scale-105 transition-transform duration-200"
           style={{boxShadow: '0 2px 12px #e9d8fd'}}
           onClick={onFazerPedido}
         >
@@ -128,7 +128,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           <span className="text-lg font-bold text-[#6d28d9] text-center leading-tight">Fazer<br/>Pedido</span>
         </button>
         <button
-          className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-100 hover:scale-105 transition-transform duration-200"
+          className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-200 hover:scale-105 transition-transform duration-200"
           style={{boxShadow: '0 2px 12px #e9d8fd'}}
           onClick={onVerComunidade}
         >
@@ -136,9 +136,9 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           <span className="text-lg font-bold text-[#6d28d9] text-center leading-tight">Ver<br/>Comunidade</span>
         </button>
       </div>
-      {/* Card de Devocional Diário com versículo dentro da imagem */}
+      {/* Card de Devocional Diário com versículo dentro da imagem, largura igual ao botão de Comunidade Global, borda visível no mobile */}
       <div
-        className="w-full max-w-md mx-auto rounded-3xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative cursor-pointer"
+        className="w-full max-w-md mx-auto rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative cursor-pointer border border-purple-200"
         style={{boxShadow: '0 4px 24px #e9d8fd'}}
         onClick={() => setShowDevocionalModal(true)}
         title="Clique para ampliar"

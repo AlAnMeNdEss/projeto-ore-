@@ -13,6 +13,7 @@ import { PRAYER_CATEGORIES } from '@/types/prayer';
 import { useSwipeable } from 'react-swipeable';
 import HomePage from '@/pages/HomePage';
 import { PrayerRequestForm } from '@/components/PrayerRequestForm';
+import { Biblia } from '@/components/Biblia';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -167,10 +168,8 @@ const Index = () => {
     }
     if (activeTab === 'biblia') {
       return (
-        <div className="flex flex-col items-center justify-center min-h-[100vh] w-full bg-[#f6eaff]">
-          <h1 className="text-3xl font-extrabold text-[#7c3aed] mb-4">Bíblia</h1>
-          <p className="text-lg text-[#2d1457] mb-6">Página da Bíblia em desenvolvimento.</p>
-          <span className="text-5xl">📖🚧</span>
+        <div className="min-h-screen w-full bg-[#f6eaff]">
+          <Biblia />
           <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       );
