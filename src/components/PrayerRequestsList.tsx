@@ -68,57 +68,29 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
     <div className="w-full px-1 space-y-4">
       <div className="space-y-6">
         {filteredRequests.map(request => (
-          <Card key={request.id} className="relative rounded-2xl border border-white/15 bg-white/10 p-0 shadow-md hover:shadow-lg transition-shadow duration-200 w-full max-w-full">
-            <CardContent className="p-4 sm:p-6">
-              {/* Removido ícone e badge de categoria */}
-              <h3 className="text-xl font-bold text-white mb-1 whitespace-pre-wrap leading-snug">{request.text}</h3>
-              <div className="flex items-center justify-between mt-2 mb-1 text-xs text-gray-300">
-                <span>
-                  {request.name ? <span>Por: <span className="font-semibold text-[#b2a4ff]">{request.name}</span></span> : <span>Anônimo</span>}
-                </span>
-                <span>
-                  {formatDistanceToNow(new Date(request.created_at), { addSuffix: true, locale: ptBR })}
-                  <span className="mx-1">•</span>
-                  {format(new Date(request.created_at), 'dd/MM/yyyy')}
-                </span>
+          <div key={request.id} className="relative rounded-2xl bg-white shadow-lg p-4 w-full max-w-full flex flex-col gap-3 border border-[#f3e8ff]">
+            <div className="text-base font-bold text-[#23232b] mb-1">Utilizador</div>
+            <div className="text-lg text-[#23232b] font-medium mb-2 break-words whitespace-pre-wrap">{request.text}</div>
+            <div className="border-b border-[#ede9fe] my-1"></div>
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                className={`flex items-center justify-center w-10 h-10 rounded-xl border-2 ${orouIds.includes(request.id) ? 'border-pink-400 bg-pink-50' : 'border-[#a084e8] bg-white'} text-xl mr-2 transition-colors`}
+                onClick={() => handlePray(request.id)}
+                disabled={orouIds.includes(request.id)}
+              >
+                <svg xmlns='http://www.w3.org/2000/svg' fill={orouIds.includes(request.id) ? '#ef476f' : 'none'} viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z' />
+                </svg>
+              </button>
+              <button className="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-[#ede9fe] bg-white text-[#23232b] text-xl mr-2">
+                <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 8h10M7 12h4m1 8a9 9 0 100-18 9 9 0 000 18z' /></svg>
+              </button>
+              <div className="flex-1 flex items-center justify-end gap-2 text-[#23232b] text-base">
+                <span className="text-2xl mr-1">🙏</span>
+                <span className="font-bold">{request.prayer_count || 0}</span>
               </div>
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-[#b2a4ff] font-semibold">
-                  <Heart className="h-4 w-4 text-pink-400" />
-                  <span>
-                    {request.prayer_count} {request.prayer_count === 1 ? 'oração' : 'orações'}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {user && (
-                    <Button
-                      onClick={() => handlePray(request.id)}
-                      variant={orouIds.includes(request.id) ? 'default' : 'outline'}
-                      size="sm"
-                      className={orouIds.includes(request.id)
-                        ? 'bg-[#8b5cf6] text-white border-[#8b5cf6] cursor-default rounded-full px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm'
-                        : 'border-[#b2a4ff] text-[#b2a4ff] bg-white/20 hover:bg-[#8b5cf6]/80 hover:text-white transition-colors duration-200 rounded-full px-4 py-1 text-xs sm:text-sm font-semibold shadow-sm'}
-                      disabled={orouIds.includes(request.id)}
-                    >
-                      <Heart className="h-4 w-4 mr-1" />
-                      {orouIds.includes(request.id) ? 'Orado' : 'Orar'}
-                    </Button>
-                  )}
-                  {canDelete(request) && (
-                    <Button
-                      onClick={() => handleDelete(request.id)}
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-400 hover:bg-red-100/10 hover:text-red-600 rounded-full ml-1"
-                      title="Apagar pedido"
-                    >
-                      <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </div>

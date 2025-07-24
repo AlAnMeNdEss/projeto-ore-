@@ -114,8 +114,18 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
             <PrayerRequestsList refreshRequests={refreshRequests} />
           </div>
         ) : (
-          <div className="animate-fade-slide-in">
-            <PrayerRequestForm refreshRequests={refreshRequests} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 mx-2 flex flex-col items-center">
+              <h2 className="text-2xl font-extrabold text-[#23232b] text-center mb-6">Novo Pedido de Oração</h2>
+              <PrayerRequestForm refreshRequests={refreshRequests} />
+              <button
+                className="mt-6 w-full py-3 rounded-xl bg-[#ede9fe] text-[#7c3aed] font-bold text-lg hover:bg-[#e0c3fc] transition"
+                aria-label="Voltar para lista"
+                onClick={() => setTab('list')}
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -123,20 +133,12 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
       {/* Botão flutuante para criar pedido */}
       {tab === 'list' && (
         <button
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-yellow-300 text-white text-4xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
+          className="fixed right-6 z-50 w-16 h-16 rounded-full bg-[#7c3aed] text-white text-4xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-[#a084e8]/40"
           aria-label="Criar Pedido"
           onClick={() => setTab('create')}
+          style={{ position: 'fixed', bottom: 32, right: 24 }}
         >
           <Plus className="w-8 h-8" />
-        </button>
-      )}
-      {tab === 'create' && (
-        <button
-          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-gray-300 via-purple-200 to-indigo-400 text-[#8b5cf6] text-3xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
-          aria-label="Voltar para lista"
-          onClick={() => setTab('list')}
-        >
-          <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-8 h-8'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' /></svg>
         </button>
       )}
     </div>

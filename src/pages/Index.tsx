@@ -3,7 +3,7 @@ import { AuthPage } from '@/components/AuthPage';
 import { PrayerApp, UserMenu } from '@/components/PrayerApp';
 import WelcomePage from './WelcomePage';
 import { Loader2, Heart, User as UserIcon, Send, Users, BarChart2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BottomNavBar } from '@/components/BottomNavBar';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import { ChartContainer } from '@/components/ui/chart';
@@ -25,6 +25,10 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<Tab>('inicio');
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
+  // Sempre que mudar para a aba 'comunidades', reseta para false
+  useEffect(() => {
+    if (activeTab === 'comunidades') setEntrouNaComunidade(false);
+  }, [activeTab]);
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
   const totalOracoesRecebidas = pedidosDoUsuario.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
@@ -118,40 +122,37 @@ const Index = () => {
       return (
         <div className="min-h-screen w-full flex flex-col items-center px-4 bg-[#f6eaff]">
           {!entrouNaComunidade ? (
-            <div className="w-full max-w-xl mx-auto pt-8 pb-4">
-              <h1 className="text-4xl font-extrabold text-[#23232b] mb-2 text-left">Comunidades</h1>
-              <p className="text-lg text-[#6d6d7b] mb-6 text-left">Participe num grupo de oração</p>
-              <button
-                className="w-full flex items-center gap-4 bg-gradient-to-br from-[#a084e8] to-[#8b5cf6] text-white text-2xl font-bold px-8 py-6 rounded-3xl shadow-lg transition-all duration-200 mb-6"
-                style={{ minHeight: 90 }}
-                onClick={() => setEntrouNaComunidade(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755.5-5.5 1.5-7.5" /></svg>
-                Comunidade Global
-              </button>
-            </div>
+            <>
+              <div className="w-full max-w-xl mx-auto pt-8 pb-4">
+                <h1 className="text-4xl font-extrabold text-[#23232b] mb-2 text-left">Comunidades</h1>
+                <p className="text-lg text-[#6d6d7b] mb-6 text-left">Participe num grupo de oração</p>
+                <button
+                  className="w-full flex items-center gap-4 bg-gradient-to-br from-[#a084e8] to-[#8b5cf6] text-white text-2xl font-bold px-8 py-6 rounded-3xl shadow-lg transition-all duration-200 mb-6"
+                  style={{ minHeight: 90 }}
+                  onClick={() => setEntrouNaComunidade(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755.5-5.5 1.5-7.5" /></svg>
+                  Comunidade Global
+                </button>
+              </div>
+              <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+            </>
           ) : (
             <>
-              <div className="flex justify-center mb-4 sm:mb-8">
-                <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner">
-                  <button
-                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'list' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-                    onClick={() => setPedidosTab('list')}
-                  >
-                    Ver Pedidos
+              <div className="w-full flex flex-col items-center">
+                <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
+                  <button onClick={() => setEntrouNaComunidade(false)} className="mr-2 p-2 rounded-full hover:bg-[#ede9fe] transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                   </button>
-                  <button
-                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'create' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-                    onClick={() => setPedidosTab('create')}
-                  >
-                    Criar Pedido
-                  </button>
+                  <h1 className="text-3xl font-extrabold text-[#23232b] mb-4 text-center flex-1">Comunidade Global</h1>
+                  <div style={{width: 40}} />
                 </div>
+                <div className="w-full max-w-xl mx-auto border-b border-[#e0c3fc] mb-4"></div>
+                {/* Botões Ver Pedidos e Criar Pedido removidos */}
+                <PrayerApp activeTab={pedidosTab} />
               </div>
-              <PrayerApp activeTab={pedidosTab} />
             </>
           )}
-          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       );
     }
