@@ -6,7 +6,10 @@ app.use(express.json());
 
 // Configuração do Supabase com service_role
 const supabaseUrl = 'https://fidiulbnuucqfckozbrv.supabase.co';
-const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZGl1bGJudXVjcWZja296YnJ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDcxMDU4OSwiZXhwIjoyMDY2Mjg2NTg5fQ.geZx43mnZ_yI3qvu4q1Z23NkLcXCGvGpWfoDt2PKi58';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE;
+if (!serviceRoleKey) {
+  throw new Error('A variável de ambiente SUPABASE_SERVICE_ROLE não está definida!');
+}
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
