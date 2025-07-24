@@ -13,13 +13,9 @@ import { Heart, Trash2, Filter } from 'lucide-react';
 export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () => void }) {
   const { requests, loading, prayForRequest, deleteRequest } = usePrayerRequests();
   const { user } = useAuth();
-  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [orouIds, setOrouIds] = useState<string[]>([]);
 
-  const filteredRequests = requests.filter(request => {
-    if (filterCategory === 'all') return true;
-    return request.category === filterCategory;
-  });
+  const filteredRequests = requests; // Sem filtro de categoria
 
   const handlePray = async (requestId: string) => {
     if (!user) return;
@@ -36,16 +32,6 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
 
   const canDelete = (request: any) => {
     return user && request.user_id === user.id;
-  };
-
-  // Ícones para cada categoria
-  const CATEGORY_ICONS: Record<string, string> = {
-    financeiro: '💰',
-    familia: '👨‍👩‍👧‍👦',
-    saude: '❤️',
-    trabalho: '💼',
-    espiritual: '🙏',
-    outros: '✨',
   };
 
   if (loading) {
@@ -80,34 +66,11 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
 
   return (
     <div className="w-full px-1 space-y-4">
-      <div className="flex items-center gap-2 sm:gap-4 mb-2">
-        <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-full sm:w-[200px] text-sm">
-            <SelectValue placeholder="Filtrar por categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as categorias</SelectItem>
-            {Object.entries(PRAYER_CATEGORIES).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="space-y-6">
         {filteredRequests.map(request => (
           <Card key={request.id} className="relative rounded-2xl border border-white/15 bg-white/10 p-0 shadow-md hover:shadow-lg transition-shadow duration-200 w-full max-w-full">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-[#a78bfa] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow">
-                  {CATEGORY_ICONS[request.category] || '✨'}
-                </span>
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20">
-                  {PRAYER_CATEGORIES[request.category] || 'Categoria desconhecida'}
-                </span>
-              </div>
+              {/* Removido ícone e badge de categoria */}
               <h3 className="text-xl font-bold text-white mb-1 whitespace-pre-wrap leading-snug">{request.text}</h3>
               <div className="flex items-center justify-between mt-2 mb-1 text-xs text-gray-300">
                 <span>

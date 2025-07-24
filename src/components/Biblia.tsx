@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { KEYWORDS, KeywordVerse } from "@/data/keywords";
-import bgImage from '@/assets/spiritual-background.jpg';
 import { FaWhatsapp } from 'react-icons/fa';
 
 const livros = [
@@ -193,6 +192,7 @@ export default function Biblia() {
     }
   }, [busca]);
 
+  // Buscar versículos do capítulo usando API pública
   useEffect(() => {
     if (livroSelecionado && capituloSelecionado) {
       setCarregandoVersiculos(true);
@@ -200,6 +200,7 @@ export default function Biblia() {
       setVersiculos([]);
       const livroObj = livros.find(l => l.api === livroSelecionado);
       const nomeLivro = livroObj ? livroObj.nome.replace(/\s/g, "+") : livroSelecionado;
+      // Usar API pública Bible-API
       fetch(`https://bible-api.com/${nomeLivro}+${capituloSelecionado}?translation=almeida`)
         .then(res => res.json())
         .then(data => {
@@ -219,255 +220,103 @@ export default function Biblia() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      className="min-h-screen w-screen flex flex-col items-center justify-start bg-[#f6eaff]"
+      style={{ minHeight: '100vh', width: '100vw', padding: 0, margin: 0, boxSizing: 'border-box' }}
     >
-      {/* Overlay para escurecer o fundo e dar contraste */}
-      <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
-      <div className="relative z-20 w-full">
-        {/* Título */}
-        <div className="flex flex-col items-center justify-center mb-2 mt-6 animate-fade-in">
-          <h1 className="text-2xl font-bold text-[#181824] text-center mb-4 bg-white/80 rounded-xl px-4 py-2 shadow">Bíblia Sagrada</h1>
-        </div>
-        {/* Selects de livro e capítulo */}
-        <div className="flex flex-row gap-3 w-full max-w-md mx-auto mb-4 animate-fade-in">
-          <select
-            className="flex-1 p-3 rounded-xl border border-[#8b5cf6] bg-white text-[#2d1457] text-base focus:ring-2 focus:ring-[#b2a4ff] outline-none"
-            value={livroSelecionado || ''}
-            onChange={e => {
-              setLivroSelecionado(e.target.value);
-              setCapituloSelecionado(null);
-            }}
-          >
-            <option value="" disabled>Livro</option>
-            {livros.filter(l => l.testamento === testamento).map(livro => (
-              <option key={livro.api} value={livro.api}>{livro.nome}</option>
+      <div className="w-full max-w-2xl mx-auto flex flex-col items-center mt-6 mb-4">
+        <h1 className="text-3xl font-extrabold text-[#2d1457] text-center mb-4 tracking-tight">Bíblia Sagrada</h1>
+      </div>
+      <div className="w-full max-w-md mx-auto flex flex-row gap-3 mb-4">
+        <select
+          className="flex-1 h-14 px-6 rounded-2xl border border-[#e5e7eb] bg-[#fafbfc] text-[#2d1457] text-lg focus:ring-2 focus:ring-[#b2a4ff] outline-none shadow-sm"
+          value={livroSelecionado || ''}
+          onChange={e => {
+            setLivroSelecionado(e.target.value);
+            setCapituloSelecionado(null);
+          }}
+        >
+          <option value="" disabled>Livro</option>
+          {livros.filter(l => l.testamento === testamento).map(livro => (
+            <option key={livro.api} value={livro.api}>{livro.nome}</option>
+          ))}
+        </select>
+        <select
+          className="flex-1 h-14 px-6 rounded-2xl border border-[#e5e7eb] bg-[#fafbfc] text-[#2d1457] text-lg focus:ring-2 focus:ring-[#b2a4ff] outline-none shadow-sm"
+          value={capituloSelecionado || ''}
+          onChange={e => setCapituloSelecionado(Number(e.target.value))}
+          disabled={!livroSelecionado}
+        >
+          <option value="" disabled>Capítulo</option>
+          {livroSelecionado &&
+            Array.from({ length: livros.find(l => l.api === livroSelecionado)?.capitulos || 1 }, (_, i) => i + 1).map(n => (
+              <option key={n} value={n}>{n}</option>
             ))}
-          </select>
-          <select
-            className="flex-1 p-3 rounded-xl border border-[#8b5cf6] bg-white text-[#2d1457] text-base focus:ring-2 focus:ring-[#b2a4ff] outline-none"
-            value={capituloSelecionado || ''}
-            onChange={e => setCapituloSelecionado(Number(e.target.value))}
-            disabled={!livroSelecionado}
-          >
-            <option value="" disabled>Capítulo</option>
-            {livroSelecionado &&
-              Array.from({ length: livros.find(l => l.api === livroSelecionado)?.capitulos || 1 }, (_, i) => i + 1).map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-          </select>
-        </div>
-        {/* Abas de testamento */}
-        <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner mb-4 animate-fade-in">
-          <button
-            className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${testamento === 'antigo' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-            onClick={() => {
-              setTestamento('antigo');
-              setLivroSelecionado(null);
-              setCapituloSelecionado(null);
-            }}
-          >
-            ANTIGO TESTAMENTO
-          </button>
-          <button
-            className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${testamento === 'novo' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-            onClick={() => {
-              setTestamento('novo');
-              setLivroSelecionado(null);
-              setCapituloSelecionado(null);
-            }}
-          >
-            NOVO TESTAMENTO
-          </button>
-        </div>
-        {/* Campo de busca */}
-        <div className="w-full max-w-md mx-auto px-2 mb-4 animate-fade-in">
-          <input
-            type="text"
-            placeholder="Pesquisar na Bíblia"
-            className="w-full p-3 rounded-xl border border-[#8b5cf6] bg-white text-[#2d1457] text-base focus:ring-2 focus:ring-[#b2a4ff] outline-none placeholder:text-[#b2a4ff]/60"
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
-          />
-          {/* Sugestões de autocomplete */}
-          {sugestoes.length > 0 && busca && (
-            <div className="mt-2 bg-[#2d1457] rounded shadow p-2 text-[#b2a4ff] border border-[#8b5cf6]/30 animate-fade-in">
-              <div className="font-semibold text-xs mb-1 text-[#8b5cf6]">Sugestões:</div>
-              <div className="flex flex-wrap gap-2">
-                {sugestoes.map(s => (
-                  <button
-                    key={s}
-                    className="px-2 py-1 rounded bg-[#8b5cf6]/20 hover:bg-[#8b5cf6]/40 text-xs font-bold transition-all duration-200 hover:scale-105"
-                    onClick={() => setBusca(s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        {/* Resultados de busca por palavra-chave */}
-        {modoBusca && (
-          <div className="w-full max-w-2xl mx-auto mt-6">
-            <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#2d1457]/80 shadow-xl backdrop-blur-xl p-6 overflow-hidden">
-              <div className="pb-2 flex flex-row items-center gap-3 border-b border-[#a78bfa]/20 px-2 pt-2">
-                <span className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
-                  📖
-                </span>
-                <span className="font-semibold text-[#b2a4ff] text-lg mr-2">Resultados da Palavra-chave</span>
-              </div>
-              <div className="pt-4 pb-2 px-2">
-                {resultadosPalavraChave ? (
-                  resultadosPalavraChave.versiculos.map((v, i) => (
-                    <div key={i} className="mb-4">
-                      <div className="text-[#b2a4ff] font-semibold text-base mb-1">{v.referencia}</div>
-                      <div className="text-white/90 drop-shadow-lg text-lg leading-relaxed">{v.texto}</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center text-red-400">Nenhuma palavra-chave encontrada. Veja sugestões acima.</div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Versículos do capítulo */}
-        {capituloSelecionado && !modoBusca && (
-          <div className="w-full max-w-2xl mx-auto mt-6 relative">
-            {/* Menu de seleção de cor */}
-            {menuCor && (
-              <div
-                ref={menuRef}
-                className="absolute z-[9999] flex gap-2 p-2 bg-white rounded-xl shadow-lg border border-[#b2a4ff]/40 animate-fade-in"
-                style={{ left: menuCor.x, top: menuCor.y }}
-              >
-                {cores.map(c => (
-                  <button
-                    key={c.cor}
-                    className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 hover:scale-110 transition-all"
-                    style={{ background: c.cor }}
-                    onClick={() => {
-                      setMarcados(m => ({ ...m, [menuCor.key]: c.cor }));
-                      setMenuCor(null);
-                    }}
-                  />
-                ))}
+        </select>
+      </div>
+      {/* Linha divisória entre selects e versículos */}
+      <div className="w-full max-w-md mx-auto border-b-2 border-[#ececec] mb-6"></div>
+      {/* Removido os botões de Antigo e Novo Testamento */}
+      {/* Campo de busca removido */}
+      {/* Versículos do capítulo */}
+      {capituloSelecionado && (
+        <div className="w-full max-w-md mx-auto mt-6 relative">
+          {/* Menu de seleção de cor */}
+          {menuCor && (
+            <div
+              ref={menuRef}
+              className="absolute z-[9999] flex gap-2 p-2 bg-white rounded-xl shadow-lg border border-[#b2a4ff]/40 animate-fade-in"
+              style={{ left: menuCor.x, top: menuCor.y }}
+            >
+              {cores.map(c => (
                 <button
-                  className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 flex items-center justify-center text-[#b2a4ff] bg-white hover:scale-110 transition-all"
+                  key={c.cor}
+                  className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 hover:scale-110 transition-all"
+                  style={{ background: c.cor }}
                   onClick={() => {
-                    setMarcados(m => {
-                      const novo = { ...m };
-                      delete novo[menuCor.key];
-                      return novo;
-                    });
+                    setMarcados(m => ({ ...m, [menuCor.key]: c.cor }));
                     setMenuCor(null);
                   }}
-                  title="Remover marcação"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-            <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#2d1457]/80 shadow-xl backdrop-blur-xl p-6 overflow-hidden">
-              <div className="pb-2 flex flex-row items-center gap-3 border-b border-[#a78bfa]/20 px-2 pt-2">
-                <span className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
-                  📖
-                </span>
-                <span className="font-semibold text-[#b2a4ff] text-lg mr-2">{livros.find(l => l.api === livroSelecionado)?.nome} {capituloSelecionado}</span>
-              </div>
-              <div className="pt-4 pb-2 px-2">
-                {carregandoVersiculos ? (
-                  <div className="text-center text-white">Carregando versículos...</div>
-                ) : erroVersiculos ? (
-                  <div className="text-center text-red-400">{erroVersiculos}</div>
-                ) : (
-                  versiculos.map((v, i) => {
-                    const key = `${livroSelecionado}:${capituloSelecionado}:${v.verse}`;
-                    const cor = marcados[key];
-                    let longPressTimer: NodeJS.Timeout | null = null;
-                    let pressed = false;
-                    const handleLongPress = (e: React.MouseEvent | React.TouchEvent) => {
-                      let rect;
-                      if ('touches' in e && e.touches.length > 0) {
-                        rect = (e.target as HTMLElement).getBoundingClientRect();
-                      } else {
-                        rect = (e.target as HTMLElement).getBoundingClientRect();
-                      }
-                      const x = Math.min(rect.left + 40, window.innerWidth - 180);
-                      const y = Math.max(rect.top - 10, 20);
-                      setMenuCor({ key, x, y });
-                    };
-                    return (
-                      <div
-                        key={i}
-                        className={`rounded-xl border border-[#8b5cf6]/20 p-4 text-white/90 shadow-sm mb-3 relative select-none transition-transform duration-150 flex items-center`}
-                        onMouseDown={e => {
-                          pressed = true;
-                          e.preventDefault();
-                          longPressTimer = setTimeout(() => { handleLongPress(e); pressed = false; }, 350);
-                        }}
-                        onMouseUp={() => {
-                          pressed = false;
-                          if (longPressTimer) clearTimeout(longPressTimer);
-                        }}
-                        onMouseLeave={() => {
-                          pressed = false;
-                          if (longPressTimer) clearTimeout(longPressTimer);
-                        }}
-                        onTouchStart={e => {
-                          pressed = true;
-                          e.preventDefault();
-                          longPressTimer = setTimeout(() => { handleLongPress(e); pressed = false; }, 350);
-                        }}
-                        onTouchEnd={() => {
-                          pressed = false;
-                          if (longPressTimer) clearTimeout(longPressTimer);
-                        }}
-                        onTouchMove={() => {
-                          pressed = false;
-                          if (longPressTimer) clearTimeout(longPressTimer);
-                        }}
-                        onContextMenu={e => {
-                          e.preventDefault();
-                          handleLongPress(e);
-                        }}
-                        style={{
-                          background: cor ? cor : '#1a093e99',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s, transform 0.15s',
-                          transform: pressed ? 'scale(0.97)' : 'scale(1)'
-                        }}
-                      >
-                        <span className="font-bold text-[#b2a4ff] mr-2">{v.verse}</span>
-                        <span className="flex-1">{v.text}</span>
-                        <button
-                          className="ml-2 p-2 rounded-full bg-[#25d366]/20 hover:bg-[#25d366]/40 transition-colors"
-                          title="Compartilhar no WhatsApp"
-                          onClick={() => {
-                            const livroNome = livros.find(l => l.api === livroSelecionado)?.nome || '';
-                            const referencia = `${livroNome} ${capituloSelecionado}:${v.verse}`;
-                            const texto = `${referencia} — ${v.text}`;
-                            const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-                            window.open(url, '_blank');
-                          }}
-                        >
-                          <FaWhatsapp className="text-[#25d366] w-5 h-5" />
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                />
+              ))}
+              <button
+                className="w-8 h-8 rounded-full border-2 border-[#b2a4ff]/30 flex items-center justify-center text-[#b2a4ff] bg-white hover:scale-110 transition-all"
+                onClick={() => {
+                  setMarcados(m => {
+                    const novo = { ...m };
+                    delete novo[menuCor.key];
+                    return novo;
+                  });
+                  setMenuCor(null);
+                }}
+                title="Remover marcação"
+              >
+                ×
+              </button>
             </div>
+          )}
+          {/* Título do livro e capítulo */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-[#2d1457] mb-2">{livros.find(l => l.api === livroSelecionado)?.nome} {capituloSelecionado}</h2>
           </div>
-        )}
-      </div>
+          {/* Lista de versículos */}
+          <div className="flex flex-col gap-6">
+            {carregandoVersiculos ? (
+              <div className="text-center text-[#8b5cf6] text-lg">Carregando versículos...</div>
+            ) : erroVersiculos ? (
+              <div className="text-center text-red-400">{erroVersiculos}</div>
+            ) : (
+              versiculos.map((v, i) => {
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    <sup className="text-[#a084e8] font-bold text-base mt-1 select-none">{v.verse}</sup>
+                    <span className="text-lg text-[#181824] leading-relaxed break-words">{v.text}</span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

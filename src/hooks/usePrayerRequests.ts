@@ -17,7 +17,7 @@ export function usePrayerRequests() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests((data || []) as PrayerRequest[]);
+      setRequests([...(data || [])] as PrayerRequest[]);
     } catch (error) {
       console.error('Error fetching prayer requests:', error);
       toast({
@@ -131,8 +131,8 @@ export function usePrayerRequests() {
   useEffect(() => {
     fetchRequests();
 
-    // Set up realtime subscription
-    const channel = supabase
+    // Set up realtime subscription para prayer_requests
+    const channelRequests = supabase
       .channel('prayer_requests_changes')
       .on(
         'postgres_changes',
@@ -147,8 +147,27 @@ export function usePrayerRequests() {
       )
       .subscribe();
 
+    // Set up realtime subscription para prayer_interactions
+    const channelInteractions = supabase
+      .channel('prayer_interactions_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'prayer_interactions'
+        },
+        () => {
+      fetchRequests();
+        }
+      )
+      .subscribe();
+
+    // Removido o polling por intervalo
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelRequests);
+      supabase.removeChannel(channelInteractions);
     };
   }, []);
 
