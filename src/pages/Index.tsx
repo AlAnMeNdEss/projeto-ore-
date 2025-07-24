@@ -10,7 +10,6 @@ import { ChartContainer } from '@/components/ui/chart';
 import { PieChart, Pie, Tooltip as PieTooltip, ResponsiveContainer as PieResponsiveContainer, Cell } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, ResponsiveContainer, Legend } from 'recharts';
 import { PRAYER_CATEGORIES } from '@/types/prayer';
-import Biblia from '@/components/Biblia';
 import { useSwipeable } from 'react-swipeable';
 import HomePage from '@/pages/HomePage';
 
@@ -19,6 +18,7 @@ const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 type Tab = typeof tabs[number];
 
 const Index = () => {
+  // Mover todos os hooks para o topo, antes de qualquer return condicional
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
   const [showAuth, setShowAuth] = useState(false);
@@ -78,7 +78,7 @@ const Index = () => {
   // Debug: verificar estados
   console.log('Index - user:', user, 'loading:', loading, 'showAuth:', showAuth);
 
-  // Swipe handlers para alternar abas
+  // Remover swipe lateral global para evitar navegação acidental na página da Bíblia
   const handlers = useSwipeable({
     onSwipedLeft: () => {
       const idx = tabs.indexOf(activeTab);
@@ -108,88 +108,62 @@ const Index = () => {
   // Se o usuário está logado, mostra o app
   if (user) {
     if (activeTab === 'inicio') {
-      // HomePage já tem o fundo lavanda, mas a BottomNavBar deve aparecer
       return <>
         <HomePage user={user} />
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab as (tab: 'inicio' | 'comunidades' | 'biblia' | 'perfil') => void} />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </>;
     }
+    if (activeTab === 'comunidades') {
+      return (
+        <div
+          {...handlers}
+          className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
+          style={{ background: '#f6eaff' }}
+        >
+          <div className="relative z-20 w-full">
+            <div className="flex justify-center mb-4 sm:mb-8">
+              <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner">
+                <button
+                  className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'list' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
+                  onClick={() => setPedidosTab('list')}
+                >
+                  Ver Pedidos
+                </button>
+                <button
+                  className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'create' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
+                  onClick={() => setPedidosTab('create')}
+                >
+                  Criar Pedido
+                </button>
+              </div>
+            </div>
+            <PrayerApp activeTab={pedidosTab} />
+          </div>
+          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+      );
+    }
+    if (activeTab === 'biblia') {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[100vh] w-full bg-[#f6eaff]">
+          <h1 className="text-3xl font-extrabold text-[#7c3aed] mb-4">Bíblia</h1>
+          <p className="text-lg text-[#2d1457] mb-6">Página da Bíblia em desenvolvimento.</p>
+          <span className="text-5xl">📖🚧</span>
+          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+      );
+    }
+    // ...perfil ou outros...
     return (
       <div
         {...handlers}
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-        style={{
-          background: '#f6eaff',
-        }}
+        style={{ background: '#f6eaff' }}
       >
-        {/* Overlay para escurecer o fundo e dar contraste */}
-        <div className="absolute inset-0 bg-[#2d1457]/70 z-0" />
         <div className="relative z-20 w-full">
-          {activeTab === 'comunidades' && (
-            <>
-              {/* Logo e nome acima dos botões de pedidos */}
-              <div className="flex flex-col items-center justify-center mb-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
-                  <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
-              </div>
-              <div className="flex justify-center mb-4 sm:mb-8">
-                <div className="flex w-full max-w-md gap-2 overflow-x-auto scrollbar-hide rounded-xl bg-white/5 p-1 shadow-inner">
-                  <button
-                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'list' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-                    onClick={() => setPedidosTab('list')}
-                  >
-                    Ver Pedidos
-                  </button>
-                  <button
-                    className={`flex-1 min-w-[140px] px-4 py-2 rounded-2xl font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 ${pedidosTab === 'create' ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white scale-105 shadow-lg' : 'bg-transparent text-gray-300 hover:bg-white/10 hover:scale-105'}`}
-                    onClick={() => setPedidosTab('create')}
-                  >
-                    Criar Pedido
-                  </button>
-                </div>
-              </div>
-              <PrayerApp activeTab={pedidosTab} />
-            </>
-          )}
-          {activeTab === 'biblia' && (
-            <Biblia />
-          )}
-          {activeTab === 'perfil' && user && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-white gap-8 w-full">
-              {/* Topo: Avatar, nome, email */}
-              <div className="flex flex-col items-center gap-2 w-full">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] flex items-center justify-center text-4xl font-bold text-white shadow-lg mb-2">
-                  {user.email?.[0]?.toUpperCase() || <UserIcon className="w-10 h-10" />}
-                </div>
-                <div className="text-base text-[#8b5cf6] font-medium">{user.email}</div>
-                <button
-                  onClick={signOut}
-                  className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white font-semibold shadow-md hover:brightness-110 transition-all duration-200"
-                >
-                  Sair
-                </button>
-              </div>
-              {/* Estatísticas em cards */}
-              <div className="flex flex-row flex-wrap gap-4 justify-center w-full max-w-2xl">
-                <div className="flex flex-col items-center bg-white/10 rounded-xl p-4 min-w-[120px] shadow-md">
-                  <BarChart2 className="w-7 h-7 text-[#8b5cf6] mb-1" />
-                  <div className="text-xl font-bold">{pedidosDoUsuario.length}</div>
-                  <div className="text-xs text-[#8b5cf6] font-semibold uppercase tracking-wide">Pedidos criados</div>
-                </div>
-                <div className="flex flex-col items-center bg-white/10 rounded-xl p-4 min-w-[120px] shadow-md">
-                  <Send className="w-7 h-7 text-[#6d28d9] mb-1" />
-                  <div className="text-xl font-bold">{totalOracoesRecebidas}</div>
-                  <div className="text-xs text-[#6d28d9] font-semibold uppercase tracking-wide">Orações recebidas</div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Página de perfil antiga removida. */}
         </div>
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab as (tab: 'inicio' | 'comunidades' | 'biblia' | 'perfil') => void} />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </div>
     );
   }

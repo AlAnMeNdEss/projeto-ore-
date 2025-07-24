@@ -1,6 +1,6 @@
 import { Home, Users, BookOpen, List } from 'lucide-react';
 
-export function BottomNavBar({ activeTab, setActiveTab }: { activeTab: 'inicio' | 'comunidades' | 'biblia', setActiveTab: (tab: 'inicio' | 'comunidades' | 'biblia') => void }) {
+export function BottomNavBar({ activeTab, setActiveTab }: { activeTab: 'inicio' | 'comunidades' | 'perfil' | 'biblia', setActiveTab: (tab: 'inicio' | 'comunidades' | 'perfil' | 'biblia') => void }) {
   return (
     <nav
       className="fixed bottom-0 left-0 z-50 w-screen px-0"

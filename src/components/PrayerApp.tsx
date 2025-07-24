@@ -60,15 +60,17 @@ export function UserMenu() {
 }
 
 export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
+  // Todos os hooks no topo, SEM ifs ou returns antes
   const { user, signOut } = useAuth();
   const { refreshRequests } = usePrayerRequests();
   const [tab, setTab] = useState<'list' | 'create'>(activeTab ?? 'list');
-  // Se activeTab mudar externamente, sincroniza
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Sincroniza tab externo
   useEffect(() => {
     if (activeTab && activeTab !== tab) setTab(activeTab);
   }, [activeTab]);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Fecha o menu ao clicar fora
   useEffect(() => {
@@ -93,6 +95,7 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
     await signOut();
   };
 
+  // Renderização SEM returns condicionais antes dos hooks
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
       {/* Botão de instalação no topo direito */}
@@ -106,74 +109,36 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
         <header className="flex flex-col items-center justify-center mb-4 sm:mb-8 gap-2 animate-fade-in w-full relative">
           {/* Botão/avatar de usuário no canto superior direito */}
         </header>
-        {/* Botões de Ver Pedidos/Criar Pedido mais abaixo */}
-        {/* Botão flutuante de criar pedido */}
-        {tab === 'list' && (
-              <button
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-yellow-300 text-white text-4xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
-            aria-label="Criar Pedido"
-            onClick={() => setTab('create')}
-              >
-            <Plus className="w-8 h-8" />
-              </button>
-        )}
-        {tab === 'create' && (
-              <button
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-gray-300 via-purple-200 to-indigo-400 text-[#8b5cf6] text-3xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
-            aria-label="Voltar para lista"
-            onClick={() => setTab('list')}
-              >
-            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-8 h-8'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' /></svg>
-              </button>
-        )}
-        {/* Conteúdo principal em cards glassmorphism animados */}
-        <main className="flex-1">
-          <div className="w-full mx-auto px-1 sm:px-4 py-2 flex flex-col items-center">
-            {/* Substituir o bloco de gamificação e manter apenas o conteúdo principal */}
-            <div className="w-full max-w-4xl mx-auto">
-              {tab === 'list' ? (
-                <div className="animate-fade-slide-in">
-                      <PrayerRequestsList refreshRequests={refreshRequests} />
-                </div>
-              ) : (
-                <div className="animate-fade-slide-in">
-                  <Card className="rounded-3xl shadow-2xl border-0 bg-[#2d1457]/80 shadow-xl mb-4 sm:mb-8 p-0 backdrop-blur-md overflow-hidden">
-                    {/* Detalhe decorativo no topo */}
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] opacity-40 rounded-t-3xl" />
-                    <CardHeader className="pb-2 flex flex-row items-center gap-3 border-b border-white/10 px-4 sm:px-6 pt-6">
-                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#8b5cf6] via-[#f3e8ff] to-[#6d28d9] text-white text-2xl shadow-md">
-                        ✍️
-                      </span>
-                      <div className="flex-1">
-                        <span className="font-semibold text-[#8b5cf6] text-base mr-2">
-                          Novo Pedido
-                        </span>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-2 pb-4 px-4 sm:px-6">
-                      <h2 className="text-lg sm:text-xl font-bold mb-2 text-gray-100">Novo Pedido</h2>
-                      <p className="text-gray-300">
-                        Compartilhe seu pedido com nossa comunidade
-                      </p>
-                      <div className="w-full max-w-2xl mx-auto">
-                        <PrayerRequestForm refreshRequests={refreshRequests} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
+        {tab === 'list' ? (
+          <div className="animate-fade-slide-in">
+            <PrayerRequestsList refreshRequests={refreshRequests} />
           </div>
-        </main>
-        {/* Footer minimalista */}
-        <footer className="mt-auto py-4 sm:py-6 text-center text-xs animate-fade-in">
-          <div className="flex items-center justify-center gap-2 mb-2 text-[#8b5cf6] drop-shadow">
-            <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-[#8b5cf6] animate-pulse" />
-            <span className="font-semibold text-xs sm:text-sm">Feito com amor e fé</span>
+        ) : (
+          <div className="animate-fade-slide-in">
+            <PrayerRequestForm refreshRequests={refreshRequests} />
           </div>
-          <p className="text-xs sm:text-sm text-white drop-shadow-sm font-medium">"Orai uns pelos outros, para que sareis." - Tiago 5:16</p>
-        </footer>
+        )}
       </div>
+
+      {/* Botão flutuante para criar pedido */}
+      {tab === 'list' && (
+        <button
+          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-yellow-300 text-white text-4xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
+          aria-label="Criar Pedido"
+          onClick={() => setTab('create')}
+        >
+          <Plus className="w-8 h-8" />
+        </button>
+      )}
+      {tab === 'create' && (
+        <button
+          className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-gray-300 via-purple-200 to-indigo-400 text-[#8b5cf6] text-3xl flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400"
+          aria-label="Voltar para lista"
+          onClick={() => setTab('list')}
+        >
+          <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-8 h-8'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' /></svg>
+        </button>
+      )}
     </div>
   );
 }
