@@ -4,7 +4,6 @@ import { PrayerApp, UserMenu } from '@/components/PrayerApp';
 import WelcomePage from './WelcomePage';
 import { Loader2, Heart, User as UserIcon, Send, Users, BarChart2 } from 'lucide-react';
 import { useState } from 'react';
-import bgImage from '@/assets/spiritual-background.jpg';
 import { BottomNavBar } from '@/components/BottomNavBar';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import { ChartContainer } from '@/components/ui/chart';
@@ -120,9 +119,7 @@ const Index = () => {
         {...handlers}
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
         style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: '#f6eaff',
         }}
       >
         {/* Overlay para escurecer o fundo e dar contraste */}
