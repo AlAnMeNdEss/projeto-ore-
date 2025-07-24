@@ -41,7 +41,7 @@ export function usePrayerRequests() {
         .from('prayer_requests')
         .insert({
           text,
-          category,
+          category: 'outros',
           name: name || null,
           user_id: userId || null
         });

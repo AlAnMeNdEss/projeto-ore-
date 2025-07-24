@@ -109,24 +109,16 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
         <header className="flex flex-col items-center justify-center mb-4 sm:mb-8 gap-2 animate-fade-in w-full relative">
           {/* Botão/avatar de usuário no canto superior direito */}
         </header>
-        {tab === 'list' ? (
-          <div className="animate-fade-slide-in">
-            <PrayerRequestsList refreshRequests={refreshRequests} />
-          </div>
-        ) : (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 mx-2 flex flex-col items-center">
-              <h2 className="text-2xl font-extrabold text-[#23232b] text-center mb-6">Novo Pedido de Oração</h2>
-              <PrayerRequestForm refreshRequests={refreshRequests} />
-              <button
-                className="mt-6 w-full py-3 rounded-xl bg-[#ede9fe] text-[#7c3aed] font-bold text-lg hover:bg-[#e0c3fc] transition"
-                aria-label="Voltar para lista"
-                onClick={() => setTab('list')}
-              >
-                Cancelar
-              </button>
+        <div className="animate-fade-slide-in">
+          <PrayerRequestsList refreshRequests={refreshRequests} />
+        </div>
+        {tab === 'create' && (
+          <>
+            <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" />
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <PrayerRequestForm refreshRequests={refreshRequests} onSent={() => setTab('list')} onCancel={() => setTab('list')} />
             </div>
-          </div>
+          </>
         )}
       </div>
 
