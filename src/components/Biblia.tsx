@@ -138,9 +138,9 @@ export function Biblia() {
           <button onClick={() => setBusca('')} className="text-[#a084e8] font-bold px-2 py-1 rounded hover:bg-[#ede9fe] transition">Limpar</button>
         )}
       </div>
-      <div className="flex gap-3 w-full max-w-md mb-6">
+      <div className="flex gap-2 w-full max-w-md mb-6 px-2 overflow-x-auto">
         <select
-          className="w-40 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+          className="w-40 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
           value={traducao}
           onChange={e => setTraducao(e.target.value)}
         >
@@ -149,7 +149,7 @@ export function Biblia() {
           ))}
         </select>
         <select
-          className="flex-1 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+          className="flex-1 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
           value={livro}
           onChange={e => setLivro(e.target.value)}
         >
@@ -158,7 +158,7 @@ export function Biblia() {
           ))}
         </select>
         <select
-          className="w-24 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+          className="w-20 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
           value={capitulo}
           onChange={e => setCapitulo(Number(e.target.value))}
         >
