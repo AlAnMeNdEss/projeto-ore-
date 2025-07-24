@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import bgImage from '../assets/spiritual-background.jpg';
 import { SplashScreen } from '@/components/SplashScreen';
 
 interface WelcomePageProps {
@@ -30,9 +29,7 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
       <div
         className="absolute inset-0 w-full h-full z-0 animate-bg-move"
       style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        background: '#f6eaff',
       }}
       />
       {/* Overlay colorido lilás */}
