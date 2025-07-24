@@ -8,9 +8,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface HomePageProps {
   user: any;
+  onFazerPedido: () => void;
+  onVerComunidade: () => void;
 }
 
-export default function HomePage({ user }: HomePageProps) {
+export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomePageProps) {
   const [communitySummary, setCommunitySummary] = useState({
     oracoesHoje: 0,
     novosPedidos: 0,
@@ -98,14 +100,22 @@ export default function HomePage({ user }: HomePageProps) {
       </motion.div>
       {/* Dois cards de ação sempre lado a lado */}
       <div className="w-full flex flex-row gap-4 mb-6 max-w-xl mx-auto">
-        <div className="flex-1 bg-white rounded-3xl shadow-lg flex flex-col items-center justify-center py-10 px-4 min-w-[140px]" style={{boxShadow: '0 4px 32px #e9d8fd'}}>
+        <button
+          className="flex-1 bg-white rounded-3xl shadow-lg flex flex-col items-center justify-center py-10 px-4 min-w-[140px]"
+          style={{boxShadow: '0 4px 32px #e9d8fd'}}
+          onClick={onFazerPedido}
+        >
           <Plus className="w-10 h-10 text-[#8b5cf6] mb-3" />
           <span className="text-2xl font-bold text-[#6d28d9] text-center leading-tight">Fazer um<br/>Pedido</span>
-        </div>
-        <div className="flex-1 bg-white rounded-3xl shadow-lg flex flex-col items-center justify-center py-10 px-4 min-w-[140px]" style={{boxShadow: '0 4px 32px #e9d8fd'}}>
+        </button>
+        <button
+          className="flex-1 bg-white rounded-3xl shadow-lg flex flex-col items-center justify-center py-10 px-4 min-w-[140px]"
+          style={{boxShadow: '0 4px 32px #e9d8fd'}}
+          onClick={onVerComunidade}
+        >
           <Users className="w-10 h-10 text-[#8b5cf6] mb-3" />
           <span className="text-2xl font-bold text-[#6d28d9] text-center leading-tight">Ver<br/>Comunidade</span>
-        </div>
+        </button>
       </div>
       {/* Card de Devocional Diário no mesmo padrão dos outros cards */}
       <div className="w-full bg-white rounded-3xl shadow-lg flex flex-col items-center p-6 mb-4" style={{boxShadow: '0 4px 32px #e9d8fd'}}>

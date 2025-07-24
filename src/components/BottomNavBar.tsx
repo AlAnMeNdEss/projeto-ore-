@@ -1,12 +1,12 @@
 import { Home, Users, BookOpen, List } from 'lucide-react';
 
-export function BottomNavBar({ activeTab, setActiveTab }: { activeTab: 'inicio' | 'comunidades' | 'perfil' | 'biblia', setActiveTab: (tab: 'inicio' | 'comunidades' | 'perfil' | 'biblia') => void }) {
+export function BottomNavBar({ activeTab, setActiveTab, glass }: { activeTab: 'inicio' | 'comunidades' | 'perfil' | 'biblia', setActiveTab: (tab: 'inicio' | 'comunidades' | 'perfil' | 'biblia') => void, glass?: boolean }) {
   return (
     <nav
       className="fixed bottom-0 left-0 z-50 w-screen px-0"
       style={{paddingBottom: 'env(safe-area-inset-bottom, 0)'}}
     >
-      <div className="flex justify-around items-center bg-white rounded-t-3xl shadow-2xl py-2 px-2 min-h-[64px] border border-[#ede7f6] backdrop-blur-md w-full">
+      <div className={`flex justify-around items-center rounded-t-3xl min-h-[64px] py-2 px-2 w-full ${glass ? 'bg-white/80 backdrop-blur-md border border-[#ede7f6] shadow-xl' : 'bg-white shadow-2xl border border-[#ede7f6]'}` }>
         <button
           className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'inicio' ? 'text-[#7c3aed] font-bold' : 'text-[#7c3aed]/60 hover:text-[#7c3aed]'}`}
           onClick={() => setActiveTab('inicio')}

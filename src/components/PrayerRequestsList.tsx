@@ -56,7 +56,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
       <div
         {...handlers}
         style={{...style, zIndex: 1, position: 'relative'}}
-        className="rounded-2xl bg-white shadow-lg p-4 w-full max-w-full flex flex-col gap-3 border border-[#f3e8ff]"
+        className="rounded-2xl bg-white shadow-2xl p-3 w-full max-w-md mx-auto flex flex-col gap-3 border border-[#f3e8ff]"
       >
         <div className="text-base font-bold text-[#23232b] mb-1">
           {displayName}

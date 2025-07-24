@@ -12,6 +12,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, Resp
 import { PRAYER_CATEGORIES } from '@/types/prayer';
 import { useSwipeable } from 'react-swipeable';
 import HomePage from '@/pages/HomePage';
+import { PrayerRequestForm } from '@/components/PrayerRequestForm';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -24,11 +25,9 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('inicio');
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
+  const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
   // Sempre que mudar para a aba 'comunidades', reseta para false
-  useEffect(() => {
-    if (activeTab === 'comunidades') setEntrouNaComunidade(false);
-  }, [activeTab]);
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
   const totalOracoesRecebidas = pedidosDoUsuario.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
@@ -114,7 +113,17 @@ const Index = () => {
   if (user) {
     if (activeTab === 'inicio') {
       return <>
-        <HomePage user={user} />
+        <div className="relative">
+          <HomePage user={user} onFazerPedido={() => setShowCreateModalInicio(true)} onVerComunidade={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }} />
+          {showCreateModalInicio && (
+            <>
+              <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" />
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <PrayerRequestForm onSent={() => setShowCreateModalInicio(false)} onCancel={() => setShowCreateModalInicio(false)} />
+              </div>
+            </>
+          )}
+        </div>
         <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       </>;
     }
@@ -176,7 +185,17 @@ const Index = () => {
         <div className="relative z-20 w-full">
           {/* Página de perfil antiga removida. */}
         </div>
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <div className="w-full flex flex-col gap-4 items-center">
+          {/* Card Devocional Diário */}
+          <div className="w-full max-w-sm mx-auto rounded-2xl bg-gradient-to-br from-white to-purple-50 shadow-lg p-3 px-3 sm:px-4 mb-4 border border-purple-100 box-border">
+            {/* Conteúdo do devocional diário aqui */}
+          </div>
+          {/* Card Resumo da Comunidade */}
+          <div className="w-full max-w-sm mx-auto rounded-2xl bg-gradient-to-br from-white to-purple-50 shadow-lg p-3 px-3 sm:px-4 mb-4 border border-purple-100 box-border">
+            {/* Conteúdo do resumo da comunidade aqui */}
+          </div>
+        </div>
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} glass />
       </div>
     );
   }
