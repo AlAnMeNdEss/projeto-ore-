@@ -14,6 +14,7 @@ export function PrayerRequestForm({ refreshRequests, onSent, onCancel }: { refre
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [iaLoading, setIaLoading] = useState(false);
   
   const [form, setForm] = useState({
     text: ''
@@ -48,6 +49,25 @@ export function PrayerRequestForm({ refreshRequests, onSent, onCancel }: { refre
     setLoading(false);
   };
 
+  async function escreverComIA() {
+    setIaLoading(true);
+    try {
+      const prompt = 'Escreva um pedido de oração bonito, respeitoso e inspirador.';
+      const res = await fetch('/api/ia-pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      if (data.texto) {
+        setForm(f => ({ ...f, text: data.texto }));
+      }
+    } catch (e) {
+      alert('Erro ao gerar texto com IA.');
+    }
+    setIaLoading(false);
+  }
+
   const canSubmit = form.text.trim() && !loading;
 
   return (
@@ -66,10 +86,11 @@ export function PrayerRequestForm({ refreshRequests, onSent, onCancel }: { refre
         <button
           type="button"
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#f3e8ff] text-[#7c3aed] font-semibold text-base mb-1 hover:bg-[#e9d8fd] transition"
-          tabIndex={-1}
-          disabled
+          onClick={escreverComIA}
+          disabled={iaLoading || loading}
         >
-          <span className="text-lg">✨</span> Escrever com IA
+          {iaLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-lg">✨</span>}
+          Escrever com IA
         </button>
         <label className="flex items-center gap-2 text-[#23232b] text-base mb-2">
           <input
