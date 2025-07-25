@@ -57,8 +57,28 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       return {};
     }
   });
-  const [menuCor, setMenuCor] = useState<{id: string, top: number, left: number} | null>(null);
+  const [menuCor, setMenuCor] = useState<{id: string, top: number, left: number, showCores: boolean} | null>(null);
   const [iaPergunta, setIaPergunta] = useState<{id: string, pergunta: string, resposta: string, loading: boolean} | null>(null);
+  const [showVersaoMenu, setShowVersaoMenu] = useState(false);
+  // 0 = amarelo, 1 = escuro, 2 = branco
+  const [themeMode, setThemeMode] = useState(0);
+  const darkMode = themeMode === 1;
+  const whiteMode = themeMode === 2;
+
+  // Adicionar estado para mostrar botão de marcação
+  const [showMarkButton, setShowMarkButton] = useState<string | null>(null);
+
+  // Remover a detecção de mobile que não é mais necessária
+  // const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window;
+
+  // Remover o useEffect que não é mais necessário
+  // useEffect(() => {
+  //   if (isMobile) {
+  //     // setActivationMode('hold'); // Mobile usa hold de 4 segundos
+  //   } else {
+  //     // setActivationMode('click'); // Desktop usa clique simples
+  //   }
+  // }, [isMobile]);
 
   function marcarComCor(versiculoId: string, cor: string) {
     setMarcados(prev => {
@@ -71,6 +91,15 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
 
   function handleHold(e: React.MouseEvent | React.TouchEvent, id: string) {
     e.preventDefault();
+    
+    // Se está rolando, não ativar o menu
+    // if (isScrolling) return; // isScrolling não existe mais
+    
+    // Vibrar no mobile antes de ativar
+    if ('touches' in e && navigator.vibrate) {
+      navigator.vibrate(100); // Vibração de 100ms
+    }
+    
     let top = 0, left = 0;
     if ('touches' in e && e.touches.length > 0) {
       const touch = e.touches[0];
@@ -80,7 +109,40 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       top = e.clientY;
       left = e.clientX;
     }
-    setMenuCor({ id, top, left });
+    setMenuCor(prev => {
+      if (!prev || prev.id !== id) {
+        return { id, top, left, showCores: false };
+      }
+      // Se já está aberto para esse id, não faz nada
+      return prev;
+    });
+  }
+
+  function handleClick(e: React.MouseEvent | React.TouchEvent, id: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Vibrar no mobile
+    if ('touches' in e && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    
+    let top = 0, left = 0;
+    if ('touches' in e && e.touches.length > 0) {
+      const touch = e.touches[0];
+      top = touch.clientY;
+      left = touch.clientX;
+    } else if ('clientY' in e) {
+      top = e.clientY;
+      left = e.clientX;
+    }
+    
+    setMenuCor(prev => {
+      if (!prev || prev.id !== id) {
+        return { id, top, left, showCores: false };
+      }
+      return prev;
+    });
   }
 
   async function perguntarIA(versiculo: string, pergunta: string) {
@@ -245,21 +307,56 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   }, [livro, capitulo, traducao, busca]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center px-2 pt-6 bg-[#18181b] overflow-y-auto">
-      <h1 className="text-3xl sm:text-4xl font-extrabold text-[#23232b] text-center mb-6">Bíblia Sagrada</h1>
-      {/* Removido campo de busca por palavra-chave e botão de tema amarelado */}
-      <div className="flex gap-2 w-full max-w-md mb-6 px-2 overflow-x-auto">
-        <select
-          className="w-40 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
-          value={traducao}
-          onChange={e => setTraducao(e.target.value)}
+    <div className={`min-h-screen w-full flex flex-col items-center px-2 pt-6 overflow-y-auto relative ${darkMode ? 'bg-[#23232b]' : whiteMode ? 'bg-white' : 'bg-[#fdf6e3]'}` }>
+      {/* Botões de versão/tradução e tema escuro */}
+      <div className="absolute top-4 right-4 z-30 flex gap-2">
+        <button
+          className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
+          title="Escolher versão/tradução"
+          onClick={() => setShowVersaoMenu(v => !v)}
+          aria-label="Escolher versão/tradução"
         >
-          {traducoes.map(t => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
+          {/* Ícone de livro aberto */}
+          <svg width="24" height="24" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 19V6a2 2 0 0 1 2-2h7"/><path d="M22 19V6a2 2 0 0 0-2-2h-7"/><path d="M2 19a2 2 0 0 0 2 2h7"/><path d="M22 19a2 2 0 0 1-2 2h-7"/></svg>
+        </button>
+        <button
+          className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
+          title="Alternar tema de leitura"
+          onClick={() => setThemeMode(m => (m + 1) % 3)}
+          aria-label="Alternar tema de leitura"
+        >
+          {/* Ícone de tema: amarelo = sun, escuro = moon, branco = sun-outline */}
+          {themeMode === 0 && (
+            <svg width="22" height="22" fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          )}
+          {themeMode === 1 && (
+            <svg width="22" height="22" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+          )}
+          {themeMode === 2 && (
+            <svg width="22" height="22" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          )}
+        </button>
+      </div>
+      {/* Menu de versões/traduções */}
+      {showVersaoMenu && (
+        <div className="absolute top-14 right-4 z-40 bg-white border border-gray-200 rounded-xl shadow-lg p-4 min-w-[220px]">
+          <div className="font-bold text-[#23232b] mb-2">Versão/Tradução</div>
+          <select
+            className="w-full rounded-lg border border-[#ececec] bg-white text-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+            value={traducao}
+            onChange={e => { setTraducao(e.target.value); setShowVersaoMenu(false); }}
+          >
+            {traducoes.map(t => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+          <button className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700" onClick={() => setShowVersaoMenu(false)}>Fechar</button>
+        </div>
+      )}
+      {/* Removido campo de busca por palavra-chave e botão de tema amarelado */}
+      <div className="flex gap-3 w-full max-w-md mb-2 px-2 overflow-x-auto mt-14">
         <select
-          className="flex-1 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+          className={`flex-1 min-w-0 rounded-2xl border-2 text-xl font-semibold p-3 focus:outline-none shadow-sm ${darkMode ? 'bg-[#2d2d35] border-[#23232b] text-white' : whiteMode ? 'bg-white border-gray-200 text-[#23232b]' : 'bg-white border-yellow-200 text-[#23232b] focus:ring-2 focus:ring-yellow-200'}`}
           value={livro}
           onChange={e => setLivro(e.target.value)}
         >
@@ -268,7 +365,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
           ))}
         </select>
         <select
-          className="w-20 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+          className={`w-20 min-w-0 rounded-2xl border-2 text-xl font-semibold p-3 focus:outline-none shadow-sm ${darkMode ? 'bg-[#2d2d35] border-[#23232b] text-white' : whiteMode ? 'bg-white border-gray-200 text-[#23232b]' : 'bg-white border-yellow-200 text-[#23232b] focus:ring-2 focus:ring-yellow-200'}`}
           value={capitulo}
           onChange={e => setCapitulo(Number(e.target.value))}
         >
@@ -277,153 +374,193 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
           ))}
         </select>
       </div>
-      <div className={`w-full max-w-md rounded-xl p-4 min-h-[200px] border border-purple-200 rounded-2xl ${temaLeitura ? 'bg-yellow-50' : 'bg-white/80'}`}>
-        {(loading && lastVersiculos.length > 0) ? (
-          <div className="flex flex-col gap-3 opacity-60 pointer-events-none select-none">
-            {!buscando && (
-              <h2 className="text-xl font-bold text-[#23232b] mb-2">{livro} {capitulo}</h2>
-            )}
-            {lastVersiculos.map((v: any, i: number) => (
+      <div className={`w-full max-w-md border-b mb-6 ${darkMode ? 'border-[#23232b]' : whiteMode ? 'border-gray-200' : 'border-yellow-100'}`} />
+      {(loading && lastVersiculos.length > 0) ? (
+        <div className="flex flex-col gap-3 opacity-60 pointer-events-none select-none">
+          {!buscando && (
+            <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
+          )}
+          {lastVersiculos.map((v: any, i: number) => (
               <div key={v.verse + '-' + i} className="flex items-start gap-2">
                 <span className="text-[#a084e8] font-bold select-none" style={{minWidth: 18}}>{v.verse}</span>
-                <span className="text-lg text-[#23232b] leading-relaxed">
+                <span className="text-xl text-[#23232b] leading-relaxed">
                   {limparTexto(v.text)}
                 </span>
               </div>
             ))}
-          </div>
-        ) : null}
-        {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
-        {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
-        {!loading && !erro && versiculos.length > 0 && (
-          <div className="flex flex-col gap-3">
-            {!buscando && (
-              <h2 className="text-xl font-bold text-[#23232b] mb-2">{livro} {capitulo}</h2>
-            )}
-            {versiculos.map((v: any, i: number) => {
-              const id = `${livro}-${capitulo}-${v.verse}`;
-              const cor = marcados[id];
-              let holdTimeout: any = null;
-              function onMouseDown(e: React.MouseEvent) {
-                holdTimeout = setTimeout(() => handleHold(e, id), 350);
-              }
-              function onMouseUp() { clearTimeout(holdTimeout); }
-              function onMouseLeave() { clearTimeout(holdTimeout); }
-              function onTouchStart(e: React.TouchEvent) {
-                holdTimeout = setTimeout(() => handleHold(e, id), 350);
-              }
-              function onTouchEnd() { clearTimeout(holdTimeout); }
-              return (
-                <div
-                  key={id}
-                  className={`flex items-start gap-2 rounded-lg transition select-none ${cor ? `bg-[${cor}]/60` : ''}`}
-                  onMouseDown={onMouseDown}
-                  onMouseUp={onMouseUp}
-                  onMouseLeave={onMouseLeave}
-                  onTouchStart={onTouchStart}
-                  onTouchEnd={onTouchEnd}
-                  style={cor ? { backgroundColor: cor, opacity: 0.7 } : {}}
-                >
-                  <span className="text-[#a084e8] font-bold select-none mt-1" style={{minWidth: 18}}>{v.verse}</span>
-                  <span className={`text-lg font-serif leading-relaxed ${temaLeitura ? 'text-[#23220a]' : 'text-[#23232b]'}`} style={{wordBreak: 'break-word'}}>
-                    {limparTexto(v.text)}
-                  </span>
-                  {/* Menu de seleção de cor e botão IA */}
-                  {menuCor && menuCor.id === id && (
-                    <div
-                      className="absolute z-30 flex gap-2 p-2 rounded-xl shadow-lg bg-white border border-[#ececec]"
-                      style={{ top: menuCor.top - 60, left: menuCor.left - 80 }}
-                    >
-                      {['#fef08a', '#bbf7d0', '#bae6fd', '#fbcfe8'].map(corSel => (
-                        <button
-                          key={corSel}
-                          className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
-                          style={{ backgroundColor: corSel }}
-                          onClick={e => { e.stopPropagation(); marcarComCor(id, corSel); }}
-                          aria-label={`Marcar com cor ${corSel}`}
-                        />
-                      ))}
-                      <button
-                        className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] flex items-center justify-center bg-white"
-                        onClick={e => { e.stopPropagation(); marcarComCor(id, ''); }}
-                        aria-label="Remover marcação"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a084e8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                      </button>
-                      {/* Botão IA */}
-                      <button
-                        className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] flex items-center justify-center bg-[#f3e8ff] text-[#7c3aed] hover:bg-[#e9d8fd] ml-2"
-                        onClick={e => { e.stopPropagation(); setIaPergunta({ id, pergunta: '', resposta: '', loading: false }); }}
-                        aria-label="Perguntar IA sobre o versículo"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {!loading && !erro && versiculos.length === 0 && (
-          <div className="text-center text-[#23232b]">Nenhum versículo encontrado.</div>
-        )}
-        {/* Espaço extra para não cobrir o último versículo com a barra de navegação */}
-        <div style={{ marginBottom: 100 }} />
-      </div>
-      {/* Barra de capítulos fixa no rodapé, some ao rolar para baixo */}
-      <div
-        className={`w-full flex justify-center items-center transition-transform duration-300 ${showCapituloBar ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}
-        style={{ position: 'fixed', left: 0, right: 0, bottom: 64, zIndex: 30 }}
-      >
-        <div className="flex items-center bg-white/80 rounded-full px-4 py-1 gap-2 shadow-lg border border-[#ececec] mb-2" style={{ minWidth: 220, height: 48 }}>
-          <button
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/80 text-[#23232b] text-xl mr-2 disabled:opacity-40 border border-[#ececec]"
-            onClick={() => setCapitulo(c => Math.max(1, c - 1))}
-            disabled={capitulo === 1}
-            aria-label="Capítulo anterior"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
-          </button>
-          <span className="flex-1 text-center text-[#23232b] text-lg font-bold select-none" style={{ minWidth: 90 }}>{livro} {capitulo}</span>
-          <button
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/80 text-[#23232b] text-xl ml-2 disabled:opacity-40 border border-[#ececec]"
-            onClick={() => setCapitulo(c => Math.min(capitulos.length, c + 1))}
-            disabled={capitulo === capitulos.length}
-            aria-label="Próximo capítulo"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
-          </button>
         </div>
-      </div>
-      {/* Fechar menu de cor ao clicar fora */}
-      {menuCor && <div className="fixed inset-0 z-20" onClick={() => setMenuCor(null)} />}
-      {/* Modal de pergunta para IA */}
-      {iaPergunta && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full flex flex-col items-center">
-            <h3 className="text-lg font-bold mb-2 text-[#7c3aed]">Pergunte sobre o versículo</h3>
-            <input
-              className="w-full border border-[#ececec] rounded-lg p-2 mb-2 text-base"
-              placeholder="Digite sua pergunta..."
-              value={iaPergunta.pergunta}
-              onChange={e => setIaPergunta(prev => prev && { ...prev, pergunta: e.target.value })}
-              disabled={iaPergunta.loading}
-            />
+      ) : null}
+      {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
+      {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
+      {!loading && !erro && versiculos.length > 0 && (
+        <div className="flex flex-col gap-3 px-6 sm:px-0">
+          {!buscando && (
+            <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
+          )}
+          {versiculos.map((v: any, i: number) => {
+            const id = `${livro}-${capitulo}-${v.verse}`;
+            const cor = marcados[id];
+            
+            return (
+              <div
+                key={id}
+                className={`flex items-start gap-2 rounded-xl p-3 mb-1 shadow-sm border transition select-none ${
+                  cor 
+                    ? `bg-[${cor}]/60 border-yellow-100` 
+                    : darkMode 
+                      ? 'bg-[#2d2d35] border-[#23232b]' 
+                      : whiteMode 
+                        ? 'bg-white border-gray-200' 
+                        : 'bg-[#fffbea] border-yellow-100'
+                }`}
+                style={cor ? { backgroundColor: cor, opacity: 0.7 } : {}}
+              >
+                <span className="text-[#a084e8] font-bold select-none mt-1" style={{minWidth: 18}}>{v.verse}</span>
+                <span className={`text-xl font-serif leading-relaxed ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : temaLeitura ? 'text-[#23220a]' : 'text-[#23232b]'}`} style={{wordBreak: 'break-word'}}>
+                  {limparTexto(v.text)}
+                </span>
+                
+                {/* Botão de marcação */}
+                <button
+                  onClick={() => setShowMarkButton(showMarkButton === id ? null : id)}
+                  className={`ml-2 p-2 rounded-full transition-all ${
+                    darkMode 
+                      ? 'text-white hover:bg-white/10' 
+                      : whiteMode
+                        ? 'text-[#a084e8] hover:bg-gray-100'
+                        : 'text-[#8b5cf6] hover:bg-yellow-100'
+                  }`}
+                  aria-label="Marcar versículo"
+                >
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </button>
+                
+                {/* Menu de marcação */}
+                {showMarkButton === id && (
+                  <>
+                    {/* Overlay para fechar ao clicar fora */}
+                    <div className="fixed inset-0 z-40" onClick={() => setShowMarkButton(null)} />
+                    {/* Menu fixo na parte de baixo */}
+                    <div className="fixed left-0 right-0 bottom-20 z-50 flex justify-center items-end pointer-events-none">
+                      <div className="w-full max-w-md px-2 pb-4">
+                        <div className="flex gap-4 overflow-x-auto rounded-3xl py-4 px-3 shadow-xl pointer-events-auto bg-white">
+                          {/* Botão de cor */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="w-12 h-12 rounded-full border-4 border-[#fef08a] bg-[#fef08a] flex items-center justify-center"
+                              onClick={e => { e.stopPropagation(); marcarComCor(id, '#fef08a'); setShowMarkButton(null); }}
+                              aria-label="Marcar amarelo"
+                            />
+                            <button
+                              className="w-6 h-6 rounded-full border-2 border-[#bbf7d0] bg-[#bbf7d0] -ml-2"
+                              onClick={e => { e.stopPropagation(); marcarComCor(id, '#bbf7d0'); setShowMarkButton(null); }}
+                              aria-label="Marcar verde"
+                            />
+                            <button
+                              className="w-6 h-6 rounded-full border-2 border-[#bae6fd] bg-[#bae6fd] -ml-2"
+                              onClick={e => { e.stopPropagation(); marcarComCor(id, '#bae6fd'); setShowMarkButton(null); }}
+                              aria-label="Marcar azul"
+                            />
+                            <button
+                              className="w-6 h-6 rounded-full border-2 border-[#fbcfe8] bg-[#fbcfe8] -ml-2"
+                              onClick={e => { e.stopPropagation(); marcarComCor(id, '#fbcfe8'); setShowMarkButton(null); }}
+                              aria-label="Marcar rosa"
+                            />
+                          </div>
+                          {/* Copiar */}
+                          <button className="flex flex-col items-center justify-center min-w-[70px]" onClick={e => { e.stopPropagation(); /* ação de copiar */ setShowMarkButton(null); }}>
+                            <svg width="28" height="28" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                            <span className="text-xs mt-1 text-[#23232b]">Copiar</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* Botão IA */}
+                {iaPergunta && iaPergunta.id === id && (
+                  <div className="flex items-center gap-2 ml-2">
+                    <button
+                      className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
+                      onClick={() => perguntarIA(v.text, 'O que este versículo significa?')}
+                      aria-label="Perguntar à IA"
+                    >
+                      <svg width="24" height="24" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* Botões de navegação de capítulos */}
+      {showCapituloBar && !loading && !erro && versiculos.length > 0 && (
+        <div className="fixed bottom-20 left-0 right-0 z-30 flex justify-center items-center pointer-events-none">
+          <div className="flex items-center gap-4 pointer-events-auto">
             <button
-              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold rounded-xl px-4 py-2 mb-2"
-              onClick={() => perguntarIA(iaPergunta.id, iaPergunta.pergunta)}
-              disabled={iaPergunta.loading || !iaPergunta.pergunta.trim()}
+              onClick={() => {
+                if (capitulo > 1) {
+                  setCapitulo(capitulo - 1);
+                }
+              }}
+              disabled={capitulo <= 1}
+              className={`flex items-center justify-center w-14 h-14 rounded-full transition-all ${
+                capitulo <= 1
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : darkMode 
+                    ? 'text-white bg-white/10 hover:bg-white/20 active:scale-95'
+                    : whiteMode
+                      ? 'text-[#a084e8] bg-gray-100 hover:bg-gray-200 active:scale-95'
+                      : 'text-[#8b5cf6] bg-yellow-100 hover:bg-yellow-200 active:scale-95'
+              }`}
+              aria-label="Capítulo anterior"
             >
-              {iaPergunta.loading ? 'Perguntando...' : 'Perguntar'}
+              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
             </button>
-            {iaPergunta.resposta && (
-              <div className="w-full bg-[#f6eaff] rounded-lg p-3 text-[#23232b] text-base mt-2">{iaPergunta.resposta}</div>
-            )}
-            <button className="mt-4 text-[#a084e8] underline" onClick={() => setIaPergunta(null)}>Fechar</button>
+            
+            <div className={`rounded-full px-10 py-5 shadow-lg ${
+              darkMode 
+                ? 'bg-[#2d2d35] text-white' 
+                : whiteMode
+                  ? 'bg-white text-gray-800'
+                  : 'bg-white text-gray-800'
+            }`}>
+              <span className="text-xl font-bold whitespace-nowrap">
+                {livro} {capitulo}
+              </span>
+            </div>
+            
+            <button
+              onClick={() => {
+                if (capitulo < (capitulosPorLivro[livro] || 1)) {
+                  setCapitulo(capitulo + 1);
+                }
+              }}
+              disabled={capitulo >= (capitulosPorLivro[livro] || 1)}
+              className={`flex items-center justify-center w-14 h-14 rounded-full transition-all ${
+                capitulo >= (capitulosPorLivro[livro] || 1)
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : darkMode 
+                    ? 'text-white bg-white/10 hover:bg-white/20 active:scale-95'
+                    : whiteMode
+                      ? 'text-[#a084e8] bg-gray-100 hover:bg-gray-200 active:scale-95'
+                      : 'text-[#8b5cf6] bg-yellow-100 hover:bg-yellow-200 active:scale-95'
+              }`}
+              aria-label="Próximo capítulo"
+            >
+              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
           </div>
         </div>
       )}
     </div>
   );
-} 
+}
