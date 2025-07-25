@@ -50,9 +50,14 @@ export function PrayerRequestForm({ refreshRequests, onSent, onCancel }: { refre
   };
 
   async function escreverComIA() {
+    if (!form.text.trim()) {
+      alert('Digite seu pedido antes de pedir ajuda da IA!');
+      return;
+    }
     setIaLoading(true);
     try {
-      const prompt = 'Escreva um pedido de oração bonito, respeitoso e inspirador.';
+      const prompt = `Reformule o seguinte pedido de oração de forma mais bonita, respeitosa e inspiradora, mantendo o sentido original, em português:
+"${form.text.trim()}"`;
       const res = await fetch('/api/ia-pedido', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

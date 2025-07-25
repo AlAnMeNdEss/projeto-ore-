@@ -14,23 +14,6 @@ const traducoes = [
   { value: 'bishops', label: 'Bishops Bible (Inglês)' },
   { value: 'coverdale', label: 'Coverdale Bible (Inglês)' },
   { value: 'tyndale', label: 'Tyndale Bible (Inglês)' },
-  // Espanhol
-  { value: 'rv_1909', label: 'Reina Valera 1909 (Espanhol)' },
-  { value: 'rv_1858', label: 'Reina Valera 1858 (Espanhol)' },
-  { value: 'rvg', label: 'Reina Valera Gómez (Espanhol)' },
-  { value: 'sagradas', label: 'Sagradas Escrituras (Espanhol)' },
-  // Francês
-  { value: 'segond_1910', label: 'Louis Segond 1910 (Francês)' },
-  { value: 'ostervald', label: 'Ostervald (Francês)' },
-  { value: 'martin', label: 'Martin (Francês)' },
-  // Alemão
-  { value: 'luther', label: 'Luther Bible (Alemão)' },
-  { value: 'luther_1912', label: 'Luther Bible 1912 (Alemão)' },
-  // Hebraico
-  { value: 'wlc', label: 'WLC (Hebraico)' },
-  // Grego
-  { value: 'tr', label: 'Textus Receptus (Grego)' },
-  { value: 'trparsed', label: 'Textus Receptus Parsed (Grego)' },
 ];
 
 const livros = [
@@ -61,14 +44,92 @@ export function Biblia() {
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [buscando, setBuscando] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [lastVersiculos, setLastVersiculos] = useState<any[]>([]);
 
-  // Exemplo de capítulos (pode ser dinâmico depois)
-  const capitulos = Array.from({ length: 150 }, (_, i) => i + 1);
+  // Versículos marcados com cor (favoritos) salvos no localStorage
+  const [marcados, setMarcados] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('versiculosMarcadosCor') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  const [menuCor, setMenuCor] = useState<{id: string, top: number, left: number} | null>(null);
+  const [iaPergunta, setIaPergunta] = useState<{id: string, pergunta: string, resposta: string, loading: boolean} | null>(null);
+
+  function marcarComCor(versiculoId: string, cor: string) {
+    setMarcados(prev => {
+      const novo = { ...prev, [versiculoId]: cor };
+      localStorage.setItem('versiculosMarcadosCor', JSON.stringify(novo));
+      return novo;
+    });
+    setMenuCor(null);
+  }
+
+  function handleHold(e: React.MouseEvent | React.TouchEvent, id: string) {
+    e.preventDefault();
+    let top = 0, left = 0;
+    if ('touches' in e && e.touches.length > 0) {
+      const touch = e.touches[0];
+      top = touch.clientY;
+      left = touch.clientX;
+    } else if ('clientY' in e) {
+      top = e.clientY;
+      left = e.clientX;
+    }
+    setMenuCor({ id, top, left });
+  }
+
+  async function perguntarIA(versiculo: string, pergunta: string) {
+    setIaPergunta(prev => prev && { ...prev, loading: true, resposta: '' });
+    try {
+      const prompt = `Responda à seguinte pergunta sobre este versículo bíblico: \n"${versiculo}"\nPergunta: ${pergunta}`;
+      const res = await fetch('/api/ia-pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      setIaPergunta(prev => prev && { ...prev, resposta: data.texto || 'Sem resposta', loading: false });
+    } catch {
+      setIaPergunta(prev => prev && { ...prev, resposta: 'Erro ao consultar IA', loading: false });
+    }
+  }
+
+  // Tema de leitura confortável (amarelado)
+  const [temaLeitura, setTemaLeitura] = useState(() => {
+    try {
+      return localStorage.getItem('temaLeituraBiblia') === 'amarelo';
+    } catch {
+      return false;
+    }
+  });
+  function toggleTemaLeitura() {
+    setTemaLeitura((prev) => {
+      localStorage.setItem('temaLeituraBiblia', !prev ? 'amarelo' : 'padrao');
+      return !prev;
+    });
+  }
+
+  // Número de capítulos por livro (exemplo para os principais livros, adicione mais conforme necessário)
+  const capitulosPorLivro: Record<string, number> = {
+    'Gênesis': 50, 'Êxodo': 40, 'Levítico': 27, 'Números': 36, 'Deuteronômio': 34, 'Josué': 24, 'Juízes': 21, 'Rute': 4,
+    '1 Samuel': 31, '2 Samuel': 24, '1 Reis': 22, '2 Reis': 25, '1 Crônicas': 29, '2 Crônicas': 36, 'Esdras': 10, 'Neemias': 13, 'Ester': 10, 'Jó': 42, 'Salmos': 150, 'Provérbios': 31, 'Eclesiastes': 12, 'Cânticos': 8, 'Isaías': 66, 'Jeremias': 52, 'Lamentações': 5, 'Ezequiel': 48, 'Daniel': 12, 'Oseias': 14, 'Joel': 3, 'Amós': 9, 'Obadias': 1, 'Jonas': 4, 'Miquéias': 7, 'Naum': 3, 'Habacuque': 3, 'Sofonias': 3, 'Ageu': 2, 'Zacarias': 14, 'Malaquias': 4,
+    'Mateus': 28, 'Marcos': 16, 'Lucas': 24, 'João': 21, 'Atos': 28, 'Romanos': 16, '1 Coríntios': 16, '2 Coríntios': 13, 'Gálatas': 6, 'Efésios': 6, 'Filipenses': 4, 'Colossenses': 4, '1 Tessalonicenses': 5, '2 Tessalonicenses': 3, '1 Timóteo': 6, '2 Timóteo': 4, 'Tito': 3, 'Filemom': 1, 'Hebreus': 13, 'Tiago': 5, '1 Pedro': 5, '2 Pedro': 3, '1 João': 5, '2 João': 1, '3 João': 1, 'Judas': 1, 'Apocalipse': 22
+  };
+
+  // Capítulos válidos para o livro selecionado
+  const capitulos = Array.from({ length: capitulosPorLivro[livro] || 1 }, (_, i) => i + 1);
 
   useEffect(() => {
     let cancelado = false;
+    let loadingTimeout: any;
+    setPending(true);
+    loadingTimeout = setTimeout(() => {
+      if (!cancelado) setLoading(true);
+    }, 400);
     async function fetchVersiculos() {
-      setLoading(true);
       setErro('');
       setVersiculos([]);
       try {
@@ -87,6 +148,7 @@ export function Biblia() {
         if (cancelado) return;
         if (data.errors && data.errors.length > 0) {
           setErro(data.errors.join(' '));
+          setVersiculos([]);
         } else {
           if (busca.trim() !== '') {
             let encontrados: any[] = [];
@@ -100,17 +162,21 @@ export function Biblia() {
               });
             }
             setVersiculos(encontrados);
+            setLastVersiculos(encontrados);
           } else {
             const results = data.results && data.results.length > 0 ? data.results[0] : null;
             if (results && results.verses && results.verses[traducao]) {
               const cap = results.verses[traducao][capitulo];
               if (cap) {
                 setVersiculos(Object.values(cap));
+                setLastVersiculos(Object.values(cap));
               } else {
                 setVersiculos([]);
+                setLastVersiculos([]);
               }
             } else {
               setVersiculos([]);
+              setLastVersiculos([]);
             }
           }
         }
@@ -118,9 +184,11 @@ export function Biblia() {
         if (!cancelado) setErro('Erro ao buscar versículos.');
       }
       if (!cancelado) setLoading(false);
+      if (!cancelado) setPending(false);
+      clearTimeout(loadingTimeout);
     }
     fetchVersiculos();
-    return () => { cancelado = true; };
+    return () => { cancelado = true; clearTimeout(loadingTimeout); };
   }, [livro, capitulo, traducao, busca]);
 
   return (
@@ -137,6 +205,13 @@ export function Biblia() {
         {busca && (
           <button onClick={() => setBusca('')} className="text-[#a084e8] font-bold px-2 py-1 rounded hover:bg-[#ede9fe] transition">Limpar</button>
         )}
+        <button
+          onClick={toggleTemaLeitura}
+          className={`ml-2 px-3 py-2 rounded-xl text-base font-semibold transition ${temaLeitura ? 'bg-yellow-200 text-[#7c3aed]' : 'bg-[#f6eaff] text-[#a084e8]'} border border-[#ececec] hover:bg-yellow-100`}
+          aria-label="Alternar tema de leitura"
+        >
+          {temaLeitura ? 'Tema padrão' : 'Tema amarelado'}
+        </button>
       </div>
       <div className="flex gap-2 w-full max-w-md mb-6 px-2 overflow-x-auto">
         <select
@@ -167,15 +242,13 @@ export function Biblia() {
           ))}
         </select>
       </div>
-      <div className="w-full max-w-md bg-white/80 rounded-xl p-4 min-h-[200px]">
-        {loading && <div className="text-center text-[#7c3aed]">Carregando...</div>}
-        {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
-        {!loading && !erro && versiculos.length > 0 && (
-          <div className="flex flex-col gap-3">
+      <div className={`w-full max-w-md rounded-xl p-4 min-h-[200px] border border-purple-200 rounded-2xl ${temaLeitura ? 'bg-yellow-50' : 'bg-white/80'}`}>
+        {(loading && lastVersiculos.length > 0) ? (
+          <div className="flex flex-col gap-3 opacity-60 pointer-events-none select-none">
             {!buscando && (
               <h2 className="text-xl font-bold text-[#23232b] mb-2">{livro} {capitulo}</h2>
             )}
-            {versiculos.map((v: any, i: number) => (
+            {lastVersiculos.map((v: any, i: number) => (
               <div key={v.verse + '-' + i} className="flex items-start gap-2">
                 <span className="text-[#a084e8] font-bold select-none" style={{minWidth: 18}}>{v.verse}</span>
                 <span className="text-lg text-[#23232b] leading-relaxed">
@@ -184,11 +257,111 @@ export function Biblia() {
               </div>
             ))}
           </div>
+        ) : null}
+        {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
+        {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
+        {!loading && !erro && versiculos.length > 0 && (
+          <div className="flex flex-col gap-3">
+            {!buscando && (
+              <h2 className="text-xl font-bold text-[#23232b] mb-2">{livro} {capitulo}</h2>
+            )}
+            {versiculos.map((v: any, i: number) => {
+              const id = `${livro}-${capitulo}-${v.verse}`;
+              const cor = marcados[id];
+              let holdTimeout: any = null;
+              function onMouseDown(e: React.MouseEvent) {
+                holdTimeout = setTimeout(() => handleHold(e, id), 350);
+              }
+              function onMouseUp() { clearTimeout(holdTimeout); }
+              function onMouseLeave() { clearTimeout(holdTimeout); }
+              function onTouchStart(e: React.TouchEvent) {
+                holdTimeout = setTimeout(() => handleHold(e, id), 350);
+              }
+              function onTouchEnd() { clearTimeout(holdTimeout); }
+              return (
+                <div
+                  key={id}
+                  className={`flex items-start gap-2 rounded-lg transition select-none ${cor ? `bg-[${cor}]/60` : ''}`}
+                  onMouseDown={onMouseDown}
+                  onMouseUp={onMouseUp}
+                  onMouseLeave={onMouseLeave}
+                  onTouchStart={onTouchStart}
+                  onTouchEnd={onTouchEnd}
+                  style={cor ? { backgroundColor: cor, opacity: 0.7 } : {}}
+                >
+                  <span className="text-[#a084e8] font-bold select-none mt-1" style={{minWidth: 18}}>{v.verse}</span>
+                  <span className={`text-lg font-serif leading-relaxed ${temaLeitura ? 'text-[#23220a]' : 'text-[#23232b]'}`} style={{wordBreak: 'break-word'}}>
+                    {limparTexto(v.text)}
+                  </span>
+                  {/* Menu de seleção de cor e botão IA */}
+                  {menuCor && menuCor.id === id && (
+                    <div
+                      className="absolute z-30 flex gap-2 p-2 rounded-xl shadow-lg bg-white border border-[#ececec]"
+                      style={{ top: menuCor.top - 60, left: menuCor.left - 80 }}
+                    >
+                      {['#fef08a', '#bbf7d0', '#bae6fd', '#fbcfe8'].map(corSel => (
+                        <button
+                          key={corSel}
+                          className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
+                          style={{ backgroundColor: corSel }}
+                          onClick={e => { e.stopPropagation(); marcarComCor(id, corSel); }}
+                          aria-label={`Marcar com cor ${corSel}`}
+                        />
+                      ))}
+                      <button
+                        className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] flex items-center justify-center bg-white"
+                        onClick={e => { e.stopPropagation(); marcarComCor(id, ''); }}
+                        aria-label="Remover marcação"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a084e8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                      {/* Botão IA */}
+                      <button
+                        className="w-8 h-8 rounded-full border-2 border-[#e5e7eb] flex items-center justify-center bg-[#f3e8ff] text-[#7c3aed] hover:bg-[#e9d8fd] ml-2"
+                        onClick={e => { e.stopPropagation(); setIaPergunta({ id, pergunta: '', resposta: '', loading: false }); }}
+                        aria-label="Perguntar IA sobre o versículo"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 12h8M12 8v8" /></svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
         {!loading && !erro && versiculos.length === 0 && (
           <div className="text-center text-[#23232b]">Nenhum versículo encontrado.</div>
         )}
       </div>
+      {/* Fechar menu de cor ao clicar fora */}
+      {menuCor && <div className="fixed inset-0 z-20" onClick={() => setMenuCor(null)} />}
+      {/* Modal de pergunta para IA */}
+      {iaPergunta && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full flex flex-col items-center">
+            <h3 className="text-lg font-bold mb-2 text-[#7c3aed]">Pergunte sobre o versículo</h3>
+            <input
+              className="w-full border border-[#ececec] rounded-lg p-2 mb-2 text-base"
+              placeholder="Digite sua pergunta..."
+              value={iaPergunta.pergunta}
+              onChange={e => setIaPergunta(prev => prev && { ...prev, pergunta: e.target.value })}
+              disabled={iaPergunta.loading}
+            />
+            <button
+              className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold rounded-xl px-4 py-2 mb-2"
+              onClick={() => perguntarIA(iaPergunta.id, iaPergunta.pergunta)}
+              disabled={iaPergunta.loading || !iaPergunta.pergunta.trim()}
+            >
+              {iaPergunta.loading ? 'Perguntando...' : 'Perguntar'}
+            </button>
+            {iaPergunta.resposta && (
+              <div className="w-full bg-[#f6eaff] rounded-lg p-3 text-[#23232b] text-base mt-2">{iaPergunta.resposta}</div>
+            )}
+            <button className="mt-4 text-[#a084e8] underline" onClick={() => setIaPergunta(null)}>Fechar</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

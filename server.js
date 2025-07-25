@@ -40,11 +40,16 @@ app.post('/api/ia-pedido', async (req, res) => {
   if (!prompt) return res.status(400).json({ error: 'Prompt obrigatório' });
   try {
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
       {
         contents: [{ parts: [{ text: prompt }] }]
       },
-      { headers: { 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': geminiApiKey
+        }
+      }
     );
     const texto = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
     res.json({ texto });
