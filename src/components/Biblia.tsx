@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { useRef } from 'react';
 
 const traducoes = [
   // Português
@@ -35,7 +37,7 @@ function limparTexto(texto: string) {
     .trim();
 }
 
-export function Biblia() {
+export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispatch<SetStateAction<boolean>>; onShowNavBar?: (show: boolean) => void }) {
   const [traducao, setTraducao] = useState('almeida_ra');
   const [livro, setLivro] = useState('Salmos');
   const [capitulo, setCapitulo] = useState(23);
@@ -122,6 +124,57 @@ export function Biblia() {
   // Capítulos válidos para o livro selecionado
   const capitulos = Array.from({ length: capitulosPorLivro[livro] || 1 }, (_, i) => i + 1);
 
+  const [internalShowNavBar, internalSetShowNavBar] = useState(true);
+  // Se onShowNavBar está presente, a visibilidade é controlada externamente; senão, é local
+  const showNavBar = onShowNavBar ? undefined : internalShowNavBar;
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    function handleScroll() {
+      const currentY = window.scrollY;
+      if (onShowNavBar) {
+        if (currentY > lastScrollY.current && currentY > 80) {
+          onShowNavBar(false);
+        } else {
+          onShowNavBar(true);
+        }
+      } else if (setShowNavBar) {
+        if (currentY > lastScrollY.current && currentY > 80) {
+          setShowNavBar(false);
+        } else {
+          setShowNavBar(true);
+        }
+      } else {
+        if (currentY > lastScrollY.current && currentY > 80) {
+          internalSetShowNavBar(false);
+        } else {
+          internalSetShowNavBar(true);
+        }
+      }
+      lastScrollY.current = currentY;
+    }
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [setShowNavBar, onShowNavBar]);
+
+  // Estado para mostrar/ocultar a barra de capítulos
+  const [showCapituloBar, setShowCapituloBar] = useState(true);
+  const lastScrollYCap = useRef(0);
+
+  useEffect(() => {
+    function handleScrollCap() {
+      const currentY = window.scrollY;
+      if (currentY > lastScrollYCap.current && currentY > 80) {
+        setShowCapituloBar(false);
+      } else {
+        setShowCapituloBar(true);
+      }
+      lastScrollYCap.current = currentY;
+    }
+    window.addEventListener('scroll', handleScrollCap);
+    return () => window.removeEventListener('scroll', handleScrollCap);
+  }, []);
+
   useEffect(() => {
     let cancelado = false;
     let loadingTimeout: any;
@@ -192,27 +245,9 @@ export function Biblia() {
   }, [livro, capitulo, traducao, busca]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center px-2 pt-6 bg-[#f6eaff]">
+    <div className="min-h-screen w-full flex flex-col items-center px-2 pt-6 bg-[#18181b] overflow-y-auto">
       <h1 className="text-3xl sm:text-4xl font-extrabold text-[#23232b] text-center mb-6">Bíblia Sagrada</h1>
-      <div className="w-full max-w-md mb-4 flex items-center gap-2">
-        <input
-          type="text"
-          className="flex-1 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
-          placeholder="Buscar palavra-chave..."
-          value={busca}
-          onChange={e => setBusca(e.target.value)}
-        />
-        {busca && (
-          <button onClick={() => setBusca('')} className="text-[#a084e8] font-bold px-2 py-1 rounded hover:bg-[#ede9fe] transition">Limpar</button>
-        )}
-        <button
-          onClick={toggleTemaLeitura}
-          className={`ml-2 px-3 py-2 rounded-xl text-base font-semibold transition ${temaLeitura ? 'bg-yellow-200 text-[#7c3aed]' : 'bg-[#f6eaff] text-[#a084e8]'} border border-[#ececec] hover:bg-yellow-100`}
-          aria-label="Alternar tema de leitura"
-        >
-          {temaLeitura ? 'Tema padrão' : 'Tema amarelado'}
-        </button>
-      </div>
+      {/* Removido campo de busca por palavra-chave e botão de tema amarelado */}
       <div className="flex gap-2 w-full max-w-md mb-6 px-2 overflow-x-auto">
         <select
           className="w-40 min-w-0 rounded-xl border border-[#ececec] bg-white text-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
@@ -333,6 +368,33 @@ export function Biblia() {
         {!loading && !erro && versiculos.length === 0 && (
           <div className="text-center text-[#23232b]">Nenhum versículo encontrado.</div>
         )}
+        {/* Espaço extra para não cobrir o último versículo com a barra de navegação */}
+        <div style={{ marginBottom: 100 }} />
+      </div>
+      {/* Barra de capítulos fixa no rodapé, some ao rolar para baixo */}
+      <div
+        className={`w-full flex justify-center items-center transition-transform duration-300 ${showCapituloBar ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}
+        style={{ position: 'fixed', left: 0, right: 0, bottom: 64, zIndex: 30 }}
+      >
+        <div className="flex items-center bg-white/80 rounded-full px-4 py-1 gap-2 shadow-lg border border-[#ececec] mb-2" style={{ minWidth: 220, height: 48 }}>
+          <button
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/80 text-[#23232b] text-xl mr-2 disabled:opacity-40 border border-[#ececec]"
+            onClick={() => setCapitulo(c => Math.max(1, c - 1))}
+            disabled={capitulo === 1}
+            aria-label="Capítulo anterior"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <span className="flex-1 text-center text-[#23232b] text-lg font-bold select-none" style={{ minWidth: 90 }}>{livro} {capitulo}</span>
+          <button
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-white/80 text-[#23232b] text-xl ml-2 disabled:opacity-40 border border-[#ececec]"
+            onClick={() => setCapitulo(c => Math.min(capitulos.length, c + 1))}
+            disabled={capitulo === capitulos.length}
+            aria-label="Próximo capítulo"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg>
+          </button>
+        </div>
       </div>
       {/* Fechar menu de cor ao clicar fora */}
       {menuCor && <div className="fixed inset-0 z-20" onClick={() => setMenuCor(null)} />}

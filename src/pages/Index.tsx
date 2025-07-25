@@ -14,12 +14,16 @@ import { useSwipeable } from 'react-swipeable';
 import HomePage from '@/pages/HomePage';
 import { PrayerRequestForm } from '@/components/PrayerRequestForm';
 import { Biblia } from '@/components/Biblia';
+import { useRef } from 'react';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
 type Tab = typeof tabs[number];
 
+// Estado global para a barra de navegação da Bíblia
 const Index = () => {
+  const [showBottomNavBar, setShowBottomNavBar] = useState(true);
+  const handleShowNavBar = (show: boolean) => setShowBottomNavBar(show);
   // Mover todos os hooks para o topo, antes de qualquer return condicional
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
