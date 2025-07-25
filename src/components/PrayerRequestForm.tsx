@@ -76,7 +76,7 @@ export function PrayerRequestForm({ refreshRequests, onSent, onCancel }: { refre
   const canSubmit = form.text.trim() && !loading;
 
   return (
-    <div className="max-w-xs w-full bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center mx-auto">
+    <div className="max-w-xs w-full bg-white/60 backdrop-blur-md rounded-3xl shadow-lg p-6 flex flex-col items-center mx-auto border border-white/30">
       <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
         <h2 className="text-2xl font-extrabold text-[#23232b] text-center mb-2">Novo Pedido de Oração</h2>
         <textarea

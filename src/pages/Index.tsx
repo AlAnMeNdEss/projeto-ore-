@@ -130,31 +130,41 @@ const Index = () => {
     }
     if (activeTab === 'comunidades') {
       return (
-        <div className="min-h-screen w-full flex flex-col items-center px-4 bg-[#f6eaff]">
+        <div className={`min-h-screen w-full flex flex-col items-center px-0 ${entrouNaComunidade ? 'relative' : ''}`}
+          style={entrouNaComunidade ? { background: "#23232b url('https://todoendios.com/wp-content/uploads/2021/09/web3-cross-easter-sunrise-dark-shutterstock_381056461-shutterstock.jpg') center center / cover no-repeat", backgroundAttachment: 'fixed' } : { background: '#18181b' }}>
+          {!entrouNaComunidade && (
+            <div className="absolute inset-0 bg-[#23232b]/60 z-0 pointer-events-none" />
+          )}
           {!entrouNaComunidade ? (
             <>
-              <div className="w-full max-w-xl mx-auto pt-8 pb-4">
-                <h1 className="text-4xl font-extrabold text-[#23232b] mb-2 text-left">Comunidades</h1>
-                <p className="text-lg text-[#6d6d7b] mb-6 text-left">Participe num grupo de oração</p>
-                <button
-                  className="w-full flex items-center gap-4 bg-gradient-to-br from-[#a084e8] to-[#8b5cf6] text-white text-2xl font-bold px-8 py-6 rounded-3xl shadow-lg transition-all duration-200 mb-6"
-                  style={{ minHeight: 90 }}
-                  onClick={() => setEntrouNaComunidade(true)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755.5-5.5 1.5-7.5" /></svg>
-                  Comunidade Global
-                </button>
+              <div className="w-full max-w-xl mx-auto pt-8 pb-4 relative z-10">
+                <h1 className="text-4xl font-extrabold text-gray-100 mb-2 text-center">Comunidades</h1>
+                <p className="text-lg text-gray-400 mb-6 text-center">Participe num grupo de oração</p>
+                <div className="w-full flex items-center justify-center">
+                  <button
+                    className="max-w-md w-full flex flex-col sm:flex-row items-center justify-center gap-3 bg-[#27272a] text-gray-100 text-2xl font-bold px-8 py-6 rounded-2xl shadow-lg border border-[#23232b] hover:bg-[#23232b] transition-all duration-200 mb-6 cursor-pointer"
+                    style={{ minHeight: 90 }}
+                    onClick={() => setEntrouNaComunidade(true)}
+                    tabIndex={0}
+                    aria-label="Entrar na Comunidade Global"
+                  >
+                    <span className="flex items-center justify-center mb-2 sm:mb-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-400 mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755.5-5.5 1.5-7.5" /></svg>
+                    </span>
+                    <span className="text-center w-full">Comunidade Global</span>
+                  </button>
+                </div>
               </div>
               <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
             </>
           ) : (
             <>
-              <div className="w-full flex flex-col items-center">
+              <div className="w-full flex flex-col items-center" style={entrouNaComunidade ? { position: 'relative', zIndex: 1 } : {}}>
                 <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
                   <button onClick={() => setEntrouNaComunidade(false)} className="mr-2 p-2 rounded-full hover:bg-[#ede9fe] transition">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                   </button>
-                  <h1 className="text-3xl font-extrabold text-[#23232b] mb-4 text-center flex-1">Comunidade Global</h1>
+                  <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px #23232b99' }}>Comunidade Global</h1>
                   <div style={{width: 40}} />
                 </div>
                 <div className="w-full max-w-xl mx-auto border-b border-[#e0c3fc] mb-4"></div>
@@ -179,18 +189,18 @@ const Index = () => {
       <div
         {...handlers}
         className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden"
-        style={{ background: '#f6eaff' }}
+        style={{ background: '#18181b' }}
       >
         <div className="relative z-20 w-full">
           {/* Página de perfil antiga removida. */}
         </div>
         <div className="w-full flex flex-col gap-4 items-center">
           {/* Card Devocional Diário */}
-          <div className="w-full max-w-sm mx-auto rounded-2xl bg-gradient-to-br from-white to-purple-50 shadow-lg p-3 px-3 sm:px-4 mb-4 border border-purple-100 box-border">
+          <div className="w-full max-w-sm mx-auto rounded-2xl bg-[#23232b] shadow-lg p-3 px-3 sm:px-4 mb-4 border border-[#27272a] box-border">
             {/* Conteúdo do devocional diário aqui */}
           </div>
           {/* Card Resumo da Comunidade */}
-          <div className="w-full max-w-sm mx-auto rounded-2xl bg-gradient-to-br from-white to-purple-50 shadow-lg p-3 px-3 sm:px-4 mb-4 border border-purple-100 box-border">
+          <div className="w-full max-w-sm mx-auto rounded-2xl bg-[#23232b] shadow-lg p-3 px-3 sm:px-4 mb-4 border border-[#27272a] box-border">
             {/* Conteúdo do resumo da comunidade aqui */}
           </div>
         </div>

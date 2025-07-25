@@ -13,76 +13,46 @@ import React from 'react';
 import { useSwipeable } from 'react-swipeable';
 
 function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, displayName }) {
-  const [offsetX, setOffsetX] = React.useState(0);
-  const [isSwiping, setIsSwiping] = React.useState(false);
-  const [showDelete, setShowDelete] = React.useState(false);
-  const handlers = useSwipeable({
-    onSwiping: (event) => {
-      setIsSwiping(true);
-      setOffsetX(event.deltaX);
-      if (canDelete && event.deltaX < -120) {
-        setShowDelete(true);
-      } else {
-        setShowDelete(false);
-      }
-    },
-    onSwipedLeft: () => {
-      if (canDelete && offsetX < -120) {
-        onDelete(request.id);
-      }
-      setIsSwiping(false);
-      setOffsetX(0);
-      setShowDelete(false);
-    },
-    onSwiped: () => {
-      setIsSwiping(false);
-      setOffsetX(0);
-      setShowDelete(false);
-    },
-    trackMouse: true,
-  });
-  const style = {
-    transform: `translateX(${offsetX}px)`,
-    transition: isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-  };
+  // Swipe removido. Nenhuma lógica de swipe.
   return (
-    <div className="relative">
-      {canDelete && (
-        <div className={`absolute inset-0 flex items-center justify-end pr-8 rounded-2xl transition-colors duration-200 ${showDelete ? 'bg-red-100' : 'bg-transparent'}`}
-             style={{zIndex: 0}}>
-          <Trash2 className={`w-8 h-8 ${showDelete ? 'text-red-500' : 'text-red-300'} transition-colors`} />
+    <Card className="relative rounded-3xl bg-white/60 backdrop-blur-md shadow-md w-full max-w-md mx-auto mb-4 p-6 flex flex-col gap-4 border border-white/30">
+      <div style={{zIndex: 1, position: 'relative'}}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-lg font-bold text-[#23232b]">{displayName}</span>
         </div>
-      )}
-      <div
-        {...handlers}
-        style={{...style, zIndex: 1, position: 'relative'}}
-        className="rounded-2xl bg-white shadow-2xl p-3 w-full max-w-md mx-auto flex flex-col gap-3 border border-[#f3e8ff]"
-      >
-        <div className="text-base font-bold text-[#23232b] mb-1">
-          {displayName}
-        </div>
-        <div className="text-lg text-[#23232b] font-medium mb-2 break-words whitespace-pre-wrap">{request.text}</div>
-        <div className="border-b border-[#ede9fe] my-1"></div>
-        <div className="flex items-center gap-2 mt-1">
-          <button
-            className={`flex items-center justify-center w-10 h-10 rounded-xl border-2 ${orou ? 'border-pink-400 bg-pink-50' : 'border-[#a084e8] bg-white'} text-xl mr-2 transition-colors`}
-            onClick={() => onPray(request.id)}
-            disabled={orou}
-          >
-            <svg xmlns='http://www.w3.org/2000/svg' fill={orou ? '#ef476f' : 'none'} viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z' />
-            </svg>
-          </button>
-          <button className="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-[#ede9fe] bg-white text-[#23232b] text-xl mr-2">
-            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-5 h-5'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 8h10M7 12h4m1 8a9 9 0 100-18 9 9 0 000 18z' /></svg>
-          </button>
-          <div className="flex-1 flex items-center justify-end gap-2 text-[#23232b] text-base">
-            <span className="text-2xl mr-1">🙏</span>
-            <span className="font-bold">{request.prayer_count || 0}</span>
+        <div className="text-xl text-[#23232b] font-medium mb-4 break-words whitespace-pre-wrap leading-relaxed">{request.text}</div>
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex gap-2">
+            <button
+              className={`w-11 h-11 flex items-center justify-center rounded-full border-2 ${orou ? 'border-pink-400 bg-pink-50' : 'border-[#a084e8] bg-[#f3f4f6]'} text-xl shadow-sm hover:scale-105 transition-transform duration-150`}
+              onClick={() => onPray(request.id)}
+              disabled={orou}
+              style={{ background: '#f3f4f6' }}
+            >
+              <svg xmlns='http://www.w3.org/2000/svg' fill={orou ? '#ef476f' : 'none'} viewBox='0 0 24 24' stroke='currentColor' className='w-6 h-6'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z' />
+              </svg>
+            </button>
+            <button className="w-11 h-11 flex items-center justify-center rounded-full border-2 border-[#ede9fe] bg-[#f3f4f6] text-[#23232b] text-xl shadow-sm hover:scale-105 transition-transform duration-150" style={{ background: '#f3f4f6' }}>
+              <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor' className='w-6 h-6'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 8h10M7 12h4m1 8a9 9 0 100-18 9 9 0 000 18z' /></svg>
+            </button>
+            {canDelete && (
+              <button
+                className="w-11 h-11 flex items-center justify-center rounded-full border-2 border-[#e5e7eb] bg-[#e5e7eb] text-red-500 text-xl shadow-sm hover:bg-[#d1d5db] transition-colors duration-150"
+                onClick={() => onDelete(request.id)}
+                title="Apagar pedido"
+              >
+                <Trash2 className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🙏</span>
+            <span className="font-bold text-lg bg-white rounded-full px-3 py-1 shadow border border-[#e5e7eb]">{request.prayer_count || 0}</span>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -147,7 +117,7 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
     return (
       <div className="space-y-6">
         {[1, 2, 3].map(i => (
-          <Card key={i} className="animate-pulse rounded-2xl border border-white/20 bg-white/5 p-4 shadow-none">
+          <Card key={i} className="animate-pulse rounded-2xl border border-[#e5e7eb] bg-[#f3f4f6] p-4 shadow-none">
             <CardContent className="p-6">
               <div className="space-y-3">
                 <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -164,7 +134,7 @@ export function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () =
   if (filteredRequests.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <div className="bg-white/10 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-none border border-white/10">
+        <div className="bg-[#f3f4f6] rounded-2xl p-8 flex flex-col items-center gap-4 shadow-none border border-[#e5e7eb]">
           <Heart className="h-10 w-10 text-[#8b5cf6] mb-2 animate-pulse" />
           <p className="text-lg text-[#8b5cf6] font-semibold">Nenhum pedido de oração ainda</p>
           <p className="text-sm text-gray-300">Seja o primeiro a compartilhar um pedido!</p>

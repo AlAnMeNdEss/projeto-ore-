@@ -156,9 +156,9 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative gradient-bg overflow-x-hidden overflow-y-auto bg-[#f6eaff] pb-[90px]"
+      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto bg-[#18181b] pb-[90px]"
       style={{
-        background: 'linear-gradient(180deg, #F6EAFF 0%, #E9D8FD 100%)',
+        background: '#18181b',
         minHeight: '100vh',
         width: '100vw',
         position: 'relative',
@@ -166,16 +166,16 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     >
       {/* Topo estilizado igual ao exemplo da imagem, com padding lateral igual aos cards */}
       <div className="w-full max-w-md mx-auto px-2">
-        <div className="rounded-t-3xl bg-[#f6eaff] flex flex-col px-4 pt-6 pb-4 mb-2" style={{boxShadow: '0 2px 12px #e9d8fd'}}>
+        <div className="rounded-t-3xl bg-[#27272a] flex flex-col px-4 pt-6 pb-4 mb-2 border border-[#23232b]" style={{boxShadow: '0 2px 12px #23232b'}}>
           <div className="flex items-start justify-between w-full">
             <div className="flex flex-col gap-1">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#23232b] leading-tight" style={{letterSpacing: -1}}>
+              <span className="text-3xl sm:text-4xl font-extrabold text-gray-100 leading-tight" style={{letterSpacing: -1}}>
                 Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
               </span>
-              <span className="text-lg sm:text-xl text-[#6d6d7b] font-normal mt-1">que a paz esteja consigo!</span>
+              <span className="text-lg sm:text-xl text-gray-400 font-normal mt-1">que a paz esteja consigo!</span>
             </div>
             <button className="rounded-full bg-transparent p-2 mt-1" aria-label="Perfil" onClick={() => navigate('/perfil')}>
-              <UserIcon className="w-8 h-8 text-[#8b5cf6]" />
+              <UserIcon className="w-8 h-8 text-gray-400" />
             </button>
           </div>
         </div>
@@ -188,45 +188,45 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 border border-purple-200 mt-8"
-          style={{boxShadow: '0 2px 16px #e9d8fd'}}
+          className="w-full bg-[#27272a] rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 border border-[#23232b] mt-8"
+          style={{boxShadow: '0 2px 16px #23232b'}}
         >
-          <h2 className="text-lg font-bold text-[#6d28d9] mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
-          <div className="flex w-full justify-around mt-4 gap-4 border-t border-purple-100 pt-3">
+          <h2 className="text-lg font-bold text-gray-200 mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
+          <div className="flex w-full justify-around mt-4 gap-4 border-t border-[#27272a] pt-3">
             <div className="flex flex-col items-center">
-              <span className="text-xl font-extrabold text-[#6d28d9] leading-none">{communitySummary.totalOracoes}</span>
-              <span className="text-xs text-[#6d28d9] mt-1">Orações Totais</span>
+              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalOracoes}</span>
+              <span className="text-xs text-gray-400 mt-1">Orações Totais</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xl font-extrabold text-[#6d28d9] leading-none">{communitySummary.totalPedidos}</span>
-              <span className="text-xs text-[#6d28d9] mt-1">Pedidos Totais</span>
+              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalPedidos}</span>
+              <span className="text-xs text-gray-400 mt-1">Pedidos Totais</span>
             </div>
           </div>
         </motion.div>
         {/* Dois cards de ação lado a lado */}
         <div className="w-full flex flex-row gap-4 mb-4">
           <button
-            className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-200 hover:scale-105 transition-transform duration-200"
-            style={{boxShadow: '0 2px 12px #e9d8fd'}}
+            className="flex-1 bg-[#27272a] rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-[#23232b] hover:scale-105 transition-transform duration-200"
+            style={{boxShadow: '0 2px 12px #23232b'}}
             onClick={onFazerPedido}
           >
-            <Plus className="w-8 h-8 text-[#8b5cf6] mb-2" />
-            <span className="text-lg font-bold text-[#6d28d9] text-center leading-tight">Fazer<br/>Pedido</span>
+            <Plus className="w-8 h-8 text-gray-400 mb-2" />
+            <span className="text-lg font-bold text-gray-200 text-center leading-tight">Fazer<br/>Pedido</span>
           </button>
           <button
-            className="flex-1 bg-gradient-to-br from-white to-purple-50 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-purple-200 hover:scale-105 transition-transform duration-200"
-            style={{boxShadow: '0 2px 12px #e9d8fd'}}
+            className="flex-1 bg-[#27272a] rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-[#23232b] hover:scale-105 transition-transform duration-200"
+            style={{boxShadow: '0 2px 12px #23232b'}}
             onClick={onVerComunidade}
           >
-            <Users className="w-8 h-8 text-[#8b5cf6] mb-2" />
-            <span className="text-lg font-bold text-[#6d28d9] text-center leading-tight">Ver<br/>Comunidade</span>
+            <Users className="w-8 h-8 text-gray-400 mb-2" />
+            <span className="text-lg font-bold text-gray-200 text-center leading-tight">Ver<br/>Comunidade</span>
           </button>
         </div>
         {/* Card de Devocional Diário estilo antigo, centralizado, mantendo proporções e botões na base */}
         <div
           id="devocional-img-share"
-          className="w-full rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative border border-purple-200"
-          style={{boxShadow: '0 4px 24px #e9d8fd'}}
+          className="w-full rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative border border-[#27272a]"
+          style={{boxShadow: '0 4px 24px #23232b'}}
         >
           <div className="w-full aspect-[5/3] relative flex items-center justify-center">
             <div
@@ -240,10 +240,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
               }}
             />
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-4 pb-4">
-              <span className="text-base font-semibold text-white/90 mb-1 drop-shadow-lg text-center" style={{letterSpacing: 0.5}}>Versículo do Dia</span>
-              <span className="text-xl font-bold text-white mb-2 drop-shadow-lg text-center">Salmos 33:5 NTLH</span>
+              <span className="text-base font-semibold text-gray-200 mb-1 drop-shadow-lg text-center" style={{letterSpacing: 0.5}}>Versículo do Dia</span>
+              <span className="text-xl font-bold text-gray-100 mb-2 drop-shadow-lg text-center">Salmos 33:5 NTLH</span>
               {devocional && (
-                <span className="px-3 py-2 bg-black/30 rounded-xl text-white text-center text-base font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-2" style={{backdropFilter: 'blur(2px)'}}>
+                <span className="px-3 py-2 bg-black/30 rounded-xl text-gray-100 text-center text-base font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-2" style={{backdropFilter: 'blur(2px)'}}>
                   {devocional}
                 </span>
               )}
@@ -252,7 +252,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             <div className="w-full flex items-center justify-center gap-16 py-3 bg-gradient-to-t from-black/40 to-transparent absolute left-0 bottom-0 z-20">
               <div className="flex flex-col items-center">
                 <button
-                  className="flex flex-col items-center text-white hover:text-pink-400 transition"
+                  className="flex flex-col items-center text-gray-300 hover:text-pink-400 transition"
                   aria-label="Curtir devocional"
                   // onClick={...} // Aqui pode adicionar lógica de curtir se desejar
                 >
@@ -260,11 +260,11 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
                   </svg>
                 </button>
-                <span className="text-white text-base font-semibold mt-1 select-none">{formatarNumero(devocionalLikes)}</span>
+                <span className="text-gray-300 text-base font-semibold mt-1 select-none">{formatarNumero(devocionalLikes)}</span>
               </div>
               <div className="flex flex-col items-center">
                 <button
-                  className="flex flex-col items-center text-white hover:text-[#a084e8] transition"
+                  className="flex flex-col items-center text-gray-300 hover:text-[#a084e8] transition"
                   onClick={handleShareDevocional}
                   aria-label="Compartilhar devocional"
                 >
@@ -272,7 +272,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12v.01M12 4v.01M20 12v.01M12 20v.01M8.464 8.464l.01.01M15.536 8.464l.01.01M15.536 15.536l.01.01M8.464 15.536l.01.01" />
                   </svg>
                 </button>
-                <span className="text-white text-base font-semibold mt-1 select-none">{formatarNumero(devocionalShares)}</span>
+                <span className="text-gray-300 text-base font-semibold mt-1 select-none">{formatarNumero(devocionalShares)}</span>
               </div>
             </div>
           </div>

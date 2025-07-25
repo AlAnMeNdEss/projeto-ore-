@@ -71,45 +71,45 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7fc] flex flex-col">
+    <div className="min-h-screen bg-[#18181b] flex flex-col">
       {/* Topo fixo */}
-      <div className="sticky top-0 left-0 right-0 z-30 bg-white/90 backdrop-blur flex items-center px-4 py-4 shadow-sm border-b">
-        <button onClick={() => navigate('/')} className="p-2 mr-2 rounded-full hover:bg-[#ede9fe] transition">
-          <ArrowLeft className="w-6 h-6 text-[#8b5cf6]" />
+      <div className="sticky top-0 left-0 right-0 z-30 bg-[#23232b]/90 backdrop-blur flex items-center px-4 py-4 shadow-sm border-b border-[#18181b]">
+        <button onClick={() => navigate('/')} className="p-2 mr-2 rounded-full hover:bg-[#23232b] transition">
+          <ArrowLeft className="w-6 h-6 text-gray-200" />
         </button>
-        <h2 className="flex-1 text-center text-xl font-bold text-[#2d1457] -ml-8">O Meu Perfil</h2>
+        <h2 className="flex-1 text-center text-xl font-bold text-gray-100 -ml-8">O Meu Perfil</h2>
         <div style={{width: 40}} /> {/* Espaço para equilibrar o layout */}
       </div>
       {/* Conteúdo do perfil */}
       <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 w-full">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] flex items-center justify-center text-4xl font-bold text-white shadow-lg mb-2">
+          <div className="w-20 h-20 rounded-full bg-[#23232b] flex items-center justify-center text-4xl font-bold text-gray-100 shadow-lg mb-2 border border-[#18181b]">
             {user.email?.[0]?.toUpperCase() || <UserIcon className="w-10 h-10" />}
           </div>
-          <div className="text-xl font-bold text-[#8b5cf6] mb-1">{user.user_metadata?.name || 'Usuário'}</div>
-          <div className="text-base text-[#6d28d9] mb-2">{user.email}</div>
+          <div className="text-xl font-bold text-gray-100 mb-1">{user.user_metadata?.name || 'Usuário'}</div>
+          <div className="text-base text-gray-400 mb-2">{user.email}</div>
         </div>
-        <div className="bg-[#ede9fe] rounded-lg p-4 mb-6 text-left text-[#2d1457] shadow-inner w-full max-w-md">
+        <div className="bg-[#27272a] rounded-lg p-4 mb-6 text-left text-gray-100 shadow-inner w-full max-w-md border border-[#23232b]">
           <div className="mb-2"><span className="font-semibold">ID:</span> <span className="break-all">{user.id}</span></div>
           <div className="mb-2"><span className="font-semibold">Data de cadastro:</span> {formatDate(user.created_at)}</div>
         </div>
         {/* Cards de atividade */}
         <div className="w-full max-w-md mb-8">
-          <h3 className="text-lg font-bold text-[#2d1457] mb-4">A Minha Atividade</h3>
+          <h3 className="text-lg font-bold text-gray-100 mb-4">A Minha Atividade</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#ede1fa] rounded-xl flex flex-col items-center justify-center py-6 shadow text-[#7c3aed]">
+            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
               <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.oracoesFeitas}</span>
               <span className="text-base font-medium mt-1">Orações Feitas</span>
             </div>
-            <div className="bg-[#ede1fa] rounded-xl flex flex-col items-center justify-center py-6 shadow text-[#7c3aed]">
+            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
               <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.oracoesRecebidas}</span>
               <span className="text-base font-medium mt-1">Orações Recebidas</span>
             </div>
-            <div className="bg-[#ede1fa] rounded-xl flex flex-col items-center justify-center py-6 shadow text-[#7c3aed]">
+            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
               <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.pedidos}</span>
               <span className="text-base font-medium mt-1">Pedidos</span>
             </div>
-            <div className="bg-[#ede1fa] rounded-xl flex flex-col items-center justify-center py-6 shadow text-[#7c3aed]">
+            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
               <span className="text-3xl font-extrabold">{stats.testemunhos}</span>
               <span className="text-base font-medium mt-1">Testemunhos</span>
             </div>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         </div>
         <button
           onClick={signOut}
-          className="mt-2 px-6 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-yellow-300 text-white font-semibold shadow-md hover:brightness-110 transition-all duration-200 w-full max-w-md"
+          className="mt-2 px-6 py-2 rounded-xl bg-[#27272a] text-gray-100 font-semibold shadow-md hover:bg-[#23232b] transition-all duration-200 w-full max-w-md border border-[#23232b]"
         >
           Sair do app
         </button>
