@@ -362,6 +362,28 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
             
             <button
               onClick={() => {
+                console.log('=== TESTE LOCALSTORAGE ===');
+                const testMessage = {
+                  id: Date.now().toString(),
+                  message: 'TESTE LOCALSTORAGE - ' + new Date().toISOString(),
+                  user_id: user?.id,
+                  created_at: new Date().toISOString(),
+                  profiles: { name: user?.user_metadata?.name || 'Você' }
+                };
+                
+                const currentMessages = [...messages, testMessage];
+                setMessages(currentMessages);
+                localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+                
+                alert('✅ Teste localStorage funcionando!\n\nMensagem adicionada localmente.');
+              }}
+              className="px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
+            >
+              Teste Local
+            </button>
+            
+            <button
+              onClick={() => {
                 console.log('=== STATUS ATUAL ===');
                 console.log('Mensagens no estado:', messages);
                 console.log('localStorage:', localStorage.getItem(`messages_${request.id}`));
@@ -386,33 +408,67 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
             
             <button
               onClick={async () => {
-                console.log('=== TESTANDO SE TABELA EXISTE ===');
+                console.log('=== TESTE COMPLETO DO SUPABASE ===');
+                
                 try {
-                  // Tentar fazer uma consulta simples para ver se a tabela existe
-                  const { data, error } = await supabase
+                  // 1. Testar conexão básica
+                  console.log('1. Testando conexão básica...');
+                  const { data: authData, error: authError } = await supabase.auth.getUser();
+                  console.log('Auth test:', { authData, authError });
+                  
+                  // 2. Testar se consegue acessar outras tabelas
+                  console.log('2. Testando acesso a prayer_requests...');
+                  const { data: requestsData, error: requestsError } = await supabase
+                    .from('prayer_requests')
+                    .select('id')
+                    .limit(1);
+                  console.log('Prayer requests test:', { requestsData, requestsError });
+                  
+                  // 3. Testar se a tabela prayer_messages existe
+                  console.log('3. Testando se tabela prayer_messages existe...');
+                  const { data: messagesData, error: messagesError } = await supabase
                     .from('prayer_messages' as any)
                     .select('id')
                     .limit(1);
+                  console.log('Prayer messages test:', { messagesData, messagesError });
                   
-                  if (error) {
-                    console.log('❌ Erro ao acessar tabela:', error);
-                    if (error.message.includes('relation "prayer_messages" does not exist')) {
-                      alert('❌ Tabela prayer_messages NÃO EXISTE!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
+                  // 4. Se a tabela existe, testar inserção
+                  if (!messagesError) {
+                    console.log('4. Testando inserção...');
+                    const testMessage = {
+                      prayer_request_id: request.id,
+                      user_id: user?.id,
+                      message: 'TESTE DE INSERÇÃO - ' + new Date().toISOString()
+                    };
+                    
+                    const { data: insertData, error: insertError } = await supabase
+                      .from('prayer_messages' as any)
+                      .insert(testMessage)
+                      .select();
+                    
+                    console.log('Insert test:', { insertData, insertError });
+                    
+                    if (!insertError) {
+                      alert('✅ TUDO FUNCIONANDO!\n\n- Conexão: OK\n- Tabela: Existe\n- Inserção: OK\n\nAgora teste enviar mensagens reais!');
                     } else {
-                      alert('❌ Erro ao acessar tabela: ' + error.message);
+                      alert('❌ Erro na inserção: ' + insertError.message + '\n\nDetalhes no console.');
                     }
                   } else {
-                    console.log('✅ Tabela existe! Dados:', data);
-                    alert('✅ Tabela prayer_messages existe e está funcionando!');
+                    if (messagesError.message.includes('relation "prayer_messages" does not exist')) {
+                      alert('❌ Tabela prayer_messages NÃO EXISTE!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
+                    } else {
+                      alert('❌ Erro ao acessar tabela: ' + messagesError.message + '\n\nDetalhes no console.');
+                    }
                   }
+                  
                 } catch (err) {
-                  console.error('💥 Erro no teste:', err);
-                  alert('💥 Erro no teste: ' + err.message);
+                  console.error('💥 Erro geral no teste:', err);
+                  alert('💥 Erro geral: ' + err.message);
                 }
               }}
               className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
             >
-              Testar Tabela
+              Teste Completo
             </button>
           </div>
         </div>
