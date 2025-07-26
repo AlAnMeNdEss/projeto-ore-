@@ -107,14 +107,22 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --sidebar-background: 222.2 84% 4.9%;
+
+    --sidebar-foreground: 210 40% 98%;
+
+    --sidebar-primary: 210 40% 98%;
+
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+
+    --sidebar-accent: 217.2 32.6% 17.5%;
+
+    --sidebar-accent-foreground: 210 40% 98%;
+
+    --sidebar-border: 217.2 32.6% 17.5%;
+
+    --sidebar-ring: 212.7 26.8% 83.9%;
   }
 }
 
@@ -122,14 +130,22 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Animações personalizadas */
 @keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-slide-in {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -140,14 +156,12 @@ All colors MUST be HSL.
   }
 }
 
-@keyframes fade-slide-in {
+@keyframes slide-up {
   from {
-    opacity: 0;
-    transform: translateX(-20px);
+    transform: translateY(100%);
   }
   to {
-    opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
@@ -161,23 +175,26 @@ All colors MUST be HSL.
 }
 
 .animate-fade-in {
-  animation: fade-in 0.8s ease-out forwards;
+  animation: fade-in 0.5s ease-out;
 }
 
 .animate-fade-slide-in {
-  animation: fade-slide-in 0.6s ease-out forwards;
+  animation: fade-slide-in 0.6s ease-out;
 }
 
-/* Gradientes personalizados */
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
 .bg-gradient-spiritual {
-  background: linear-gradient(135deg, #1a093e 0%, #2d1457 50%, #3a1c71 100%);
+  background: var(--gradient-spiritual);
 }
 
 .bg-gradient-prayer {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #6d28d9 100%);
+  background: var(--gradient-prayer);
 }
 
-/* Scrollbar personalizada */
+/* Esconder scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -185,4 +202,23 @@ All colors MUST be HSL.
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Estilos específicos para PWA */
+.pwa-mode {
+  /* Remove margens e padding extras quando instalado como PWA */
+  margin: 0;
+  padding: 0;
+}
+
+.ios-device {
+  /* Ajustes específicos para iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ajuste para o banner de instalação */
+@media (max-width: 640px) {
+  .install-banner {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

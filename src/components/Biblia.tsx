@@ -152,18 +152,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   // Adicionar estado para mostrar botão de marcação
   const [showMarkButton, setShowMarkButton] = useState<string | null>(null);
 
-  // Remover a detecção de mobile que não é mais necessária
-  // const isMobile = typeof window !== 'undefined' && 'ontouchstart' in window;
-
-  // Remover o useEffect que não é mais necessário
-  // useEffect(() => {
-  //   if (isMobile) {
-  //     // setActivationMode('hold'); // Mobile usa hold de 4 segundos
-  //   } else {
-  //     // setActivationMode('click'); // Desktop usa clique simples
-  //   }
-  // }, [isMobile]);
-
   function marcarComCor(versiculoId: string, cor: string) {
     setMarcados(prev => {
       const novo = { ...prev, [versiculoId]: cor };
@@ -175,9 +163,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
 
   function handleHold(e: React.MouseEvent | React.TouchEvent, id: string) {
     e.preventDefault();
-    
-    // Se está rolando, não ativar o menu
-    // if (isScrolling) return; // isScrolling não existe mais
     
     // Vibrar no mobile antes de ativar
     if ('touches' in e && navigator.vibrate) {
@@ -335,52 +320,33 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         let url = '';
         if (busca.trim() !== '') {
           setBuscando(true);
-          const search = encodeURIComponent(busca.trim());
-          url = `https://api.biblesupersearch.com/api?bible=${traducao}&search=${search}`;
+          // Usar a API local para busca
+          url = `http://localhost:3001/api/biblia/busca?termo=${encodeURIComponent(busca.trim())}&traducao=${traducao}`;
         } else {
           setBuscando(false);
-          const ref = encodeURIComponent(`${livro} ${capitulo}`);
-          url = `https://api.biblesupersearch.com/api?bible=${traducao}&reference=${ref}`;
+          // Usar a API local para versículos
+          url = `http://localhost:3001/api/biblia?livro=${encodeURIComponent(livro)}&capitulo=${capitulo}&traducao=${traducao}`;
         }
         const res = await fetch(url);
         const data = await res.json();
         if (cancelado) return;
-        if (data.errors && data.errors.length > 0) {
-          setErro(data.errors.join(' '));
+        
+        if (data.error) {
+          setErro(data.error);
           setVersiculos([]);
         } else {
           if (busca.trim() !== '') {
-            let encontrados: any[] = [];
-            if (Array.isArray(data.results)) {
-              data.results.forEach((passagem: any) => {
-                if (passagem.verses && passagem.verses[traducao]) {
-                  Object.values(passagem.verses[traducao]).forEach((cap: any) => {
-                    Object.values(cap).forEach((v: any) => encontrados.push(v));
-                  });
-                }
-              });
-            }
-            setVersiculos(encontrados);
-            setLastVersiculos(encontrados);
+            // Resultado de busca
+            setVersiculos(data);
+            setLastVersiculos(data);
           } else {
-            const results = data.results && data.results.length > 0 ? data.results[0] : null;
-            if (results && results.verses && results.verses[traducao]) {
-              const cap = results.verses[traducao][capitulo];
-              if (cap) {
-                setVersiculos(Object.values(cap));
-                setLastVersiculos(Object.values(cap));
-              } else {
-                setVersiculos([]);
-                setLastVersiculos([]);
-              }
-            } else {
-              setVersiculos([]);
-              setLastVersiculos([]);
-            }
+            // Resultado de capítulo
+            setVersiculos(data);
+            setLastVersiculos(data);
           }
         }
       } catch (e) {
-        if (!cancelado) setErro('Erro ao buscar versículos.');
+        if (!cancelado) setErro('Erro ao buscar versículos. Verifique se a API está rodando.');
       }
       if (!cancelado) setLoading(false);
       if (!cancelado) setPending(false);
@@ -506,10 +472,10 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
             <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
           )}
           {lastVersiculos.map((v: any, i: number) => (
-              <div key={v.verse + '-' + i} className="flex items-start gap-2">
-                <span className="text-[#a084e8] font-bold select-none" style={{minWidth: 18}}>{v.verse}</span>
+              <div key={v.versiculo + '-' + i} className="flex items-start gap-2">
+                <span className="text-[#a084e8] font-bold select-none" style={{minWidth: 18}}>{v.versiculo}</span>
                 <span className="text-xl text-[#23232b] leading-relaxed">
-                  {limparTexto(v.text)}
+                  {limparTexto(v.texto)}
                 </span>
               </div>
             ))}
@@ -523,7 +489,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
             <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
           )}
           {versiculos.map((v: any, i: number) => {
-            const id = `${livro}-${capitulo}-${v.verse}`;
+            const id = `${livro}-${capitulo}-${v.versiculo}`;
             const cor = marcados[id];
             
             return (
@@ -540,9 +506,9 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
                 }`}
                 style={cor ? { backgroundColor: cor, opacity: 0.7 } : {}}
               >
-                <span className="text-[#a084e8] font-bold select-none mt-1" style={{minWidth: 18}}>{v.verse}</span>
+                <span className="text-[#a084e8] font-bold select-none mt-1" style={{minWidth: 18}}>{v.versiculo}</span>
                 <span className={`text-xl font-serif leading-relaxed ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : temaLeitura ? 'text-[#23220a]' : 'text-[#23232b]'}`} style={{wordBreak: 'break-word'}}>
-                  {limparTexto(v.text)}
+                  {limparTexto(v.texto)}
                 </span>
                 
                 {/* Botão de marcação */}
@@ -599,7 +565,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
                             className="flex flex-col items-center justify-center min-w-[70px]" 
                             onClick={e => { 
                               e.stopPropagation(); 
-                              copiarVersiculo(limparTexto(v.text), livro, capitulo, v.verse);
+                              copiarVersiculo(limparTexto(v.texto), livro, capitulo, v.versiculo);
                               setShowMarkButton(null);
                             }}
                           >
@@ -616,7 +582,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
                   <div className="flex items-center gap-2 ml-2">
                     <button
                       className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
-                      onClick={() => perguntarIA(v.text, 'O que este versículo significa?')}
+                      onClick={() => perguntarIA(v.texto, 'O que este versículo significa?')}
                       aria-label="Perguntar à IA"
                     >
                       <svg width="24" height="24" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-6"/></svg>

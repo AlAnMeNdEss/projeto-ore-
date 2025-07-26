@@ -7,6 +7,8 @@ import PrayerRequestsList from './PrayerRequestsList';
 import { Heart, Plus, List, LogOut, User } from 'lucide-react';
 import { InstallButton } from './InstallButton';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
+import { InstallNotification } from './InstallNotification';
+import { PWADebug } from './PWADebug';
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
@@ -133,6 +135,12 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
           <Plus className="w-8 h-8" />
         </button>
       )}
+
+      {/* Notificação de instalação */}
+      <InstallNotification />
+
+      {/* Debug PWA (apenas em desenvolvimento) */}
+      {process.env.NODE_ENV === 'development' && <PWADebug />}
     </div>
   );
 }

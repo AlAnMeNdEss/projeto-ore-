@@ -2,34 +2,55 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ore+</title>
-    <meta name="description" content="Compartilhe, ore e fortaleça sua fé em comunidade" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Ore+ - Orações Compartilhadas</title>
+    <meta name="description" content="Compartilhe, ore e fortaleça sua fé em comunidade. App de orações compartilhadas para fortalecer sua jornada espiritual." />
     <meta name="author" content="Ore+" />
+    <meta name="keywords" content="orações, fé, comunidade, espiritualidade, oração compartilhada, cristianismo" />
 
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#8b5cf6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Orações" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Ore+" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Ore+" />
+    <meta name="msapplication-TileColor" content="#8b5cf6" />
+    <meta name="msapplication-tap-highlight" content="no" />
     
     <!-- PWA Icons -->
     <link rel="icon" href="/pwa-logo.png" type="image/png" />
     <link rel="apple-touch-icon" href="/pwa-logo.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/pwa-logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/pwa-logo.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/pwa-logo.png" />
     <link rel="manifest" href="/manifest.json" />
 
+    <!-- Splash Screen para iOS -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
     <!-- Open Graph Tags -->
-    <meta property="og:title" content="Ore+" />
+    <meta property="og:title" content="Ore+ - Orações Compartilhadas" />
     <meta property="og:description" content="Compartilhe, ore e fortaleça sua fé em comunidade" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/src/assets/pwa-logo.png" />
+    <meta property="og:image" content="/pwa-logo.png" />
+    <meta property="og:url" content="https://ore-plus.vercel.app" />
+    <meta property="og:site_name" content="Ore+" />
 
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Ore+" />
+    <meta name="twitter:title" content="Ore+ - Orações Compartilhadas" />
     <meta name="twitter:description" content="Compartilhe, ore e fortaleça sua fé em comunidade" />
-    <meta name="twitter:image" content="/src/assets/pwa-logo.png" />
+    <meta name="twitter:image" content="/pwa-logo.png" />
+
+    <!-- Preconnect para melhor performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Preload de recursos críticos -->
+    <link rel="preload" href="/pwa-logo.png" as="image" />
   </head>
 
   <body>
@@ -43,11 +64,34 @@
           navigator.serviceWorker.register('/sw.js')
             .then(registration => {
               console.log('SW registered: ', registration);
+              
+              // Verificar atualizações
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // Nova versão disponível
+                    if (confirm('Nova versão do Ore+ disponível! Deseja atualizar?')) {
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
             })
             .catch(registrationError => {
               console.log('SW registration failed: ', registrationError);
             });
         });
+      }
+
+      // Detectar se está rodando como PWA
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        document.body.classList.add('pwa-mode');
+      }
+
+      // Detectar se está no iOS
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        document.body.classList.add('ios-device');
       }
     </script>
   </body>

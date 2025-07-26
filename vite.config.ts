@@ -19,4 +19,28 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    // Otimizações para PWA
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@/components/ui'],
+        },
+      },
+    },
+    // Gerar source maps para debugging
+    sourcemap: mode === 'development',
+    // Otimizar tamanho do bundle
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',
+      },
+    },
+  },
+  // Configurações para PWA
+  define: {
+    __PWA_MODE__: JSON.stringify(mode === 'production'),
+  },
 }));
