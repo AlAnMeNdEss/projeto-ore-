@@ -102,24 +102,40 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     console.log('🔄 useEffect disparado para request:', request.id);
     loadMessages();
     
-    // Atualizar mensagens a cada 5 segundos
-    const interval = setInterval(() => {
-      console.log('⏰ Polling para request:', request.id);
-      loadMessages();
-    }, 5000);
-    
-    // Recarregar quando a janela ganha foco
-    const handleFocus = () => {
-      console.log('👁️ Janela focada, recarregando mensagens para request:', request.id);
-      loadMessages();
-    };
-    
-    window.addEventListener('focus', handleFocus);
+    // Configurar Supabase Realtime para mensagens
+    const channel = supabase
+      .channel(`prayer_messages_${request.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'prayer_messages',
+          filter: `prayer_request_id=eq.${request.id}`
+        },
+        (payload) => {
+          console.log('📡 Realtime update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Nova mensagem inserida
+            const newMessage = {
+              ...payload.new,
+              profiles: { name: 'Novo usuário' } // Será atualizado no próximo loadMessages
+            };
+            setMessages(prev => [...prev, newMessage]);
+            console.log('✅ Nova mensagem adicionada via Realtime');
+          } else if (payload.eventType === 'DELETE') {
+            // Mensagem deletada
+            setMessages(prev => prev.filter(msg => msg.id !== payload.old.id));
+            console.log('🗑️ Mensagem removida via Realtime');
+          }
+        }
+      )
+      .subscribe();
     
     return () => {
-      console.log('🧹 Limpando intervalo e listener para request:', request.id);
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
+      console.log('🧹 Limpando subscription para request:', request.id);
+      supabase.removeChannel(channel);
     };
   }, [request.id]);
 
@@ -258,24 +274,35 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         
         <div className="text-xl text-[#23232b] font-medium mb-4 break-words whitespace-pre-wrap leading-relaxed">{request.text}</div>
         
-        {/* Seção de Mensagens */}
+        {/* Seção de Mensagens - Estilo Instagram */}
         {messages.length > 0 && (
           <div className="mb-4">
             <div className="border-t border-gray-200 pt-3">
-              <h4 className="text-sm font-semibold text-gray-600 mb-2">Comentários:</h4>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-2">
-                    <div className="flex-shrink-0 w-2 h-2 bg-[#a084e8] rounded-full mt-2"></div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-[#23232b]">
-                        {getMessageAuthorName(msg)}
-                      </div>
-                      <div className="text-sm text-gray-600 mt-1">
-                        {msg.message}
+                  <div key={msg.id} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      {getMessageAuthorName(msg).charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[#23232b]">
+                          {getMessageAuthorName(msg)}
+                        </span>
                         {lastMessageSent === msg.message && (
-                          <span className="ml-2 text-xs text-green-500">✓ Enviado</span>
+                          <span className="text-xs text-green-500">✓</span>
                         )}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1 leading-relaxed">
+                        {msg.message}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {new Date(msg.created_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </div>
                     </div>
                   </div>
@@ -285,7 +312,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           </div>
         )}
         
-        {/* Input inline para enviar mensagem */}
+        {/* Input inline para enviar mensagem - Estilo Instagram */}
         <div className="border-t border-gray-200 pt-3">
           <div className="flex gap-2">
             <input
@@ -293,182 +320,20 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Escreva um comentário..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a084e8] focus:border-transparent text-sm"
+              placeholder="Adicione um comentário..."
+              className="flex-1 px-3 py-2 border-0 focus:outline-none text-sm bg-transparent"
               disabled={sendingMessage}
             />
             <button
               onClick={handleSendMessage}
               disabled={!message.trim() || sendingMessage}
-              className="px-4 py-2 bg-[#a084e8] text-white rounded-lg hover:bg-[#8b5cf6] transition disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+              className="px-3 py-1 text-[#a084e8] font-semibold text-sm hover:text-[#8b5cf6] transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sendingMessage ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-[#a084e8] border-t-transparent rounded-full animate-spin" />
               ) : (
                 'Enviar'
               )}
-            </button>
-          </div>
-          
-          {/* Botões de debug */}
-          <div className="mt-2 flex gap-2">
-            <button
-              onClick={async () => {
-                console.log('=== TESTE DE CONEXÃO ===');
-                console.log('User:', user);
-                console.log('Request ID:', request.id);
-                
-                // Testar se consegue inserir uma mensagem de teste
-                try {
-                  const { data, error } = await supabase
-                    .from('prayer_messages' as any)
-                    .insert({
-                      prayer_request_id: request.id,
-                      user_id: user?.id,
-                      message: 'TESTE DE CONEXÃO - ' + new Date().toISOString()
-                    })
-                    .select();
-                  
-                  console.log('Teste de inserção:', { data, error });
-                  
-                  if (!error) {
-                    alert('✅ Conexão com Supabase funcionando!');
-                    await loadMessages();
-                  } else {
-                    alert('❌ Erro na conexão: ' + error.message);
-                  }
-                } catch (err) {
-                  console.error('Erro no teste:', err);
-                  alert('❌ Erro no teste: ' + err.message);
-                }
-              }}
-              className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
-            >
-              Testar Conexão
-            </button>
-            
-            <button
-              onClick={() => {
-                console.log('=== LIMPANDO MENSAGENS ===');
-                localStorage.removeItem(`messages_${request.id}`);
-                setMessages([]);
-                setLastMessageSent('');
-                alert('🧹 Mensagens limpas!');
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-            >
-              Limpar Mensagens
-            </button>
-            
-            <button
-              onClick={() => {
-                console.log('=== TESTE LOCALSTORAGE ===');
-                const testMessage = {
-                  id: Date.now().toString(),
-                  message: 'TESTE LOCALSTORAGE - ' + new Date().toISOString(),
-                  user_id: user?.id,
-                  created_at: new Date().toISOString(),
-                  profiles: { name: user?.user_metadata?.name || 'Você' }
-                };
-                
-                const currentMessages = [...messages, testMessage];
-                setMessages(currentMessages);
-                localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
-                
-                alert('✅ Teste localStorage funcionando!\n\nMensagem adicionada localmente.');
-              }}
-              className="px-3 py-1 bg-orange-500 text-white rounded text-xs hover:bg-orange-600"
-            >
-              Teste Local
-            </button>
-            
-            <button
-              onClick={() => {
-                console.log('=== STATUS ATUAL ===');
-                console.log('Mensagens no estado:', messages);
-                console.log('localStorage:', localStorage.getItem(`messages_${request.id}`));
-                console.log('Usuário:', user);
-                alert(`📊 Status: ${messages.length} mensagens no estado, ${localStorage.getItem(`messages_${request.id}`) ? 'com localStorage' : 'sem localStorage'}`);
-              }}
-              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-            >
-              Status
-            </button>
-            
-            <button
-              onClick={async () => {
-                console.log('=== FORÇANDO RECARREGAMENTO ===');
-                await loadMessages();
-                alert('🔄 Mensagens recarregadas!');
-              }}
-              className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-            >
-              Recarregar
-            </button>
-            
-            <button
-              onClick={async () => {
-                console.log('=== TESTE COMPLETO DO SUPABASE ===');
-                
-                try {
-                  // 1. Testar conexão básica
-                  console.log('1. Testando conexão básica...');
-                  const { data: authData, error: authError } = await supabase.auth.getUser();
-                  console.log('Auth test:', { authData, authError });
-                  
-                  // 2. Testar se consegue acessar outras tabelas
-                  console.log('2. Testando acesso a prayer_requests...');
-                  const { data: requestsData, error: requestsError } = await supabase
-                    .from('prayer_requests')
-                    .select('id')
-                    .limit(1);
-                  console.log('Prayer requests test:', { requestsData, requestsError });
-                  
-                  // 3. Testar se a tabela prayer_messages existe
-                  console.log('3. Testando se tabela prayer_messages existe...');
-                  const { data: messagesData, error: messagesError } = await supabase
-                    .from('prayer_messages' as any)
-                    .select('id')
-                    .limit(1);
-                  console.log('Prayer messages test:', { messagesData, messagesError });
-                  
-                  // 4. Se a tabela existe, testar inserção
-                  if (!messagesError) {
-                    console.log('4. Testando inserção...');
-                    const testMessage = {
-                      prayer_request_id: request.id,
-                      user_id: user?.id,
-                      message: 'TESTE DE INSERÇÃO - ' + new Date().toISOString()
-                    };
-                    
-                    const { data: insertData, error: insertError } = await supabase
-                      .from('prayer_messages' as any)
-                      .insert(testMessage)
-                      .select();
-                    
-                    console.log('Insert test:', { insertData, insertError });
-                    
-                    if (!insertError) {
-                      alert('✅ TUDO FUNCIONANDO!\n\n- Conexão: OK\n- Tabela: Existe\n- Inserção: OK\n\nAgora teste enviar mensagens reais!');
-                    } else {
-                      alert('❌ Erro na inserção: ' + insertError.message + '\n\nDetalhes no console.');
-                    }
-                  } else {
-                    if (messagesError.message.includes('relation "prayer_messages" does not exist')) {
-                      alert('❌ Tabela prayer_messages NÃO EXISTE!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
-                    } else {
-                      alert('❌ Erro ao acessar tabela: ' + messagesError.message + '\n\nDetalhes no console.');
-                    }
-                  }
-                  
-                } catch (err) {
-                  console.error('💥 Erro geral no teste:', err);
-                  alert('💥 Erro geral: ' + err.message);
-                }
-              }}
-              className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
-            >
-              Teste Completo
             </button>
           </div>
         </div>
