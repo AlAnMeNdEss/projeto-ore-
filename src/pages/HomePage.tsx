@@ -19,6 +19,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     novosPedidos: 0,
     totalOracoes: 0,
     totalPedidos: 0,
+    totalUsuarios: 0,
   });
   const [devocional, setDevocional] = useState<string | null>(null);
   const [loadingDevocional, setLoadingDevocional] = useState(false);
@@ -76,31 +77,46 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     async function fetchCommunitySummary() {
       // Data de hoje no formato YYYY-MM-DD
       const hoje = new Date().toISOString().slice(0, 10);
+      
       // Buscar número de pedidos de oração criados hoje
       const { count: novosPedidos } = await supabase
         .from('prayer_requests')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', `${hoje}T00:00:00.000Z`)
         .lte('created_at', `${hoje}T23:59:59.999Z`);
+      
       // Buscar número de orações feitas hoje
       const { count: oracoesHoje } = await supabase
         .from('prayer_interactions')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', `${hoje}T00:00:00.000Z`)
         .lte('created_at', `${hoje}T23:59:59.999Z`);
+      
       // Buscar total global de pedidos
       const { count: totalPedidos } = await supabase
         .from('prayer_requests')
         .select('id', { count: 'exact', head: true });
-      // Buscar total global de orações feitas
+      
+      // Buscar total global de orações feitas pelos usuários (todas as interações de oração)
       const { count: totalOracoes } = await supabase
         .from('prayer_interactions')
         .select('id', { count: 'exact', head: true });
+      
+      // Buscar total de usuários únicos que fizeram login no app
+      // Vamos usar uma abordagem mais simples: contar usuários únicos que criaram pedidos
+      const { data: usuariosUnicos } = await supabase
+        .from('prayer_requests')
+        .select('user_id')
+        .not('user_id', 'is', null);
+
+      const totalUsuarios = usuariosUnicos ? new Set(usuariosUnicos.map(u => u.user_id)).size : 0;
+      
       setCommunitySummary({
         oracoesHoje: oracoesHoje || 0,
         novosPedidos: novosPedidos || 0,
         totalOracoes: totalOracoes || 0,
         totalPedidos: totalPedidos || 0,
+        totalUsuarios: totalUsuarios || 0,
       });
     }
     fetchCommunitySummary();
@@ -200,6 +216,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             <div className="flex flex-col items-center">
               <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalPedidos}</span>
               <span className="text-xs text-gray-400 mt-1">Pedidos Totais</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalUsuarios}</span>
+              <span className="text-xs text-gray-400 mt-1">Usuários Ativos</span>
             </div>
           </div>
         </motion.div>

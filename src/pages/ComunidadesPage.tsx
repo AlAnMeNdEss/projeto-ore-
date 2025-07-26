@@ -5,21 +5,38 @@ import { Loader2, Heart, Globe } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import bgImage from '@/assets/spiritual-background.jpg';
 import { useSwipeable } from 'react-swipeable';
+import { supabase } from '../integrations/supabase/client';
 
 const tabs = ['list', 'create'] as const;
 type Tab = typeof tabs[number];
 
 function ResumoComunitario({ requests }: { requests: any[] }) {
   console.log('ResumoComunitario requests:', requests);
+  const [totalOracoesFeitas, setTotalOracoesFeitas] = useState(0);
+  
   // Cálculo dos totais
   const totalPedidos = requests.length;
-  const totalOracoes = requests.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
+  const totalOracoesRecebidas = requests.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
+  const totalUsuarios = new Set(requests.map(r => r.user_id)).size;
+
+  // Buscar total de orações feitas pelos usuários
+  useEffect(() => {
+    async function fetchTotalOracoes() {
+      const { count } = await supabase
+        .from('prayer_interactions')
+        .select('id', { count: 'exact', head: true });
+      setTotalOracoesFeitas(count || 0);
+    }
+    fetchTotalOracoes();
+  }, []);
 
   // Estados para animar suavemente os números
   const [displayPedidos, setDisplayPedidos] = useState(totalPedidos);
-  const [displayOracoes, setDisplayOracoes] = useState(totalOracoes);
+  const [displayOracoes, setDisplayOracoes] = useState(totalOracoesFeitas);
+  const [displayUsuarios, setDisplayUsuarios] = useState(totalUsuarios);
   const pedidosRef = useRef(displayPedidos);
   const oracoesRef = useRef(displayOracoes);
+  const usuariosRef = useRef(displayUsuarios);
 
   useEffect(() => {
     if (displayPedidos !== totalPedidos) {
@@ -37,19 +54,34 @@ function ResumoComunitario({ requests }: { requests: any[] }) {
   }, [totalPedidos]);
 
   useEffect(() => {
-    if (displayOracoes !== totalOracoes) {
-      const diff = totalOracoes - displayOracoes;
+    if (displayOracoes !== totalOracoesFeitas) {
+      const diff = totalOracoesFeitas - displayOracoes;
       const step = diff > 0 ? 1 : -1;
       const interval = setInterval(() => {
         oracoesRef.current += step;
         setDisplayOracoes(oracoesRef.current);
-        if (oracoesRef.current === totalOracoes) clearInterval(interval);
+        if (oracoesRef.current === totalOracoesFeitas) clearInterval(interval);
       }, 20);
       return () => clearInterval(interval);
     } else {
-      oracoesRef.current = totalOracoes;
+      oracoesRef.current = totalOracoesFeitas;
     }
-  }, [totalOracoes]);
+  }, [totalOracoesFeitas]);
+
+  useEffect(() => {
+    if (displayUsuarios !== totalUsuarios) {
+      const diff = totalUsuarios - displayUsuarios;
+      const step = diff > 0 ? 1 : -1;
+      const interval = setInterval(() => {
+        usuariosRef.current += step;
+        setDisplayUsuarios(usuariosRef.current);
+        if (usuariosRef.current === totalUsuarios) clearInterval(interval);
+      }, 25);
+      return () => clearInterval(interval);
+    } else {
+      usuariosRef.current = totalUsuarios;
+    }
+  }, [totalUsuarios]);
 
   return (
     <div className="w-full max-w-md mx-auto mb-4 animate-fade-in">
@@ -61,7 +93,12 @@ function ResumoComunitario({ requests }: { requests: any[] }) {
         <div className="w-px h-8 bg-[#b2a4ff]/30 mx-2" />
         <div className="flex flex-col items-center">
           <span className="text-2xl font-bold text-[#8b5cf6]">{displayOracoes}</span>
-          <span className="text-xs text-[#2d1457] font-semibold">Orações</span>
+          <span className="text-xs text-[#2d1457] font-semibold">Orações Feitas</span>
+        </div>
+        <div className="w-px h-8 bg-[#b2a4ff]/30 mx-2" />
+        <div className="flex flex-col items-center">
+          <span className="text-2xl font-bold text-[#8b5cf6]">{displayUsuarios}</span>
+          <span className="text-xs text-[#2d1457] font-semibold">Usuários</span>
         </div>
       </div>
     </div>

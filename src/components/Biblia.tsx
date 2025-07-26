@@ -39,8 +39,24 @@ function limparTexto(texto: string) {
 
 export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispatch<SetStateAction<boolean>>; onShowNavBar?: (show: boolean) => void }) {
   const [traducao, setTraducao] = useState('almeida_ra');
-  const [livro, setLivro] = useState('Salmos');
-  const [capitulo, setCapitulo] = useState(23);
+  
+  // Carregar posição salva ou usar padrão
+  const [livro, setLivro] = useState(() => {
+    try {
+      return localStorage.getItem('bibliaLivro') || 'Salmos';
+    } catch {
+      return 'Salmos';
+    }
+  });
+  
+  const [capitulo, setCapitulo] = useState(() => {
+    try {
+      return Number(localStorage.getItem('bibliaCapitulo')) || 23;
+    } catch {
+      return 23;
+    }
+  });
+  
   const [versiculos, setVersiculos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
@@ -48,6 +64,74 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   const [buscando, setBuscando] = useState(false);
   const [pending, setPending] = useState(false);
   const [lastVersiculos, setLastVersiculos] = useState<any[]>([]);
+
+  // Salvar posição quando livro ou capítulo mudar
+  useEffect(() => {
+    try {
+      localStorage.setItem('bibliaLivro', livro);
+      localStorage.setItem('bibliaCapitulo', capitulo.toString());
+    } catch (error) {
+      console.error('Erro ao salvar posição:', error);
+    }
+  }, [livro, capitulo]);
+
+  // Restaurar posição de scroll quando versículos carregarem
+  useEffect(() => {
+    if (versiculos.length > 0 && !loading) {
+      try {
+        const scrollPosition = localStorage.getItem('bibliaScrollPosition');
+        if (scrollPosition) {
+          setTimeout(() => {
+            window.scrollTo(0, Number(scrollPosition));
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Erro ao restaurar scroll:', error);
+      }
+    }
+  }, [versiculos, loading]);
+
+  // Salvar posição de scroll quando sair da página
+  useEffect(() => {
+    function handleBeforeUnload() {
+      try {
+        localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
+      } catch (error) {
+        console.error('Erro ao salvar scroll:', error);
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        try {
+          localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
+        } catch (error) {
+          console.error('Erro ao salvar scroll:', error);
+        }
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Salvar scroll periodicamente
+  useEffect(() => {
+    const interval = setInterval(() => {
+      try {
+        localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
+      } catch (error) {
+        console.error('Erro ao salvar scroll:', error);
+      }
+    }, 5000); // Salva a cada 5 segundos
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Versículos marcados com cor (favoritos) salvos no localStorage
   const [marcados, setMarcados] = useState<Record<string, string>>(() => {
@@ -86,7 +170,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       localStorage.setItem('versiculosMarcadosCor', JSON.stringify(novo));
       return novo;
     });
-    setMenuCor(null);
+    setShowMarkButton(null);
   }
 
   function handleHold(e: React.MouseEvent | React.TouchEvent, id: string) {
@@ -306,6 +390,47 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     return () => { cancelado = true; clearTimeout(loadingTimeout); };
   }, [livro, capitulo, traducao, busca]);
 
+  function copiarVersiculo(texto: string, livro: string, capitulo: number, versiculo: string) {
+    const textoCompleto = `${livro} ${capitulo}:${versiculo} - ${texto}
+
+📖 Encontrei este versículo no Silent Prayers - Oração Silenciosa
+📱 Baixe o app: https://silent-prayers.vercel.app`;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(textoCompleto).then(() => {
+        // Feedback visual ou sonoro de sucesso
+        console.log('Versículo copiado com sucesso!');
+      }).catch(err => {
+        console.error('Erro ao copiar:', err);
+        // Fallback para navegadores mais antigos
+        copiarFallback(textoCompleto);
+      });
+    } else {
+      // Fallback para navegadores que não suportam clipboard API
+      copiarFallback(textoCompleto);
+    }
+  }
+
+  function copiarFallback(texto: string) {
+    const textArea = document.createElement('textarea');
+    textArea.value = texto;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      console.log('Versículo copiado com sucesso!');
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+    }
+    
+    document.body.removeChild(textArea);
+  }
+
   return (
     <div className={`min-h-screen w-full flex flex-col items-center px-2 pt-6 overflow-y-auto relative ${darkMode ? 'bg-[#23232b]' : whiteMode ? 'bg-white' : 'bg-[#fdf6e3]'}` }>
       {/* Botões de versão/tradução e tema escuro */}
@@ -470,7 +595,14 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
                             />
                           </div>
                           {/* Copiar */}
-                          <button className="flex flex-col items-center justify-center min-w-[70px]" onClick={e => { e.stopPropagation(); /* ação de copiar */ setShowMarkButton(null); }}>
+                          <button 
+                            className="flex flex-col items-center justify-center min-w-[70px]" 
+                            onClick={e => { 
+                              e.stopPropagation(); 
+                              copiarVersiculo(limparTexto(v.text), livro, capitulo, v.verse);
+                              setShowMarkButton(null);
+                            }}
+                          >
                             <svg width="28" height="28" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
                             <span className="text-xs mt-1 text-[#23232b]">Copiar</span>
                           </button>
