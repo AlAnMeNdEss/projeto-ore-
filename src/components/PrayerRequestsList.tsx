@@ -29,19 +29,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
       console.log('🔄 Carregando mensagens para request:', request.id);
       console.log('👤 Usuário atual:', user?.id);
       
-      // Primeiro, tentar carregar do localStorage para mostrar algo rapidamente
-      const localMessages = localStorage.getItem(`messages_${request.id}`);
-      if (localMessages) {
-        try {
-          const parsed = JSON.parse(localMessages);
-          console.log('📱 Mensagens do localStorage:', parsed);
-          setMessages(parsed);
-        } catch (e) {
-          console.log('❌ Erro ao parsear localStorage:', e);
-        }
-      }
-      
-      // Tentar carregar do Supabase
+      // Tentar carregar do Supabase primeiro
       console.log('🌐 Tentando carregar do Supabase...');
       const { data, error } = await supabase
         .from('prayer_messages' as any)
@@ -73,17 +61,28 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         
         // Se for erro de tabela não encontrada, mostrar instruções
         if (error?.message?.includes('relation "prayer_messages" does not exist')) {
-          alert('❌ Tabela prayer_messages não existe! Execute o SQL no Supabase Dashboard.');
+          console.log('❌ TABELA NÃO EXISTE! Execute o SQL no Supabase Dashboard.');
+          alert('❌ Tabela prayer_messages não existe!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
         }
         
-        // Manter mensagens do localStorage se Supabase falhar
-        if (!localMessages) {
+        // Fallback para localStorage
+        const localMessages = localStorage.getItem(`messages_${request.id}`);
+        if (localMessages) {
+          try {
+            const parsed = JSON.parse(localMessages);
+            console.log('📱 Usando mensagens do localStorage:', parsed);
+            setMessages(parsed);
+          } catch (e) {
+            console.log('❌ Erro ao parsear localStorage:', e);
+            setMessages([]);
+          }
+        } else {
           setMessages([]);
         }
       }
     } catch (error) {
       console.error('💥 Erro geral ao carregar mensagens:', error);
-      // Manter mensagens do localStorage se tudo falhar
+      // Fallback para localStorage
       const localMessages = localStorage.getItem(`messages_${request.id}`);
       if (localMessages) {
         try {
@@ -334,6 +333,35 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               ) : (
                 'Enviar'
               )}
+            </button>
+          </div>
+          
+          {/* Botão de debug temporário */}
+          <div className="mt-2">
+            <button
+              onClick={async () => {
+                console.log('=== DEBUG: TESTANDO TABELA ===');
+                try {
+                  const { data, error } = await supabase
+                    .from('prayer_messages' as any)
+                    .select('id')
+                    .limit(1);
+                  
+                  if (error) {
+                    console.log('❌ Erro:', error);
+                    alert('❌ Erro: ' + error.message);
+                  } else {
+                    console.log('✅ Tabela existe! Dados:', data);
+                    alert('✅ Tabela existe! Agora teste enviar uma mensagem.');
+                  }
+                } catch (err) {
+                  console.error('💥 Erro:', err);
+                  alert('💥 Erro: ' + err.message);
+                }
+              }}
+              className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+            >
+              Debug: Testar Tabela
             </button>
           </div>
         </div>
