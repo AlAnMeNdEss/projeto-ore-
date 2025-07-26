@@ -2,10 +2,17 @@
 
 /**
  * Script para testar a nova API da Bíblia
- * Execute: node test-bible-api.js
+ * Execute: BIBLE_API_KEY=sua_chave node test-bible-api.js
  */
 
-const API_KEY = '097696d2b8a85d86a19c8f37ce1fc342';
+const API_KEY = process.env.BIBLE_API_KEY || '';
+
+if (!API_KEY) {
+  console.log('❌ Erro: Chave da API não configurada');
+  console.log('💡 Configure a variável de ambiente BIBLE_API_KEY');
+  console.log('   Exemplo: BIBLE_API_KEY=sua_chave node test-bible-api.js');
+  process.exit(1);
+}
 
 console.log('🔍 Testando nova API da Bíblia...\n');
 
@@ -98,7 +105,7 @@ async function testAPI() {
     }
 
     console.log('\n🎉 Teste da API concluído!');
-    console.log('💡 A API está funcionando corretamente com a nova chave.');
+    console.log('💡 A API está funcionando corretamente com a chave configurada.');
 
   } catch (error) {
     console.error('❌ Erro geral:', error.message);
