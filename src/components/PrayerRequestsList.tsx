@@ -5,9 +5,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import { supabase } from '../integrations/supabase/client';
 
-function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, displayName, onOpenMessage }) {
+function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, displayName, onOpenMessage }: {
+  request: any;
+  orou: boolean;
+  onPray: (id: string) => void;
+  canDelete: boolean;
+  onDelete: (id: string) => void;
+  displayName: string;
+  onOpenMessage: () => void;
+}) {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const { user } = useAuth();
@@ -71,14 +79,14 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     setSendingMessage(false);
   };
 
-  const getMessageAuthorName = (message) => {
+  const getMessageAuthorName = (message: any) => {
     if (message.user_id === user?.id) {
       return user.user_metadata?.name || 'Você';
     }
     return message.profiles?.name || 'Anônimo';
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();

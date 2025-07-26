@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { PrayerRequestForm } from './PrayerRequestForm';
-import { PrayerRequestsList } from './PrayerRequestsList';
+import PrayerRequestsList from './PrayerRequestsList';
 import { Heart, Plus, List, LogOut, User } from 'lucide-react';
 import { InstallButton } from './InstallButton';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
