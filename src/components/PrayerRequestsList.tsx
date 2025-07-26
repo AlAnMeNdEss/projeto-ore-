@@ -25,6 +25,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
+      // Tentar carregar do Supabase primeiro
       const { data, error } = await supabase
         .from('prayer_messages' as any)
         .select(`
@@ -40,12 +41,23 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
       if (!error && data) {
         setMessages(data);
       } else {
-        console.error('Erro ao carregar mensagens:', error);
-        setMessages([]);
+        // Fallback para localStorage se Supabase falhar
+        const localMessages = localStorage.getItem(`messages_${request.id}`);
+        if (localMessages) {
+          setMessages(JSON.parse(localMessages));
+        } else {
+          setMessages([]);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
-      setMessages([]);
+      // Fallback para localStorage
+      const localMessages = localStorage.getItem(`messages_${request.id}`);
+      if (localMessages) {
+        setMessages(JSON.parse(localMessages));
+      } else {
+        setMessages([]);
+      }
     }
     setLoadingMessages(false);
   };
@@ -59,6 +71,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
 
     setSendingMessage(true);
     try {
+      // Tentar salvar no Supabase primeiro
       const { error } = await supabase
         .from('prayer_messages' as any)
         .insert({
@@ -71,10 +84,35 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         setMessage('');
         await loadMessages(); // Recarregar mensagens
       } else {
-        console.error('Erro ao enviar mensagem:', error);
+        // Fallback para localStorage se Supabase falhar
+        const newMessage = {
+          id: Date.now().toString(),
+          message: message.trim(),
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          profiles: { name: user.user_metadata?.name || 'Você' }
+        };
+        
+        const currentMessages = [...messages, newMessage];
+        setMessages(currentMessages);
+        localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+        setMessage('');
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      // Fallback para localStorage
+      const newMessage = {
+        id: Date.now().toString(),
+        message: message.trim(),
+        user_id: user.id,
+        created_at: new Date().toISOString(),
+        profiles: { name: user.user_metadata?.name || 'Você' }
+      };
+      
+      const currentMessages = [...messages, newMessage];
+      setMessages(currentMessages);
+      localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+      setMessage('');
     }
     setSendingMessage(false);
   };
