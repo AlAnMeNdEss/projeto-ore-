@@ -87,14 +87,28 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   };
 
   useEffect(() => {
+    console.log('🔄 useEffect disparado para request:', request.id);
     loadMessages();
     
-    // Atualizar mensagens a cada 3 segundos
+    // Atualizar mensagens a cada 5 segundos
     const interval = setInterval(() => {
+      console.log('⏰ Polling para request:', request.id);
       loadMessages();
-    }, 3000);
+    }, 5000);
     
-    return () => clearInterval(interval);
+    // Recarregar quando a janela ganha foco
+    const handleFocus = () => {
+      console.log('👁️ Janela focada, recarregando mensagens para request:', request.id);
+      loadMessages();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      console.log('🧹 Limpando intervalo e listener para request:', request.id);
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [request.id]);
 
     const handleSendMessage = async () => {
@@ -136,12 +150,17 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           };
           setMessages(prev => [...prev, newMessage]);
           setLastMessageSent(message.trim());
+          
+          // Salvar no localStorage imediatamente
+          const currentMessages = [...messages, newMessage];
+          localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
         }
         
-        // Recarregar mensagens do banco após 1 segundo
+        // Recarregar mensagens do banco após 2 segundos
         setTimeout(() => {
+          console.log('🔄 Recarregando mensagens após envio...');
           loadMessages();
-        }, 1000);
+        }, 2000);
       } else {
         console.log('❌ Erro no Supabase, usando localStorage:', error);
         // Fallback para localStorage se Supabase falhar
@@ -340,6 +359,17 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
             >
               Status
+            </button>
+            
+            <button
+              onClick={async () => {
+                console.log('=== FORÇANDO RECARREGAMENTO ===');
+                await loadMessages();
+                alert('🔄 Mensagens recarregadas!');
+              }}
+              className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+            >
+              Recarregar
             </button>
           </div>
         </div>
