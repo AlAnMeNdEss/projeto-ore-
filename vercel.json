@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/biblia/:path*",
+      "destination": "/api/biblia-proxy/:path*"
+    }
+  ],
+  "functions": {
+    "api/biblia-proxy/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+} 

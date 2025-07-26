@@ -314,6 +314,78 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     return () => window.removeEventListener('scroll', handleScrollCap);
   }, []);
 
+  // Função para obter a URL base da API
+  function getApiBaseUrl() {
+    // Se estiver em desenvolvimento local, usar localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:3001';
+    }
+    // Em produção, usar a mesma URL do frontend
+    return window.location.origin;
+  }
+
+  async function buscarVersiculos() {
+    if (!busca.trim()) return;
+    
+    setBuscando(true);
+    setErro('');
+    
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const url = `${apiBaseUrl}/api/biblia/busca?termo=${encodeURIComponent(busca.trim())}&traducao=${traducao}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.versiculos && data.versiculos.length > 0) {
+        setVersiculos(data.versiculos);
+        setBusca('');
+      } else {
+        setErro('Nenhum versículo encontrado para essa busca.');
+      }
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      setErro('Erro ao buscar versículos. Verifique se a API está rodando.');
+    } finally {
+      setBuscando(false);
+    }
+  }
+
+  async function fetchVersiculos() {
+    setLoading(true);
+    setErro('');
+    
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const url = `${apiBaseUrl}/api/biblia?livro=${encodeURIComponent(livro)}&capitulo=${capitulo}&traducao=${traducao}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.versiculos && data.versiculos.length > 0) {
+        setVersiculos(data.versiculos);
+        setLastVersiculos(data.versiculos);
+      } else {
+        setErro('Nenhum versículo encontrado para este livro e capítulo.');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar versículos:', error);
+      setErro('Erro ao carregar versículos. Verifique se a API está rodando.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     let cancelado = false;
     let loadingTimeout: any;
@@ -321,48 +393,9 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     loadingTimeout = setTimeout(() => {
       if (!cancelado) setLoading(true);
     }, 400);
-    async function fetchVersiculos() {
-      setErro('');
-      setVersiculos([]);
-      try {
-        let url = '';
-        if (busca.trim() !== '') {
-          setBuscando(true);
-          // Usar a API local para busca
-          url = `http://localhost:3001/api/biblia/busca?termo=${encodeURIComponent(busca.trim())}&traducao=${traducao}`;
-        } else {
-          setBuscando(false);
-          // Usar a API local para versículos
-          url = `http://localhost:3001/api/biblia?livro=${encodeURIComponent(livro)}&capitulo=${capitulo}&traducao=${traducao}`;
-        }
-        const res = await fetch(url);
-        const data = await res.json();
-        if (cancelado) return;
-        
-        if (data.error) {
-          setErro(data.error);
-          setVersiculos([]);
-        } else {
-          if (busca.trim() !== '') {
-            // Resultado de busca
-            setVersiculos(data);
-            setLastVersiculos(data);
-          } else {
-            // Resultado de capítulo
-            setVersiculos(data);
-            setLastVersiculos(data);
-          }
-        }
-      } catch (e) {
-        if (!cancelado) setErro('Erro ao buscar versículos. Verifique se a API está rodando.');
-      }
-      if (!cancelado) setLoading(false);
-      if (!cancelado) setPending(false);
-      clearTimeout(loadingTimeout);
-    }
     fetchVersiculos();
     return () => { cancelado = true; clearTimeout(loadingTimeout); };
-  }, [livro, capitulo, traducao, busca]);
+  }, [livro, capitulo, traducao]);
 
   function copiarVersiculo(texto: string, livro: string, capitulo: number, versiculo: string) {
     const textoCompleto = `${livro} ${capitulo}:${versiculo} - ${texto}
