@@ -25,6 +25,8 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
+      console.log('Tentando carregar mensagens para request:', request.id);
+      
       // Tentar carregar do Supabase primeiro
       const { data, error } = await supabase
         .from('prayer_messages' as any)
@@ -38,9 +40,13 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         .eq('prayer_request_id', request.id)
         .order('created_at', { ascending: true });
 
+      console.log('Resposta do Supabase:', { data, error });
+
       if (!error && data) {
+        console.log('Mensagens carregadas do Supabase:', data);
         setMessages(data);
       } else {
+        console.log('Erro no Supabase, usando localStorage:', error);
         // Fallback para localStorage se Supabase falhar
         const localMessages = localStorage.getItem(`messages_${request.id}`);
         if (localMessages) {
@@ -71,6 +77,10 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
 
     setSendingMessage(true);
     try {
+      console.log('Tentando enviar mensagem para request:', request.id);
+      console.log('Usuário:', user.id);
+      console.log('Mensagem:', message.trim());
+      
       // Tentar salvar no Supabase primeiro
       const { error } = await supabase
         .from('prayer_messages' as any)
@@ -80,10 +90,14 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           message: message.trim()
         });
 
+      console.log('Resposta do Supabase ao enviar:', { error });
+
       if (!error) {
+        console.log('Mensagem enviada com sucesso para o Supabase');
         setMessage('');
         await loadMessages(); // Recarregar mensagens
       } else {
+        console.log('Erro no Supabase, usando localStorage:', error);
         // Fallback para localStorage se Supabase falhar
         const newMessage = {
           id: Date.now().toString(),
@@ -100,14 +114,14 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
       }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      // Fallback para localStorage
-      const newMessage = {
-        id: Date.now().toString(),
-        message: message.trim(),
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-        profiles: { name: user.user_metadata?.name || 'Você' }
-      };
+              // Fallback para localStorage
+        const newMessage = {
+          id: Date.now().toString(),
+          message: message.trim(),
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          profiles: { name: user.user_metadata?.name || 'Você' }
+        };
       
       const currentMessages = [...messages, newMessage];
       setMessages(currentMessages);
