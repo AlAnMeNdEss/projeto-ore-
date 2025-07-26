@@ -18,6 +18,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   const [messages, setMessages] = useState<any[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [lastMessageSent, setLastMessageSent] = useState<string>('');
   const { user } = useAuth();
   const cardRef = useRef(null);
 
@@ -70,6 +71,13 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
 
   useEffect(() => {
     loadMessages();
+    
+    // Atualizar mensagens a cada 3 segundos
+    const interval = setInterval(() => {
+      loadMessages();
+    }, 3000);
+    
+    return () => clearInterval(interval);
   }, [request.id]);
 
     const handleSendMessage = async () => {
@@ -99,7 +107,24 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         console.log('✅ Mensagem enviada com sucesso para o Supabase');
         console.log('Dados retornados:', data);
         setMessage('');
-        await loadMessages(); // Recarregar mensagens
+        
+        // Adicionar a mensagem imediatamente ao estado local
+        if (data && data[0]) {
+          const newMessage = {
+            id: (data[0] as any).id,
+            message: (data[0] as any).message,
+            created_at: (data[0] as any).created_at,
+            user_id: (data[0] as any).user_id,
+            profiles: { name: user.user_metadata?.name || 'Você' }
+          };
+          setMessages(prev => [...prev, newMessage]);
+          setLastMessageSent(message.trim());
+        }
+        
+        // Recarregar mensagens do banco após 1 segundo
+        setTimeout(() => {
+          loadMessages();
+        }, 1000);
       } else {
         console.log('❌ Erro no Supabase, usando localStorage:', error);
         // Fallback para localStorage se Supabase falhar
@@ -200,6 +225,9 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
                       </div>
                       <div className="text-sm text-gray-600 mt-1">
                         {msg.message}
+                        {lastMessageSent === msg.message && (
+                          <span className="ml-2 text-xs text-green-500">✓ Enviado</span>
+                        )}
                       </div>
                     </div>
                   </div>
