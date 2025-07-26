@@ -26,9 +26,23 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
-      console.log('Tentando carregar mensagens para request:', request.id);
+      console.log('🔄 Carregando mensagens para request:', request.id);
+      console.log('👤 Usuário atual:', user?.id);
       
-      // Tentar carregar do Supabase primeiro
+      // Primeiro, tentar carregar do localStorage para mostrar algo rapidamente
+      const localMessages = localStorage.getItem(`messages_${request.id}`);
+      if (localMessages) {
+        try {
+          const parsed = JSON.parse(localMessages);
+          console.log('📱 Mensagens do localStorage:', parsed);
+          setMessages(parsed);
+        } catch (e) {
+          console.log('❌ Erro ao parsear localStorage:', e);
+        }
+      }
+      
+      // Tentar carregar do Supabase
+      console.log('🌐 Tentando carregar do Supabase...');
       const { data, error } = await supabase
         .from('prayer_messages' as any)
         .select(`
@@ -41,27 +55,30 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         .eq('prayer_request_id', request.id)
         .order('created_at', { ascending: true });
 
-      console.log('Resposta do Supabase:', { data, error });
+      console.log('📡 Resposta do Supabase:', { data, error });
 
       if (!error && data) {
-        console.log('Mensagens carregadas do Supabase:', data);
+        console.log('✅ Mensagens carregadas do Supabase:', data);
         setMessages(data);
+        // Salvar no localStorage como backup
+        localStorage.setItem(`messages_${request.id}`, JSON.stringify(data));
       } else {
-        console.log('Erro no Supabase, usando localStorage:', error);
-        // Fallback para localStorage se Supabase falhar
-        const localMessages = localStorage.getItem(`messages_${request.id}`);
-        if (localMessages) {
-          setMessages(JSON.parse(localMessages));
-        } else {
+        console.log('❌ Erro no Supabase:', error);
+        // Manter mensagens do localStorage se Supabase falhar
+        if (!localMessages) {
           setMessages([]);
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar mensagens:', error);
-      // Fallback para localStorage
+      console.error('💥 Erro geral ao carregar mensagens:', error);
+      // Manter mensagens do localStorage se tudo falhar
       const localMessages = localStorage.getItem(`messages_${request.id}`);
       if (localMessages) {
-        setMessages(JSON.parse(localMessages));
+        try {
+          setMessages(JSON.parse(localMessages));
+        } catch (e) {
+          setMessages([]);
+        }
       } else {
         setMessages([]);
       }
@@ -262,8 +279,8 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
             </button>
           </div>
           
-          {/* Botão de debug para testar conexão */}
-          <div className="mt-2">
+          {/* Botões de debug */}
+          <div className="mt-2 flex gap-2">
             <button
               onClick={async () => {
                 console.log('=== TESTE DE CONEXÃO ===');
@@ -297,6 +314,32 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
             >
               Testar Conexão
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('=== LIMPANDO MENSAGENS ===');
+                localStorage.removeItem(`messages_${request.id}`);
+                setMessages([]);
+                setLastMessageSent('');
+                alert('🧹 Mensagens limpas!');
+              }}
+              className="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+            >
+              Limpar Mensagens
+            </button>
+            
+            <button
+              onClick={() => {
+                console.log('=== STATUS ATUAL ===');
+                console.log('Mensagens no estado:', messages);
+                console.log('localStorage:', localStorage.getItem(`messages_${request.id}`));
+                console.log('Usuário:', user);
+                alert(`📊 Status: ${messages.length} mensagens no estado, ${localStorage.getItem(`messages_${request.id}`) ? 'com localStorage' : 'sem localStorage'}`);
+              }}
+              className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+            >
+              Status
             </button>
           </div>
         </div>
