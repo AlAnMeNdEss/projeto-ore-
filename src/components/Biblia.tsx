@@ -65,6 +65,13 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   const [pending, setPending] = useState(false);
   const [lastVersiculos, setLastVersiculos] = useState<any[]>([]);
 
+  // Número de capítulos por livro (exemplo para os principais livros, adicione mais conforme necessário)
+  const capitulosPorLivro: Record<string, number> = {
+    'Gênesis': 50, 'Êxodo': 40, 'Levítico': 27, 'Números': 36, 'Deuteronômio': 34, 'Josué': 24, 'Juízes': 21, 'Rute': 4,
+    '1 Samuel': 31, '2 Samuel': 24, '1 Reis': 22, '2 Reis': 25, '1 Crônicas': 29, '2 Crônicas': 36, 'Esdras': 10, 'Neemias': 13, 'Ester': 10, 'Jó': 42, 'Salmos': 150, 'Provérbios': 31, 'Eclesiastes': 12, 'Cânticos': 8, 'Isaías': 66, 'Jeremias': 52, 'Lamentações': 5, 'Ezequiel': 48, 'Daniel': 12, 'Oseias': 14, 'Joel': 3, 'Amós': 9, 'Obadias': 1, 'Jonas': 4, 'Miquéias': 7, 'Naum': 3, 'Habacuque': 3, 'Sofonias': 3, 'Ageu': 2, 'Zacarias': 14, 'Malaquias': 4,
+    'Mateus': 28, 'Marcos': 16, 'Lucas': 24, 'João': 21, 'Atos': 28, 'Romanos': 16, '1 Coríntios': 16, '2 Coríntios': 13, 'Gálatas': 6, 'Efésios': 6, 'Filipenses': 4, 'Colossenses': 4, '1 Tessalonicenses': 5, '2 Tessalonicenses': 3, '1 Timóteo': 6, '2 Timóteo': 4, 'Tito': 3, 'Filemom': 1, 'Hebreus': 13, 'Tiago': 5, '1 Pedro': 5, '2 Pedro': 3, '1 João': 5, '2 João': 1, '3 João': 1, 'Judas': 1, 'Apocalipse': 22
+  };
+
   // Salvar posição quando livro ou capítulo mudar
   useEffect(() => {
     try {
@@ -74,6 +81,14 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       console.error('Erro ao salvar posição:', error);
     }
   }, [livro, capitulo]);
+
+  // Resetar capítulo para 1 quando livro mudar
+  useEffect(() => {
+    const maxCapitulos = capitulosPorLivro[livro] || 1;
+    if (capitulo > maxCapitulos) {
+      setCapitulo(1);
+    }
+  }, [livro, capitulo, capitulosPorLivro]);
 
   // Restaurar posição de scroll quando versículos carregarem
   useEffect(() => {
@@ -245,13 +260,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     });
   }
 
-  // Número de capítulos por livro (exemplo para os principais livros, adicione mais conforme necessário)
-  const capitulosPorLivro: Record<string, number> = {
-    'Gênesis': 50, 'Êxodo': 40, 'Levítico': 27, 'Números': 36, 'Deuteronômio': 34, 'Josué': 24, 'Juízes': 21, 'Rute': 4,
-    '1 Samuel': 31, '2 Samuel': 24, '1 Reis': 22, '2 Reis': 25, '1 Crônicas': 29, '2 Crônicas': 36, 'Esdras': 10, 'Neemias': 13, 'Ester': 10, 'Jó': 42, 'Salmos': 150, 'Provérbios': 31, 'Eclesiastes': 12, 'Cânticos': 8, 'Isaías': 66, 'Jeremias': 52, 'Lamentações': 5, 'Ezequiel': 48, 'Daniel': 12, 'Oseias': 14, 'Joel': 3, 'Amós': 9, 'Obadias': 1, 'Jonas': 4, 'Miquéias': 7, 'Naum': 3, 'Habacuque': 3, 'Sofonias': 3, 'Ageu': 2, 'Zacarias': 14, 'Malaquias': 4,
-    'Mateus': 28, 'Marcos': 16, 'Lucas': 24, 'João': 21, 'Atos': 28, 'Romanos': 16, '1 Coríntios': 16, '2 Coríntios': 13, 'Gálatas': 6, 'Efésios': 6, 'Filipenses': 4, 'Colossenses': 4, '1 Tessalonicenses': 5, '2 Tessalonicenses': 3, '1 Timóteo': 6, '2 Timóteo': 4, 'Tito': 3, 'Filemom': 1, 'Hebreus': 13, 'Tiago': 5, '1 Pedro': 5, '2 Pedro': 3, '1 João': 5, '2 João': 1, '3 João': 1, 'Judas': 1, 'Apocalipse': 22
-  };
-
   // Capítulos válidos para o livro selecionado
   const capitulos = Array.from({ length: capitulosPorLivro[livro] || 1 }, (_, i) => i + 1);
 
@@ -398,7 +406,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   }
 
   return (
-    <div className={`min-h-screen w-full flex flex-col items-center px-2 pt-6 overflow-y-auto relative ${darkMode ? 'bg-[#23232b]' : whiteMode ? 'bg-white' : 'bg-[#fdf6e3]'}` }>
+    <div className={`min-h-screen w-full flex flex-col items-center px-2 pt-6 overflow-y-auto relative ${darkMode ? 'bg-[#23232b]' : whiteMode ? 'bg-white' : 'bg-[#fdf6e3]'} pb-28` }>
       {/* Botões de versão/tradução e tema escuro */}
       <div className="absolute top-4 right-4 z-30 flex gap-2">
         <button
@@ -484,7 +492,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
       {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
       {!loading && !erro && versiculos.length > 0 && (
-        <div className="flex flex-col gap-3 px-6 sm:px-0">
+        <div className="flex flex-col gap-3 px-6 sm:px-0 pb-28"> {/* padding extra para não cortar o último versículo */}
           {!buscando && (
             <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
           )}
