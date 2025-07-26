@@ -72,32 +72,36 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     loadMessages();
   }, [request.id]);
 
-  const handleSendMessage = async () => {
+    const handleSendMessage = async () => {
     if (!user || !message.trim()) return;
 
     setSendingMessage(true);
     try {
-      console.log('Tentando enviar mensagem para request:', request.id);
-      console.log('Usuário:', user.id);
-      console.log('Mensagem:', message.trim());
+      console.log('=== ENVIANDO MENSAGEM ===');
+      console.log('Request ID:', request.id);
+      console.log('User ID:', user.id);
+      console.log('User Name:', user.user_metadata?.name);
+      console.log('Message:', message.trim());
       
       // Tentar salvar no Supabase primeiro
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('prayer_messages' as any)
         .insert({
           prayer_request_id: request.id,
           user_id: user.id,
           message: message.trim()
-        });
+        })
+        .select();
 
-      console.log('Resposta do Supabase ao enviar:', { error });
+      console.log('Resposta do Supabase ao enviar:', { data, error });
 
       if (!error) {
-        console.log('Mensagem enviada com sucesso para o Supabase');
+        console.log('✅ Mensagem enviada com sucesso para o Supabase');
+        console.log('Dados retornados:', data);
         setMessage('');
         await loadMessages(); // Recarregar mensagens
       } else {
-        console.log('Erro no Supabase, usando localStorage:', error);
+        console.log('❌ Erro no Supabase, usando localStorage:', error);
         // Fallback para localStorage se Supabase falhar
         const newMessage = {
           id: Date.now().toString(),
@@ -111,22 +115,24 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         setMessages(currentMessages);
         localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
         setMessage('');
+        console.log('💾 Mensagem salva no localStorage');
       }
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-              // Fallback para localStorage
-        const newMessage = {
-          id: Date.now().toString(),
-          message: message.trim(),
-          user_id: user.id,
-          created_at: new Date().toISOString(),
-          profiles: { name: user.user_metadata?.name || 'Você' }
-        };
+      console.error('❌ Erro ao enviar mensagem:', error);
+      // Fallback para localStorage
+      const newMessage = {
+        id: Date.now().toString(),
+        message: message.trim(),
+        user_id: user.id,
+        created_at: new Date().toISOString(),
+        profiles: { name: user.user_metadata?.name || 'Você' }
+      };
       
       const currentMessages = [...messages, newMessage];
       setMessages(currentMessages);
       localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
       setMessage('');
+      console.log('💾 Mensagem salva no localStorage (fallback)');
     }
     setSendingMessage(false);
   };
@@ -225,6 +231,44 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               ) : (
                 'Enviar'
               )}
+            </button>
+          </div>
+          
+          {/* Botão de debug para testar conexão */}
+          <div className="mt-2">
+            <button
+              onClick={async () => {
+                console.log('=== TESTE DE CONEXÃO ===');
+                console.log('User:', user);
+                console.log('Request ID:', request.id);
+                
+                // Testar se consegue inserir uma mensagem de teste
+                try {
+                  const { data, error } = await supabase
+                    .from('prayer_messages' as any)
+                    .insert({
+                      prayer_request_id: request.id,
+                      user_id: user?.id,
+                      message: 'TESTE DE CONEXÃO - ' + new Date().toISOString()
+                    })
+                    .select();
+                  
+                  console.log('Teste de inserção:', { data, error });
+                  
+                  if (!error) {
+                    alert('✅ Conexão com Supabase funcionando!');
+                    await loadMessages();
+                  } else {
+                    alert('❌ Erro na conexão: ' + error.message);
+                  }
+                } catch (err) {
+                  console.error('Erro no teste:', err);
+                  alert('❌ Erro no teste: ' + err.message);
+                }
+              }}
+              className="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600"
+            >
+              Testar Conexão
             </button>
           </div>
         </div>
