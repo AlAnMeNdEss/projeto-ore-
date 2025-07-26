@@ -64,6 +64,18 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         localStorage.setItem(`messages_${request.id}`, JSON.stringify(data));
       } else {
         console.log('❌ Erro no Supabase:', error);
+        console.log('🔍 Detalhes do erro:', {
+          message: error?.message,
+          details: error?.details,
+          hint: error?.hint,
+          code: error?.code
+        });
+        
+        // Se for erro de tabela não encontrada, mostrar instruções
+        if (error?.message?.includes('relation "prayer_messages" does not exist')) {
+          alert('❌ Tabela prayer_messages não existe! Execute o SQL no Supabase Dashboard.');
+        }
+        
         // Manter mensagens do localStorage se Supabase falhar
         if (!localMessages) {
           setMessages([]);
@@ -370,6 +382,37 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
               className="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
             >
               Recarregar
+            </button>
+            
+            <button
+              onClick={async () => {
+                console.log('=== TESTANDO SE TABELA EXISTE ===');
+                try {
+                  // Tentar fazer uma consulta simples para ver se a tabela existe
+                  const { data, error } = await supabase
+                    .from('prayer_messages' as any)
+                    .select('id')
+                    .limit(1);
+                  
+                  if (error) {
+                    console.log('❌ Erro ao acessar tabela:', error);
+                    if (error.message.includes('relation "prayer_messages" does not exist')) {
+                      alert('❌ Tabela prayer_messages NÃO EXISTE!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
+                    } else {
+                      alert('❌ Erro ao acessar tabela: ' + error.message);
+                    }
+                  } else {
+                    console.log('✅ Tabela existe! Dados:', data);
+                    alert('✅ Tabela prayer_messages existe e está funcionando!');
+                  }
+                } catch (err) {
+                  console.error('💥 Erro no teste:', err);
+                  alert('💥 Erro no teste: ' + err.message);
+                }
+              }}
+              className="px-3 py-1 bg-purple-500 text-white rounded text-xs hover:bg-purple-600"
+            >
+              Testar Tabela
             </button>
           </div>
         </div>
