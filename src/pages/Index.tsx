@@ -16,6 +16,7 @@ import { PrayerRequestForm } from '@/components/PrayerRequestForm';
 import { Biblia } from '@/components/Biblia';
 import { useRef } from 'react';
 import loginBackground from '../assets/login-background.jpg';
+import { useLocation } from 'react-router-dom';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -29,11 +30,60 @@ const Index = () => {
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
   const [showAuth, setShowAuth] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('inicio');
+  const location = useLocation();
+  
+  // Função para obter a aba inicial baseada no localStorage ou URL
+  const getInitialTab = (): Tab => {
+    try {
+      const savedTab = localStorage.getItem('activeTab') as Tab;
+      if (savedTab && tabs.includes(savedTab)) {
+        return savedTab;
+      }
+    } catch (error) {
+      console.error('Erro ao ler aba salva:', error);
+    }
+    return 'inicio';
+  };
+  
+  const [activeTab, setActiveTab] = useState<Tab>(getInitialTab);
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
   const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
   // Sempre que mudar para a aba 'comunidades', reseta para false
+
+  // Salvar aba ativa no localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('activeTab', activeTab);
+    } catch (error) {
+      console.error('Erro ao salvar aba ativa:', error);
+    }
+  }, [activeTab]);
+
+  // Resetar estado da comunidade quando mudar de aba
+  useEffect(() => {
+    if (activeTab !== 'comunidades') {
+      setEntrouNaComunidade(false);
+    }
+  }, [activeTab]);
+
+  // Restaurar estado quando a página é carregada
+  useEffect(() => {
+    const savedTab = getInitialTab();
+    if (savedTab !== activeTab) {
+      setActiveTab(savedTab);
+    }
+  }, [location.pathname]);
+
+  // Restaurar estado quando o usuário estiver logado
+  useEffect(() => {
+    if (user && !loading) {
+      const savedTab = getInitialTab();
+      if (savedTab !== activeTab) {
+        setActiveTab(savedTab);
+      }
+    }
+  }, [user, loading]);
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
   const totalOracoesRecebidas = pedidosDoUsuario.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
@@ -87,6 +137,16 @@ const Index = () => {
 
   // Debug: verificar estados
   console.log('Index - user:', user, 'loading:', loading, 'showAuth:', showAuth);
+
+  // Verificar se o usuário está logado e restaurar estado se necessário
+  useEffect(() => {
+    if (user && !loading) {
+      // Se o usuário está logado, garantir que não estamos na tela de boas-vindas
+      if (showAuth === false) {
+        setShowAuth(true);
+      }
+    }
+  }, [user, loading, showAuth]);
 
   // Remover swipe lateral global para evitar navegação acidental na página da Bíblia
   const handlers = useSwipeable({
