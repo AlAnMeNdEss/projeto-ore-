@@ -493,7 +493,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         </div>
       ) : null}
       {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
-      {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
+      {!loading && erro && versiculos.length === 0 && <div className="text-center text-red-500 font-semibold">{erro}</div>}
       {/* Notificação de cache offline */}
       
 
