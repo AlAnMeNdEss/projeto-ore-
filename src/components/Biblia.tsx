@@ -280,6 +280,18 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     setErro('');
     
     try {
+      // Tentar carregar do cache local primeiro
+      const cacheKey = `busca_${busca.trim().toLowerCase()}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        setVersiculos(parsedData);
+        setBusca('');
+        setBuscando(false);
+        return;
+      }
+
       // Busca os versículos no Supabase usando ilike para busca por texto
       // @ts-ignore
       const { data, error } = await supabase
@@ -298,6 +310,13 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       if (data && data.length > 0) {
         setVersiculos(data);
         setBusca('');
+        
+        // Salvar no cache local
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch (cacheError) {
+          console.warn('Erro ao salvar busca no cache:', cacheError);
+        }
       } else {
         setErro('Nenhum versículo encontrado para essa busca.');
       }
@@ -314,7 +333,20 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     setErro(''); // Limpar erro no início
     
     try {
-      // Busca os versículos do Supabase
+      // Tentar carregar do cache local primeiro
+      const cacheKey = `biblia_${livro}_${capitulo}`;
+      const cachedData = localStorage.getItem(cacheKey);
+      
+      if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        setVersiculos(parsedData);
+        setLastVersiculos(parsedData);
+        setErro('');
+        setLoading(false);
+        return;
+      }
+
+      // Se não há cache, buscar no Supabase
       // @ts-ignore
       const { data, error } = await supabase
         .from('versiculos_biblia')
@@ -331,6 +363,13 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         setVersiculos(data);
         setLastVersiculos(data);
         setErro(''); // Limpar erro quando há dados
+        
+        // Salvar no cache local
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch (cacheError) {
+          console.warn('Erro ao salvar no cache:', cacheError);
+        }
       } else {
         setErro('Nenhum versículo encontrado para este livro e capítulo.');
       }
