@@ -24,12 +24,33 @@ export function AuthPage() {
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstall, setShowInstall] = useState(false);
 
   useEffect(() => {
     if (user) {
       navigate('/');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstall(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  function handleInstall() {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        setShowInstall(false);
+      });
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +92,7 @@ export function AuthPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeInOut' }}
-      className="min-h-screen flex flex-col justify-center items-center px-4 gradient-bg"
+      className="min-h-screen flex flex-col justify-center items-center px-4 gradient-bg relative"
       style={{
         backgroundImage: `url(${loginBackground})`,
         backgroundSize: 'cover',
@@ -79,6 +100,15 @@ export function AuthPage() {
         backgroundRepeat: 'no-repeat',
       }}
     >
+      {/* Botão Instalar App discreto no topo direito */}
+      {showInstall && (
+        <button
+          onClick={handleInstall}
+          className="absolute top-6 right-6 bg-white hover:bg-gray-100 text-[#38b6ff] font-bold px-5 py-2 rounded-full shadow border border-white text-base opacity-80 hover:opacity-100 transition-all duration-200 z-50"
+        >
+          Instalar App
+        </button>
+      )}
       <motion.div {...fadeUp} className="mb-8 flex flex-col items-center">
         <h1 className="font-logo text-5xl font-extrabold select-none mb-2">
           <span style={{ color: '#673AB7' }}>Ore</span>
