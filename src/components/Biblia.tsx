@@ -92,6 +92,11 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     }
   }, [livro, capitulo, capitulosPorLivro]);
 
+  // Carregar versículos automaticamente quando o componente é montado
+  useEffect(() => {
+    fetchVersiculos();
+  }, []); // Executa apenas uma vez quando o componente é montado
+
   // Restaurar posição de scroll quando versículos carregarem
   useEffect(() => {
     if (versiculos.length > 0 && !loading) {
