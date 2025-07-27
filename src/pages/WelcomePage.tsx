@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { SplashScreen } from '@/components/SplashScreen';
@@ -9,27 +9,6 @@ interface WelcomePageProps {
 
 export default function WelcomePage({ onStart }: WelcomePageProps) {
   const [loading, setLoading] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstall, setShowInstall] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstall(true);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  function handleInstall() {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        setShowInstall(false);
-      });
-    }
-  }
 
   function handleStart() {
     setLoading(true);
@@ -55,23 +34,13 @@ export default function WelcomePage({ onStart }: WelcomePageProps) {
       <div className="fixed top-0 left-0 right-0 flex justify-between items-center z-50 w-full px-6 py-5 bg-[#38b6ff] shadow-md">
         {/* Nome Ore+ no canto superior esquerdo */}
         <span className="text-3xl font-extrabold text-white tracking-wide select-none font-serif">Ore+</span>
-        {/* Botões no canto superior direito */}
-        <div className="flex gap-3 items-center">
-          {showInstall && (
-            <Button
-              onClick={handleInstall}
-              className="bg-white hover:bg-gray-100 text-[#38b6ff] font-bold px-8 py-2 rounded-full shadow transition-all duration-200 text-xl font-sans border border-white"
-            >
-              Instalar App
-            </Button>
-          )}
-          <Button
-            onClick={handleStart}
-            className="bg-white hover:bg-gray-100 text-[#38b6ff] font-bold px-8 py-2 rounded-full shadow transition-all duration-200 text-xl font-sans border border-white"
-          >
-            Entrar
-          </Button>
-        </div>
+        {/* Botão Entrar no canto superior direito */}
+        <Button
+          onClick={handleStart}
+          className="bg-white hover:bg-gray-100 text-[#38b6ff] font-bold px-8 py-2 rounded-full shadow transition-all duration-200 text-xl font-sans border border-white"
+        >
+          Entrar
+        </Button>
       </div>
       {/* Espaço para não sobrepor o conteúdo */}
       <div className="h-[80px] w-full" />

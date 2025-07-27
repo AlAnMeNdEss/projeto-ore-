@@ -6,6 +6,7 @@ import { User as UserIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
+import loginBackground from '../assets/login-background.jpg';
 
 interface HomePageProps {
   user: any;
@@ -172,9 +173,12 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto bg-[#18181b] pb-[90px]"
+      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto pb-[90px]"
       style={{
-        background: '#18181b',
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         minHeight: '100vh',
         width: '100vw',
         position: 'relative',
@@ -182,16 +186,26 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     >
       {/* Topo estilizado igual ao exemplo da imagem, com padding lateral igual aos cards */}
       <div className="w-full max-w-md mx-auto px-2">
-        <div className="rounded-t-3xl bg-[#27272a] flex flex-col px-4 pt-6 pb-4 mb-2 border border-[#23232b]" style={{boxShadow: '0 2px 12px #23232b'}}>
+        <div
+          className="rounded-t-3xl flex flex-col px-4 pt-6 pb-4 mb-2 border border-white/30"
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 2px 12px #23232b',
+          }}
+        >
           <div className="flex items-start justify-between w-full">
             <div className="flex flex-col gap-1">
-              <span className="text-3xl sm:text-4xl font-extrabold text-gray-100 leading-tight" style={{letterSpacing: -1}}>
+              <span className="text-3xl sm:text-4xl font-extrabold text-[#38b6ff] leading-tight" style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(56,182,255,0.25), 0 1px 2px #fff'}}>
                 Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
               </span>
-              <span className="text-lg sm:text-xl text-gray-400 font-normal mt-1">que a paz esteja consigo!</span>
+              <span className="text-lg sm:text-xl text-[#38b6ff] font-normal mt-1" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>
+                que a paz esteja consigo!
+              </span>
             </div>
-            <button className="rounded-full bg-transparent p-2 mt-1" aria-label="Perfil" onClick={() => navigate('/perfil')}>
-              <UserIcon className="w-8 h-8 text-gray-400" />
+            <button className="rounded-full bg-white/80 p-2 mt-1 shadow border border-white/30" aria-label="Perfil" onClick={() => navigate('/perfil')}>
+              <UserIcon className="w-8 h-8 text-[#38b6ff]" />
             </button>
           </div>
         </div>
@@ -204,49 +218,66 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full bg-[#27272a] rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 border border-[#23232b] mt-8"
-          style={{boxShadow: '0 2px 16px #23232b'}}
+          className="w-full rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 mt-8"
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 2px 16px #23232b',
+            border: '1px solid #fff4',
+          }}
         >
-          <h2 className="text-lg font-bold text-gray-200 mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
-          <div className="flex w-full justify-around mt-4 gap-4 border-t border-[#27272a] pt-3">
+          <h2 className="text-lg font-bold text-[#38b6ff] mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
+          <div className="flex w-full justify-around mt-4 gap-4 border-t border-white/30 pt-3">
             <div className="flex flex-col items-center">
-              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalOracoes}</span>
-              <span className="text-xs text-gray-400 mt-1">Orações Totais</span>
+              <span className="text-3xl font-extrabold text-[#38b6ff] leading-none" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>{communitySummary.totalOracoes}</span>
+              <span className="text-xs text-[#38b6ff] mt-1">Orações Totais</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalPedidos}</span>
-              <span className="text-xs text-gray-400 mt-1">Pedidos Totais</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-xl font-extrabold text-gray-100 leading-none">{communitySummary.totalUsuarios}</span>
-              <span className="text-xs text-gray-400 mt-1">Usuários Ativos</span>
+              <span className="text-3xl font-extrabold text-[#38b6ff] leading-none" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>{communitySummary.totalPedidos}</span>
+              <span className="text-xs text-[#38b6ff] mt-1">Pedidos Totais</span>
             </div>
           </div>
         </motion.div>
         {/* Dois cards de ação lado a lado */}
         <div className="w-full flex flex-row gap-4 mb-4">
           <button
-            className="flex-1 bg-[#27272a] rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-[#23232b] hover:scale-105 transition-transform duration-200"
-            style={{boxShadow: '0 2px 12px #23232b'}}
+            className="flex-1 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-white/30 hover:scale-105 transition-transform duration-200"
+            style={{
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              boxShadow: '0 2px 12px #23232b',
+            }}
             onClick={onFazerPedido}
           >
-            <Plus className="w-8 h-8 text-gray-400 mb-2" />
-            <span className="text-lg font-bold text-gray-200 text-center leading-tight">Fazer<br/>Pedido</span>
+            <Plus className="w-8 h-8 text-[#38b6ff] mb-2" />
+            <span className="text-lg font-bold text-[#38b6ff] text-center leading-tight">Fazer<br/>Pedido</span>
           </button>
           <button
-            className="flex-1 bg-[#27272a] rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-[#23232b] hover:scale-105 transition-transform duration-200"
-            style={{boxShadow: '0 2px 12px #23232b'}}
+            className="flex-1 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-white/30 hover:scale-105 transition-transform duration-200"
+            style={{
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              boxShadow: '0 2px 12px #23232b',
+            }}
             onClick={onVerComunidade}
           >
-            <Users className="w-8 h-8 text-gray-400 mb-2" />
-            <span className="text-lg font-bold text-gray-200 text-center leading-tight">Ver<br/>Comunidade</span>
+            <Users className="w-8 h-8 text-[#38b6ff] mb-2" />
+            <span className="text-lg font-bold text-[#38b6ff] text-center leading-tight">Ver<br/>Comunidade</span>
           </button>
         </div>
         {/* Card de Devocional Diário estilo antigo, centralizado, mantendo proporções e botões na base */}
         <div
           id="devocional-img-share"
-          className="w-full rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative border border-[#27272a]"
-          style={{boxShadow: '0 4px 24px #23232b'}}
+          className="w-full rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative border border-white/30"
+          style={{
+            background: 'rgba(255,255,255,0.75)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: '0 4px 24px #23232b',
+          }}
         >
           <div className="w-full aspect-[5/3] relative flex items-center justify-center">
             <div

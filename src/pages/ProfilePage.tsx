@@ -3,6 +3,8 @@ import { User as UserIcon, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import loginBackground from '../assets/login-background.jpg';
+import { useSwipeable } from 'react-swipeable';
 
 function formatDate(dateString?: string) {
   if (!dateString) return '-';
@@ -13,6 +15,63 @@ function formatDate(dateString?: string) {
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Detectar se é dispositivo móvel
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Swipe handlers apenas para mobile
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (isMobile) {
+        // Navegar para a próxima aba (comunidades)
+        navigate('/');
+      }
+    },
+    onSwipedRight: () => {
+      if (isMobile) {
+        // Navegar para a aba anterior (bíblia)
+        navigate('/');
+      }
+    },
+    trackMouse: false, // Desabilitar no desktop
+    delta: 50, // Distância mínima para ativar o swipe
+  });
+
+  // Interceptar o botão voltar do navegador/celular
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // Prevenir que saia do site
+      event.preventDefault();
+      
+      // Navegar para a tela anterior (HomePage)
+      navigate('/');
+      
+      // Adicionar a entrada atual de volta ao histórico
+      window.history.pushState(null, '', '/perfil');
+    };
+
+    // Adicionar entrada inicial ao histórico
+    window.history.pushState(null, '', '/perfil');
+
+    // Adicionar listener para o evento popstate
+    window.addEventListener('popstate', handlePopState);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
 
   // Estado para armazenar os números reais
   const [oracoesFeitas, setOracoesFeitas] = useState<number>(0);
@@ -136,7 +195,7 @@ export default function ProfilePage() {
             return acc;
           }, {} as Record<string, number>);
           const categoriaMaisFrequente = Object.entries(categoriaCount)
-            .sort(([,a], [,b]) => b - a)[0][0];
+            .sort(([,a], [,b]) => Number(b) - Number(a))[0][0];
           setCategoriaMaisUsada(categoriaMaisFrequente);
         }
         
@@ -255,32 +314,49 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#18181b] flex flex-col">
+    <div
+      {...(isMobile ? swipeHandlers : {})}
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+        width: '100vw',
+        position: 'relative',
+      }}
+    >
       {/* Topo fixo */}
-      <div className="sticky top-0 left-0 right-0 z-30 bg-[#23232b]/90 backdrop-blur flex items-center px-4 py-4 shadow-sm border-b border-[#18181b]">
+      <div className="sticky top-0 left-0 right-0 z-30 flex items-center px-4 py-4 shadow-sm border-b border-white/30"
+        style={{
+          background: 'rgba(255,255,255,0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          boxShadow: '0 2px 12px #23232b',
+        }}
+      >
         <button onClick={() => navigate('/')} className="p-2 mr-2 rounded-full hover:bg-[#23232b] transition">
-          <ArrowLeft className="w-6 h-6 text-gray-200" />
+          <ArrowLeft className="w-6 h-6 text-[#38b6ff] pointer-events-none" />
         </button>
-        <h2 className="flex-1 text-center text-xl font-bold text-gray-100 -ml-8">O Meu Perfil</h2>
+        <h2 className="flex-1 text-center text-xl font-bold text-[#38b6ff]">O Meu Perfil</h2>
         <div style={{width: 40}} /> {/* Espaço para equilibrar o layout */}
       </div>
       {/* Conteúdo do perfil */}
       <div className="flex-1 flex flex-col items-center justify-start px-4 pt-8 w-full">
         {/* Informações do usuário */}
         <div className="flex flex-col items-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-[#23232b] flex items-center justify-center text-4xl font-bold text-gray-100 shadow-lg mb-2 border border-[#18181b]">
+          <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-4xl font-bold text-[#38b6ff] shadow-lg mb-2 border border-gray-200">
             {user.email?.[0]?.toUpperCase() || <UserIcon className="w-10 h-10" />}
           </div>
-          <div className="text-xl font-bold text-gray-100 mb-1">{user.user_metadata?.name || 'Usuário'}</div>
-          <div className="text-base text-gray-400 mb-2">{user.email}</div>
-          <div className="text-sm text-gray-500">Membro há {diasAtivo} dias</div>
+          <div className="text-xl font-bold text-white mb-1">{user.user_metadata?.name || 'Usuário'}</div>
+          <div className="text-lg font-semibold text-white mb-2" style={{textShadow: '0 2px 8px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.5)'}}>{user.email}</div>
+          <div className="text-base font-bold text-white" style={{textShadow: '0 2px 8px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.5)'}}>Membro há {diasAtivo} dias</div>
         </div>
 
         {/* Informações técnicas */}
-        <div className="bg-[#27272a] rounded-lg p-4 mb-6 text-left text-gray-100 shadow-inner w-full max-w-md border border-[#23232b]">
-          <div className="mb-2"><span className="font-semibold">ID:</span> <span className="break-all text-sm">{user.id}</span></div>
+        <div className="p-4 mb-6 text-left w-full max-w-md border border-gray-200 bg-white shadow-md rounded-lg">
           <div className="mb-2"><span className="font-semibold">Data de cadastro:</span> {formatDate(user.created_at)}</div>
-          <div className="mb-2"><span className="font-semibold">Última atualização:</span> {lastUpdate.toLocaleTimeString()}</div>
           {categoriaMaisUsada && (
             <div className="mb-2"><span className="font-semibold">Categoria mais usada:</span> {categoriaMaisUsada}</div>
           )}
@@ -299,35 +375,23 @@ export default function ProfilePage() {
             </button>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
+            <div className="flex flex-col items-center justify-center py-6 border border-gray-200 bg-white shadow-md rounded-lg">
               <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.oracoesFeitas}</span>
               <span className="text-base font-medium mt-1">Orações Feitas</span>
             </div>
-            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
-              <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.oracoesRecebidas}</span>
-              <span className="text-base font-medium mt-1">Orações Recebidas</span>
-            </div>
-            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
-              <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.pedidos}</span>
-              <span className="text-base font-medium mt-1">Pedidos Criados</span>
-            </div>
-            <div className="bg-[#27272a] rounded-xl flex flex-col items-center justify-center py-6 shadow text-gray-100 border border-[#23232b]">
+            <div className="flex flex-col items-center justify-center py-6 border border-gray-200 bg-white shadow-md rounded-lg">
               <span className="text-3xl font-extrabold">{loadingStats ? '...' : stats.oracoesHoje}</span>
               <span className="text-base font-medium mt-1">Orações Hoje</span>
             </div>
           </div>
           
           {/* Card adicional com estatísticas detalhadas */}
-          <div className="mt-4 bg-[#27272a] rounded-xl p-4 shadow text-gray-100 border border-[#23232b]">
+          <div className="mt-4 p-4 border border-gray-200 bg-white shadow-md rounded-lg">
             <h4 className="text-base font-semibold mb-3 text-center">Estatísticas Detalhadas</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Média de orações por pedido:</span>
-                <span className="font-semibold">{loadingStats ? '...' : stats.mediaOracoesPorPedido}</span>
-              </div>
-              <div className="flex justify-between">
                 <span>Total de interações:</span>
-                <span className="font-semibold">{loadingStats ? '...' : stats.oracoesFeitas + stats.oracoesRecebidas}</span>
+                <span className="font-semibold">{loadingStats ? '...' : Number(stats.oracoesFeitas) + Number(stats.oracoesRecebidas)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Pedidos ativos:</span>
@@ -344,10 +408,10 @@ export default function ProfilePage() {
         {/* Pedidos recentes */}
         {pedidosRecentes.length > 0 && (
           <div className="w-full max-w-md mb-6">
-            <h3 className="text-lg font-bold text-gray-100 mb-4">Meus Pedidos Recentes</h3>
+            <h3 className="text-lg font-bold text-white mb-4" style={{textShadow: '0 2px 8px rgba(255,255,255,0.3), 0 1px 2px rgba(0,0,0,0.5)'}}>Meus Pedidos Recentes</h3>
             <div className="space-y-3">
               {pedidosRecentes.map((pedido, index) => (
-                <div key={pedido.id} className="bg-[#27272a] rounded-lg p-3 shadow text-gray-100 border border-[#23232b]">
+                <div key={pedido.id} className="p-3 border border-gray-200 bg-white shadow-md rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-sm text-gray-400">Pedido #{index + 1}</span>
                     <span className="text-sm text-gray-400">{formatDate(pedido.created_at)}</span>
@@ -369,7 +433,7 @@ export default function ProfilePage() {
             <h3 className="text-lg font-bold text-gray-100 mb-4">Minhas Mensagens Recebidas</h3>
             <div className="space-y-3">
               {mensagensRecebidas.map((mensagem, index) => (
-                <div key={mensagem.id} className="bg-[#27272a] rounded-lg p-3 shadow text-gray-100 border border-[#23232b]">
+                <div key={mensagem.id} className="p-3 border border-gray-200 bg-white shadow-md rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <span className="text-sm text-gray-400">Mensagem #{index + 1}</span>
                     <span className="text-sm text-gray-400">{formatDate(mensagem.created_at)}</span>
@@ -386,7 +450,7 @@ export default function ProfilePage() {
 
         <button
           onClick={signOut}
-          className="mt-2 px-6 py-2 rounded-xl bg-[#27272a] text-gray-100 font-semibold shadow-md hover:bg-[#23232b] transition-all duration-200 w-full max-w-md border border-[#23232b]"
+          className="mt-2 px-6 py-2 border border-gray-200 bg-white text-gray-800 font-semibold shadow-md rounded-lg hover:bg-gray-50 transition-all duration-200 w-full max-w-md"
         >
           Sair do app
         </button>

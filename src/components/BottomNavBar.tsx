@@ -9,10 +9,15 @@ export function BottomNavBar({ activeTab, setActiveTab, glass, renderCapituloBar
 
   return (
     <nav
-      className="fixed bottom-0 left-0 z-50 w-screen px-0"
-      style={{paddingBottom: 'env(safe-area-inset-bottom, 0)'}}
+      className="fixed bottom-0 left-0 z-50 w-full"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 0)',
+        width: '100vw',
+        left: 0,
+        right: 0
+      }}
     >
-      <div className={`flex flex-col items-center rounded-t-3xl min-h-[64px] py-2 px-2 w-full ${glass ? 'bg-[#23232b]/90 backdrop-blur-md border border-[#18181b] shadow-xl' : 'bg-[#23232b] shadow-2xl border border-[#18181b]'}`}>
+      <div className={`flex flex-col items-center min-h-[64px] py-2 px-2 w-full ${glass ? 'bg-[#23232b]/90 backdrop-blur-md border-t border-[#18181b] shadow-xl' : 'bg-[#23232b] shadow-2xl border-t border-[#18181b]'}`}>
         {renderCapituloBar && activeTab === 'biblia' && (
           <div className="flex items-center bg-white/80 rounded-full px-4 py-1 gap-2 shadow-lg border border-[#ececec] mb-2" style={{ minWidth: 220, height: 48 }}>
             <button

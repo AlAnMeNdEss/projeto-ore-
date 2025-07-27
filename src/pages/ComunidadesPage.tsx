@@ -3,7 +3,7 @@ import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import { PrayerApp } from '@/components/PrayerApp';
 import { Loader2, Heart, Globe } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import bgImage from '@/assets/spiritual-background.jpg';
+import loginBackground from '../assets/login-background.jpg';
 import { useSwipeable } from 'react-swipeable';
 import { supabase } from '../integrations/supabase/client';
 
@@ -155,22 +155,34 @@ export default function ComunidadesPage() {
 
   return (
     <div
-      {...handlers}
-      className="min-h-screen w-full flex flex-col items-center justify-center px-2 bg-[#f6eaff] overflow-x-hidden"
+      style={{
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+        width: '100vw',
+        position: 'relative',
+      }}
     >
-      <div className="w-full max-w-md mx-auto">
-        <div className="flex flex-col items-center justify-center mb-2">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+      <div
+        {...handlers}
+        className="min-h-screen w-full flex flex-col items-center justify-center px-2 bg-[#f6eaff] overflow-x-hidden"
+      >
+        <div className="w-full max-w-md mx-auto">
+          <div className="flex flex-col items-center justify-center mb-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#b2a4ff] via-[#e0c3fc] to-[#8ec5fc] mb-2">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M16 20C16 17 16 14 16 12M16 20C16 18 14 16 13 15M16 20C16 18 18 16 19 15M13 15C12.5 14.5 12 13.5 12 13C12 12 13 11 14 12C15 13 15 14 15 15M19 15C19.5 14.5 20 13.5 20 13C20 12 19 11 18 12C17 13 17 14 17 15" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
           </div>
-          <h1 className="text-lg font-semibold text-[#b2a4ff] tracking-wide text-center">Ore+</h1>
+          {/* Card de resumo comunitário */}
+          <ResumoComunitario requests={requests} />
+          {/* Removido botão de criar pedidos ao lado de ver pedidos */}
+          <PrayerApp activeTab={pedidosTab} />
         </div>
-        {/* Card de resumo comunitário */}
-        <ResumoComunitario requests={requests} />
-        {/* Removido botão de criar pedidos ao lado de ver pedidos */}
-        <PrayerApp activeTab={pedidosTab} />
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import HomePage from '@/pages/HomePage';
 import { PrayerRequestForm } from '@/components/PrayerRequestForm';
 import { Biblia } from '@/components/Biblia';
 import { useRef } from 'react';
+import loginBackground from '../assets/login-background.jpg';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -135,25 +136,40 @@ const Index = () => {
     if (activeTab === 'comunidades') {
       return (
         <div className={`min-h-screen w-full flex flex-col items-center px-0 ${entrouNaComunidade ? 'relative' : ''}`}
-          style={entrouNaComunidade ? { background: "#23232b url('https://todoendios.com/wp-content/uploads/2021/09/web3-cross-easter-sunrise-dark-shutterstock_381056461-shutterstock.jpg') center center / cover no-repeat", backgroundAttachment: 'fixed' } : { background: '#18181b' }}>
+          style={entrouNaComunidade ? { 
+            background: "#23232b url('https://todoendios.com/wp-content/uploads/2021/09/web3-cross-easter-sunrise-dark-shutterstock_381056461-shutterstock.jpg') center center / cover no-repeat", 
+            backgroundAttachment: 'fixed' 
+          } : { 
+            backgroundImage: `url(${loginBackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            minHeight: '100vh',
+            width: '100vw',
+            position: 'relative',
+          }}>
           {!entrouNaComunidade && (
-            <div className="absolute inset-0 bg-[#23232b]/60 z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-white/20 z-0 pointer-events-none" />
           )}
           {!entrouNaComunidade ? (
             <>
               <div className="w-full max-w-xl mx-auto pt-8 pb-4 relative z-10">
-                <h1 className="text-4xl font-extrabold text-gray-100 mb-2 text-center">Comunidades</h1>
-                <p className="text-lg text-gray-400 mb-6 text-center">Participe num grupo de oração</p>
+                <h1 className="text-4xl font-extrabold text-white mb-2 text-center" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>Comunidades</h1>
+                <p className="text-lg text-white mb-6 text-center font-semibold" style={{textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>Participe num grupo de oração</p>
                 <div className="w-full flex items-center justify-center">
                   <button
-                    className="max-w-md w-full flex flex-col sm:flex-row items-center justify-center gap-3 bg-[#27272a] text-gray-100 text-2xl font-bold px-8 py-6 rounded-2xl shadow-lg border border-[#23232b] hover:bg-[#23232b] transition-all duration-200 mb-6 cursor-pointer"
-                    style={{ minHeight: 90 }}
+                    className="max-w-md w-full flex flex-col sm:flex-row items-center justify-center gap-3 bg-[#673AB7] text-white text-2xl font-bold px-8 py-6 rounded-2xl border border-[#673AB7] hover:bg-[#5e35b1] transition-all duration-200 mb-6 cursor-pointer"
+                    style={{ 
+                      minHeight: 90,
+                      boxShadow: '0 8px 32px rgba(103, 58, 183, 0.4), 0 4px 16px rgba(103, 58, 183, 0.3), 0 2px 8px rgba(103, 58, 183, 0.2)',
+                      filter: 'drop-shadow(0 4px 12px rgba(103, 58, 183, 0.3))'
+                    }}
                     onClick={() => setEntrouNaComunidade(true)}
                     tabIndex={0}
                     aria-label="Entrar na Comunidade Global"
                   >
                     <span className="flex items-center justify-center mb-2 sm:mb-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-gray-400 mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755.5-5.5 1.5-7.5" /></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755-.5-5.5-1.5-7.5" /></svg>
                     </span>
                     <span className="text-center w-full">Comunidade Global</span>
                   </button>
@@ -165,13 +181,13 @@ const Index = () => {
             <>
               <div className="w-full flex flex-col items-center" style={entrouNaComunidade ? { position: 'relative', zIndex: 1 } : {}}>
                 <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
-                  <button onClick={() => setEntrouNaComunidade(false)} className="mr-2 p-2 rounded-full hover:bg-[#ede9fe] transition">
+                  <button onClick={() => setEntrouNaComunidade(false)} className="mr-2 p-2 rounded-full hover:bg-white/20 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                   </button>
-                  <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px #23232b99' }}>Comunidade Global</h1>
+                  <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)' }}>Comunidade Global</h1>
                   <div style={{width: 40}} />
                 </div>
-                <div className="w-full max-w-xl mx-auto border-b border-[#e0c3fc] mb-4"></div>
+                <div className="w-full max-w-xl mx-auto border-b border-white/30 mb-4"></div>
                 {/* Botões Ver Pedidos e Criar Pedido removidos */}
                 <PrayerApp activeTab={pedidosTab} />
               </div>
