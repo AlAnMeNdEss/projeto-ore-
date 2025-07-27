@@ -148,6 +148,30 @@ const Index = () => {
     }
   }, [user, loading, showAuth]);
 
+  // Verificar se o usuário já estava logado anteriormente (para funcionar offline)
+  useEffect(() => {
+    try {
+      const wasLoggedIn = localStorage.getItem('wasLoggedIn');
+      if (wasLoggedIn === 'true' && !user && !loading) {
+        // Se o usuário estava logado antes, não mostrar a tela de boas-vindas
+        setShowAuth(true);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar estado de login:', error);
+    }
+  }, [user, loading]);
+
+  // Salvar estado de login quando o usuário fizer login
+  useEffect(() => {
+    if (user) {
+      try {
+        localStorage.setItem('wasLoggedIn', 'true');
+      } catch (error) {
+        console.error('Erro ao salvar estado de login:', error);
+      }
+    }
+  }, [user]);
+
   // Remover swipe lateral global para evitar navegação acidental na página da Bíblia
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -161,6 +185,17 @@ const Index = () => {
     trackMouse: true,
   });
 
+  // Se não está logado e não mostrou auth ainda, mostra a página de boas-vindas
+  if (!showAuth && !user && !loading) {
+    return <WelcomePage onStart={() => setShowAuth(true)} />;
+  }
+
+  // Se não está logado mas clicou em 'Começar', mostra o login
+  if (!user && !loading) {
+    return <AuthPage />;
+  }
+
+  // Se ainda está carregando, mostrar loading
   if (loading) {
     return (
       <div className="min-h-screen bg-spiritual bg-cover bg-center bg-fixed">
@@ -175,6 +210,7 @@ const Index = () => {
     );
   }
 
+  // Se chegou até aqui, deve mostrar o app principal
   // Se o usuário está logado, mostra o app
   if (user) {
     if (activeTab === 'inicio') {
@@ -289,13 +325,8 @@ const Index = () => {
     );
   }
 
-  // Se não está logado e não mostrou auth ainda, mostra a página de boas-vindas
-  if (!showAuth) {
-    return <WelcomePage onStart={() => setShowAuth(true)} />;
-  }
-
-  // Se não está logado mas clicou em 'Começar', mostra o login
-  return <AuthPage />;
+  // Se chegou até aqui, deve mostrar o app principal
+  return null;
 };
 
 export default Index;
