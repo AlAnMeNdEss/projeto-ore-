@@ -1,16 +1,22 @@
 {
   "name": "Ore+ - Orações Compartilhadas",
   "short_name": "Ore+",
-  "description": "Compartilhe, ore e fortaleça sua fé em comunidade",
+  "description": "Compartilhe, ore e fortaleça sua fé em comunidade. Leia a Bíblia offline e conecte-se com outros cristãos.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f6eaff",
   "theme_color": "#8b5cf6",
-  "categories": ["lifestyle", "social", "religion"],
+  "categories": ["lifestyle", "social", "religion", "books", "education", "productivity"],
   "lang": "pt-BR",
   "dir": "ltr",
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "display_override": ["standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "icons": [
     {
       "src": "/pwa-logo.png",
@@ -79,6 +85,18 @@
       "short_name": "Lista",
       "description": "Ver todos os pedidos de oração",
       "url": "/?tab=list",
+      "icons": [
+        {
+          "src": "/pwa-logo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Bíblia",
+      "short_name": "Bíblia",
+      "description": "Ler a Bíblia offline",
+      "url": "/biblia",
       "icons": [
         {
           "src": "/pwa-logo.png",

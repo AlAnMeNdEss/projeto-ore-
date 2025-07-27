@@ -17,6 +17,7 @@
     <meta name="application-name" content="Ore+" />
     <meta name="msapplication-TileColor" content="#8b5cf6" />
     <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="msapplication-config" content="none" />
     
     <!-- PWA Icons -->
     <link rel="icon" href="/pwa-logo.png" type="image/png" />
@@ -30,6 +31,21 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Meta tags para melhor PWA detection -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-touch-fullscreen" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    
+    <!-- Meta tags para reconhecimento automático -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Ore+" />
+    <meta name="msapplication-TileColor" content="#8b5cf6" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="msapplication-config" content="none" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <meta name="color-scheme" content="light dark" />
 
     <!-- Open Graph Tags -->
     <meta property="og:title" content="Ore+ - Orações Compartilhadas" />
@@ -61,7 +77,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('/sw.js', {
+            scope: '/'
+          })
             .then(registration => {
               console.log('SW registered: ', registration);
               
@@ -87,11 +105,38 @@
       // Detectar se está rodando como PWA
       if (window.matchMedia('(display-mode: standalone)').matches) {
         document.body.classList.add('pwa-mode');
+        console.log('Running as PWA');
       }
 
       // Detectar se está no iOS
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
         document.body.classList.add('ios-device');
+        console.log('iOS device detected');
+      }
+
+      // Detectar se está no Android
+      if (/Android/.test(navigator.userAgent)) {
+        document.body.classList.add('android-device');
+        console.log('Android device detected');
+      }
+
+      // Verificar se o app pode ser instalado automaticamente
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA install prompt available - navegador reconheceu automaticamente!');
+        // O evento beforeinstallprompt indica que o app pode ser instalado
+        // O navegador vai mostrar o prompt automaticamente
+      });
+
+      // Verificar se o app foi instalado
+      window.addEventListener('appinstalled', (e) => {
+        console.log('PWA installed successfully');
+        document.body.classList.add('pwa-installed');
+      });
+
+      // Detectar se o app está sendo usado como PWA
+      if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
+        console.log('App is running as PWA');
+        document.body.classList.add('pwa-active');
       }
     </script>
   </body>

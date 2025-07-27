@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import loginBackground from '../assets/login-background.jpg';
 
 const fadeUp = {
   initial: { opacity: 0, y: 32 },
@@ -72,7 +73,10 @@ export function AuthPage() {
       transition={{ duration: 0.5, ease: 'easeInOut' }}
       className="min-h-screen flex flex-col justify-center items-center px-4 gradient-bg"
       style={{
-        background: 'linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 100%)',
+        backgroundImage: `url(${loginBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       <motion.div {...fadeUp} className="mb-8 flex flex-col items-center">

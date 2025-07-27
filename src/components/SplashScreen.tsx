@@ -9,7 +9,7 @@ export function SplashScreen() {
       transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       className="fixed inset-0 z-[999] flex items-center justify-center"
       style={{
-        background: 'linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 100%)',
+        background: '#38b6ff',
       }}
     >
       <h1

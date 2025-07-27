@@ -1,14 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { PrayerRequestForm } from './PrayerRequestForm';
-import PrayerRequestsList from './PrayerRequestsList';
-import { Heart, Plus, List, LogOut, User } from 'lucide-react';
-import { InstallButton } from './InstallButton';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
-import { InstallNotification } from './InstallNotification';
-import { PWADebug } from './PWADebug';
+import PrayerRequestsList from './PrayerRequestsList';
+import { PrayerRequestForm } from './PrayerRequestForm';
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
@@ -100,10 +95,7 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
   // Renderização SEM returns condicionais antes dos hooks
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-      {/* Botão de instalação no topo direito */}
-      <div className="absolute top-6 right-6 z-50">
-        <InstallButton />
-      </div>
+
 
       <div className="relative z-20 w-full max-w-4xl mx-auto px-2 sm:px-4 flex flex-col min-h-screen">
         {/* Conteúdo do PrayerApp */}
@@ -136,11 +128,7 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
         </button>
       )}
 
-      {/* Notificação de instalação */}
-      <InstallNotification />
 
-      {/* Debug PWA (apenas em desenvolvimento) */}
-      {process.env.NODE_ENV === 'development' && <PWADebug />}
     </div>
   );
 }

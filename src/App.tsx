@@ -40,6 +40,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        
         {/* O roteamento é feito em main.tsx */}
         {/* O conteúdo principal pode ser o Index ou outro componente */}
         <Index />
