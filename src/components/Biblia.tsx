@@ -296,8 +296,8 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       // Verificar se está online
       const isOnline = navigator.onLine;
       
+      // Se online, tentar buscar no Supabase primeiro
       if (isOnline) {
-        // Se online, tentar buscar no Supabase
         try {
           // Busca os versículos no Supabase usando ilike para busca por texto
           // @ts-ignore
@@ -332,7 +332,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         }
       }
       
-      // Se offline ou Supabase falhou, buscar no JSON local
+      // Se offline ou Supabase falhou, buscar no JSON local (sempre disponível)
       const resultadosLocais = buscarVersiculosLocalPorPalavra(busca.trim());
       
       if (resultadosLocais.length > 0) {
@@ -435,8 +435,8 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       // Verificar se está online
       const isOnline = navigator.onLine;
       
+      // Se online, tentar buscar no Supabase primeiro
       if (isOnline) {
-        // Se online, tentar buscar no Supabase
         try {
           // @ts-ignore
           const { data, error } = await supabase
@@ -469,7 +469,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         }
       }
       
-      // Se offline ou Supabase falhou, usar JSON local
+      // Se offline ou Supabase falhou, usar JSON local (sempre disponível)
       const versiculosLocais = buscarVersiculosLocal(livro, capitulo);
       
       if (versiculosLocais.length > 0) {
