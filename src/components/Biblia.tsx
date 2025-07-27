@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import bibliaCompleta from '../../public/pt_nvi.json';
 
 const traducoes = [
   // Português
@@ -292,28 +293,55 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         return;
       }
 
-      // Busca os versículos no Supabase usando ilike para busca por texto
-      // @ts-ignore
-      const { data, error } = await supabase
-        .from('versiculos_biblia')
-        .select('*')
-        .ilike('texto', `%${busca.trim()}%`)
-        .order('livro', { ascending: true })
-        .order('capitulo', { ascending: true })
-        .order('versiculo', { ascending: true })
-        .limit(100); // Limitar a 100 resultados
+      // Verificar se está online
+      const isOnline = navigator.onLine;
+      
+      if (isOnline) {
+        // Se online, tentar buscar no Supabase
+        try {
+          // Busca os versículos no Supabase usando ilike para busca por texto
+          // @ts-ignore
+          const { data, error } = await supabase
+            .from('versiculos_biblia')
+            .select('*')
+            .ilike('texto', `%${busca.trim()}%`)
+            .order('livro', { ascending: true })
+            .order('capitulo', { ascending: true })
+            .order('versiculo', { ascending: true })
+            .limit(100); // Limitar a 100 resultados
 
-      if (error) {
-        throw error;
+          if (error) {
+            throw error;
+          }
+
+          if (data && data.length > 0) {
+            setVersiculos(data);
+            setBusca('');
+            
+            // Salvar no cache local
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(data));
+            } catch (cacheError) {
+              console.warn('Erro ao salvar busca no cache:', cacheError);
+            }
+            setBuscando(false);
+            return;
+          }
+        } catch (supabaseError) {
+          console.warn('Erro no Supabase, tentando JSON local:', supabaseError);
+        }
       }
-
-      if (data && data.length > 0) {
-        setVersiculos(data);
+      
+      // Se offline ou Supabase falhou, buscar no JSON local
+      const resultadosLocais = buscarVersiculosLocalPorPalavra(busca.trim());
+      
+      if (resultadosLocais.length > 0) {
+        setVersiculos(resultadosLocais);
         setBusca('');
         
         // Salvar no cache local
         try {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
+          localStorage.setItem(cacheKey, JSON.stringify(resultadosLocais));
         } catch (cacheError) {
           console.warn('Erro ao salvar busca no cache:', cacheError);
         }
@@ -325,6 +353,64 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       setErro('Erro ao buscar versículos. Verifique se a tabela "versiculos_biblia" existe e se há dados.');
     } finally {
       setBuscando(false);
+    }
+  }
+
+  // Função para buscar versículos no arquivo JSON local
+  function buscarVersiculosLocal(livro: string, capitulo: number) {
+    try {
+      // Normalizar nome do livro
+      const livroNormalizado = livro.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // Buscar no JSON local
+      const livroData = (bibliaCompleta as any[]).find((b: any) => 
+        b.name.toLowerCase().replace(/[^a-z0-9]/g, '') === livroNormalizado
+      );
+      
+      if (livroData && livroData.chapters && livroData.chapters[capitulo - 1]) {
+        const versiculos = livroData.chapters[capitulo - 1].map((versiculo: string, index: number) => ({
+          livro: livro,
+          capitulo: capitulo,
+          versiculo: (index + 1).toString(),
+          texto: versiculo
+        }));
+        return versiculos;
+      }
+      return [];
+    } catch (error) {
+      console.error('Erro ao buscar no JSON local:', error);
+      return [];
+    }
+  }
+
+  // Função para buscar versículos por palavra-chave no JSON local
+  function buscarVersiculosLocalPorPalavra(palavra: string) {
+    try {
+      const resultados: any[] = [];
+      const palavraLower = palavra.toLowerCase();
+      
+      // Buscar em todos os livros
+      (bibliaCompleta as any[]).forEach((livro: any) => {
+        if (livro.chapters) {
+          livro.chapters.forEach((capitulo: string[], indexCapitulo: number) => {
+            capitulo.forEach((versiculo: string, indexVersiculo: number) => {
+              if (versiculo.toLowerCase().includes(palavraLower)) {
+                resultados.push({
+                  livro: livro.name,
+                  capitulo: indexCapitulo + 1,
+                  versiculo: (indexVersiculo + 1).toString(),
+                  texto: versiculo
+                });
+              }
+            });
+          });
+        }
+      });
+      
+      return resultados.slice(0, 100); // Limitar a 100 resultados
+    } catch (error) {
+      console.error('Erro ao buscar por palavra no JSON local:', error);
+      return [];
     }
   }
 
@@ -346,27 +432,54 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         return;
       }
 
-      // Se não há cache, buscar no Supabase
-      // @ts-ignore
-      const { data, error } = await supabase
-        .from('versiculos_biblia')
-        .select('*')
-        .eq('livro', livro)
-        .eq('capitulo', capitulo)
-        .order('versiculo', { ascending: true });
+      // Verificar se está online
+      const isOnline = navigator.onLine;
+      
+      if (isOnline) {
+        // Se online, tentar buscar no Supabase
+        try {
+          // @ts-ignore
+          const { data, error } = await supabase
+            .from('versiculos_biblia')
+            .select('*')
+            .eq('livro', livro)
+            .eq('capitulo', capitulo)
+            .order('versiculo', { ascending: true });
 
-      if (error) {
-        throw error;
+          if (error) {
+            throw error;
+          }
+
+          if (data && data.length > 0) {
+            setVersiculos(data);
+            setLastVersiculos(data);
+            setErro('');
+            
+            // Salvar no cache local
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(data));
+            } catch (cacheError) {
+              console.warn('Erro ao salvar no cache:', cacheError);
+            }
+            setLoading(false);
+            return;
+          }
+        } catch (supabaseError) {
+          console.warn('Erro no Supabase, tentando JSON local:', supabaseError);
+        }
       }
-
-      if (data && data.length > 0) {
-        setVersiculos(data);
-        setLastVersiculos(data);
-        setErro(''); // Limpar erro quando há dados
+      
+      // Se offline ou Supabase falhou, usar JSON local
+      const versiculosLocais = buscarVersiculosLocal(livro, capitulo);
+      
+      if (versiculosLocais.length > 0) {
+        setVersiculos(versiculosLocais);
+        setLastVersiculos(versiculosLocais);
+        setErro('');
         
         // Salvar no cache local
         try {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
+          localStorage.setItem(cacheKey, JSON.stringify(versiculosLocais));
         } catch (cacheError) {
           console.warn('Erro ao salvar no cache:', cacheError);
         }
