@@ -1,51 +1,157 @@
-import fs from 'fs';
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
+const path = require('path');
 
-const SUPABASE_URL = 'https://fidiulbnuucqfckozbrv.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpZGl1bGJudXVjcWZja296YnJ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDcxMDU4OSwiZXhwIjoyMDY2Mjg2NTg5fQ.geZx43mnZ_yI3qvu4q1Z23NkLcXCGvGpWfoDt2PKi58';
+// Configuração do Supabase
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function importar() {
+async function importarBibliaParaSupabase() {
   try {
-    const data = JSON.parse(fs.readFileSync('./public/pt_nvi.json', 'utf8'));
-    let total = 0;
-    let batch = [];
-
-    for (const livro of data) {
-      const nomeLivro = livro.name;
-      for (const [capitulo, versiculos] of Object.entries(livro.chapters)) {
-        for (const [versiculo, texto] of Object.entries(versiculos)) {
-          batch.push({
-            livro: nomeLivro,
-            capitulo: parseInt(capitulo),
-            versiculo: parseInt(versiculo),
-            texto: texto.trim(),
+    console.log('🚀 Iniciando importação da bíblia para o Supabase...');
+    
+    // Ler o arquivo JSON
+    const jsonPath = path.join(__dirname, 'public', 'pt_nvi.json');
+    console.log('📖 Lendo arquivo JSON:', jsonPath);
+    
+    const bibliaData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    console.log(`✅ JSON carregado com sucesso! ${bibliaData.length} livros encontrados.`);
+    
+    // Verificar estrutura do primeiro livro
+    const primeiroLivro = bibliaData[0];
+    if (!primeiroLivro || !primeiroLivro.name || !primeiroLivro.chapters) {
+      throw new Error('Estrutura do JSON inválida. Esperado: {name, chapters}');
+    }
+    
+    console.log(`📚 Primeiro livro: ${primeiroLivro.name} com ${primeiroLivro.chapters.length} capítulos`);
+    
+    // Preparar dados para inserção
+    const versiculosParaInserir = [];
+    let totalVersiculos = 0;
+    
+    for (const livro of bibliaData) {
+      console.log(`📖 Processando ${livro.name}...`);
+      
+      for (let capituloIndex = 0; capituloIndex < livro.chapters.length; capituloIndex++) {
+        const capitulo = capituloIndex + 1;
+        const versiculos = livro.chapters[capituloIndex];
+        
+        for (let versiculoIndex = 0; versiculoIndex < versiculos.length; versiculoIndex++) {
+          const versiculo = versiculoIndex + 1;
+          const texto = versiculos[versiculoIndex];
+          
+          versiculosParaInserir.push({
+            livro: livro.name,
+            capitulo: capitulo,
+            versiculo: versiculo.toString(),
+            texto: texto,
+            traducao: 'nvi' // Nova Versão Internacional
           });
-          total++;
-          if (batch.length === 500) {
-            const { error } = await supabase.from('versiculos_biblia').insert(batch);
-            if (error) {
-              console.error('Erro ao inserir:', error);
-              process.exit(1);
-            }
-            console.log(`${total} versículos inseridos...`);
-            batch = [];
+          
+          totalVersiculos++;
+          
+          // Inserir em lotes de 1000 para evitar timeout
+          if (versiculosParaInserir.length >= 1000) {
+            await inserirLote(versiculosParaInserir);
+            versiculosParaInserir.length = 0; // Limpar array
           }
         }
       }
     }
-    if (batch.length > 0) {
-      const { error } = await supabase.from('versiculos_biblia').insert(batch);
-      if (error) {
-        console.error('Erro ao inserir:', error);
-        process.exit(1);
-      }
+    
+    // Inserir versículos restantes
+    if (versiculosParaInserir.length > 0) {
+      await inserirLote(versiculosParaInserir);
     }
-    console.log(`Importação concluída! Total: ${total} versículos.`);
-  } catch (err) {
-    console.error('Erro geral:', err);
+    
+    console.log(`🎉 Importação concluída! ${totalVersiculos} versículos inseridos no Supabase.`);
+    
+  } catch (error) {
+    console.error('❌ Erro durante a importação:', error);
+    process.exit(1);
   }
 }
 
-importar();  
+async function inserirLote(versiculos) {
+  try {
+    const { data, error } = await supabase
+      .from('versiculos_biblia')
+      .insert(versiculos);
+    
+    if (error) {
+      console.error('❌ Erro ao inserir lote:', error);
+      throw error;
+    }
+    
+    console.log(`✅ Lote inserido com sucesso: ${versiculos.length} versículos`);
+    
+  } catch (error) {
+    console.error('❌ Erro ao inserir lote:', error);
+    throw error;
+  }
+}
+
+// Verificar se a tabela existe
+async function verificarTabela() {
+  try {
+    console.log('🔍 Verificando se a tabela versiculos_biblia existe...');
+    
+    const { data, error } = await supabase
+      .from('versiculos_biblia')
+      .select('count')
+      .limit(1);
+    
+    if (error) {
+      console.error('❌ Tabela não encontrada. Crie a tabela primeiro:');
+      console.log(`
+CREATE TABLE versiculos_biblia (
+  id SERIAL PRIMARY KEY,
+  livro TEXT NOT NULL,
+  capitulo INTEGER NOT NULL,
+  versiculo TEXT NOT NULL,
+  texto TEXT NOT NULL,
+  traducao TEXT DEFAULT 'nvi',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+      `);
+      return false;
+    }
+    
+    console.log('✅ Tabela versiculos_biblia encontrada!');
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao verificar tabela:', error);
+    return false;
+  }
+}
+
+// Função principal
+async function main() {
+  console.log('🔧 Script de importação da Bíblia para Supabase');
+  console.log('================================================');
+  
+  // Verificar configuração
+  if (!supabaseUrl || supabaseUrl === 'https://your-project.supabase.co') {
+    console.error('❌ Configure VITE_SUPABASE_URL no arquivo .env');
+    process.exit(1);
+  }
+  
+  if (!supabaseKey || supabaseKey === 'your-anon-key') {
+    console.error('❌ Configure VITE_SUPABASE_ANON_KEY no arquivo .env');
+    process.exit(1);
+  }
+  
+  // Verificar se a tabela existe
+  const tabelaExiste = await verificarTabela();
+  if (!tabelaExiste) {
+    process.exit(1);
+  }
+  
+  // Iniciar importação
+  await importarBibliaParaSupabase();
+}
+
+// Executar script
+main().catch(console.error);  
