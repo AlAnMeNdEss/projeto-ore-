@@ -65,7 +65,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   const [busca, setBusca] = useState('');
   const [buscando, setBuscando] = useState(false);
   const [pending, setPending] = useState(false);
-  const [lastVersiculos, setLastVersiculos] = useState<any[]>([]);
 
   // Número de capítulos por livro (exemplo para os principais livros, adicione mais conforme necessário)
   const capitulosPorLivro: Record<string, number> = {
@@ -112,7 +111,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       const versiculosLocais = buscarVersiculosLocal(livroPadrao, capituloPadrao);
       if (versiculosLocais.length > 0) {
         setVersiculos(versiculosLocais);
-        setLastVersiculos(versiculosLocais);
         setErro('');
         
         // Salvar no cache local
@@ -460,7 +458,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       if (cachedData) {
         const parsedData = JSON.parse(cachedData);
         setVersiculos(parsedData);
-        setLastVersiculos(parsedData);
         setErro('');
         setLoading(false);
         return;
@@ -486,7 +483,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
 
           if (data && data.length > 0) {
             setVersiculos(data);
-            setLastVersiculos(data);
             setErro('');
             
             // Salvar no cache local
@@ -508,7 +504,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       
       if (versiculosLocais.length > 0) {
         setVersiculos(versiculosLocais);
-        setLastVersiculos(versiculosLocais);
         setErro('');
         
         // Salvar no cache local
@@ -624,22 +619,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         </select>
       </div>
       <div className={`w-full max-w-md border-b mb-6 ${darkMode ? 'border-[#23232b]' : whiteMode ? 'border-gray-200' : 'border-yellow-100'}`} />
-      {(loading && lastVersiculos.length > 0) ? (
-        <div className="flex flex-col gap-3 opacity-60 pointer-events-none select-none">
-          {!buscando && (
-            <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
-          )}
-          {lastVersiculos.map((v: any, i: number) => (
-              <div key={v.versiculo + '-' + i} className="flex items-start gap-2">
-                <span className="text-[#a084e8] font-bold select-none" style={{minWidth: 18}}>{v.versiculo}</span>
-                <span className="text-xl text-[#23232b] leading-relaxed">
-                  {limparTexto(v.texto)}
-                </span>
-              </div>
-            ))}
-        </div>
-      ) : null}
-      {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
+      {loading && <div className="text-center text-[#7c3aed] py-8">Carregando...</div>}
       {!loading && erro && versiculos.length === 0 && <div className="text-center text-red-500 font-semibold">{erro}</div>}
       {/* Notificação de cache offline */}
       
