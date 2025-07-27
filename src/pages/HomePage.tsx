@@ -186,28 +186,18 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     >
       {/* Topo estilizado igual ao exemplo da imagem, com padding lateral igual aos cards */}
       <div className="w-full max-w-md mx-auto px-2">
-        <div
-          className="rounded-t-3xl flex flex-col px-4 pt-6 pb-4 mb-2 border border-white/30"
-          style={{
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: '0 2px 12px #23232b',
-          }}
-        >
-          <div className="flex items-start justify-between w-full">
-            <div className="flex flex-col gap-1">
-              <span className="text-3xl sm:text-4xl font-extrabold text-[#38b6ff] leading-tight" style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(56,182,255,0.25), 0 1px 2px #fff'}}>
-                Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
-              </span>
-              <span className="text-lg sm:text-xl text-[#38b6ff] font-normal mt-1" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>
-                que a paz esteja consigo!
-              </span>
-            </div>
-            <button className="rounded-full bg-white/80 p-2 mt-1 shadow border border-white/30" aria-label="Perfil" onClick={() => navigate('/perfil')}>
-              <UserIcon className="w-8 h-8 text-[#38b6ff]" />
-            </button>
+        <div className="flex items-start justify-between w-full px-4 pt-6 pb-4 mb-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-3xl sm:text-4xl font-extrabold text-white leading-tight" style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>
+              Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
+            </span>
+            <span className="text-lg sm:text-xl text-white font-normal mt-1" style={{textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>
+              que a paz esteja consigo!
+            </span>
           </div>
+          <button className="rounded-full bg-white/80 p-2 mt-1 shadow border border-white/30" aria-label="Perfil" onClick={() => navigate('/perfil')}>
+            <UserIcon className="w-8 h-8 text-[#38b6ff]" />
+          </button>
         </div>
       </div>
       {/* Saudação removida daqui, agora está no topo */}

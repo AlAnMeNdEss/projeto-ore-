@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import { useOfflineBiblia } from '../hooks/useOfflineBiblia';
 
 const traducoes = [
   // Português
@@ -41,13 +40,6 @@ function limparTexto(texto: string) {
 
 export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispatch<SetStateAction<boolean>>; onShowNavBar?: (show: boolean) => void }) {
   const [traducao, setTraducao] = useState('almeida_ra');
-  
-  // Hook para cache offline
-  const { isOnline, isCached, cacheProgress, lastSync, preloadBibliaData, checkCacheStatus } = useOfflineBiblia();
-  
-  // Estado para mostrar interface de cache
-  const [showCacheMenu, setShowCacheMenu] = useState(false);
-  const [showOfflineNotification, setShowOfflineNotification] = useState(false);
   
   // Carregar posição salva ou usar padrão
   const [livro, setLivro] = useState(() => {
@@ -114,60 +106,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       }
     }
   }, [versiculos, loading]);
-
-  // Mostrar notificação de cache offline quando apropriado
-  useEffect(() => {
-    if (isOnline && !isCached && versiculos.length > 0) {
-      // Mostrar notificação após 3 segundos se o usuário estiver lendo
-      const timer = setTimeout(() => {
-        setShowOfflineNotification(true);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOnline, isCached, versiculos.length]);
-
-  // Salvar posição de scroll quando sair da página
-  useEffect(() => {
-    function handleBeforeUnload() {
-      try {
-        localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
-      } catch (error) {
-        console.error('Erro ao salvar scroll:', error);
-      }
-    }
-
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        try {
-          localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
-        } catch (error) {
-          console.error('Erro ao salvar scroll:', error);
-        }
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  // Salvar scroll periodicamente
-  useEffect(() => {
-    const interval = setInterval(() => {
-      try {
-        localStorage.setItem('bibliaScrollPosition', window.scrollY.toString());
-      } catch (error) {
-        console.error('Erro ao salvar scroll:', error);
-      }
-    }, 5000); // Salva a cada 5 segundos
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Versículos marcados com cor (favoritos) salvos no localStorage
   const [marcados, setMarcados] = useState<Record<string, string>>(() => {
@@ -461,32 +399,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       {/* Botões de versão/tradução, tema escuro e cache offline */}
       <div className="absolute top-4 right-4 z-30 flex gap-2">
         <button
-          className={`rounded-full p-2 shadow transition-all ${
-            isCached 
-              ? 'bg-green-500/20 hover:bg-green-500/30 text-green-700' 
-              : isOnline 
-                ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-700' 
-                : 'bg-red-500/20 hover:bg-red-500/30 text-red-700'
-          }`}
-          title={isCached ? 'Dados offline disponíveis' : isOnline ? 'Baixar para uso offline' : 'Sem conexão'}
-          onClick={() => setShowCacheMenu(v => !v)}
-          aria-label="Gerenciar cache offline"
-        >
-          {/* Ícone de cache/offline */}
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M12 2v8m0 0l3-3m-3 3l-3-3m9 11H3"/>
-          </svg>
-        </button>
-        <button
-          className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
-          title="Escolher versão/tradução"
-          onClick={() => setShowVersaoMenu(v => !v)}
-          aria-label="Escolher versão/tradução"
-        >
-          {/* Ícone de livro aberto */}
-          <svg width="24" height="24" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 19V6a2 2 0 0 1 2-2h7"/><path d="M22 19V6a2 2 0 0 0-2-2h-7"/><path d="M2 19a2 2 0 0 0 2 2h7"/><path d="M22 19a2 2 0 0 1-2 2h-7"/></svg>
-        </button>
-        <button
           className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
           title="Alternar tema de leitura"
           onClick={() => setThemeMode(m => (m + 1) % 3)}
@@ -504,105 +416,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
           )}
         </button>
       </div>
-      {/* Menu de versões/traduções */}
-      {showVersaoMenu && (
-        <div className="absolute top-14 right-4 z-40 bg-white border border-gray-200 rounded-xl shadow-lg p-4 min-w-[220px]">
-          <div className="font-bold text-[#23232b] mb-2">Versão/Tradução</div>
-          <select
-            className="w-full rounded-lg border border-[#ececec] bg-white text-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#a084e8]"
-            value={traducao}
-            onChange={e => { setTraducao(e.target.value); setShowVersaoMenu(false); }}
-          >
-            {traducoes.map(t => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-          <button className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700" onClick={() => setShowVersaoMenu(false)}>Fechar</button>
-        </div>
-      )}
-
-      {/* Menu de cache offline */}
-      {showCacheMenu && (
-        <div className="absolute top-14 right-4 z-40 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl shadow-lg p-4 min-w-[280px]">
-          <div className="font-bold text-[#23232b] mb-3 flex items-center gap-2">
-            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M12 2v8m0 0l3-3m-3 3l-3-3m9 11H3"/>
-            </svg>
-            Cache Offline
-          </div>
-          
-          {/* Status da conexão */}
-          <div className="flex items-center gap-2 mb-3">
-            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className="text-sm text-gray-600">
-              {isOnline ? 'Conectado' : 'Sem conexão'}
-            </span>
-          </div>
-
-          {/* Status do cache */}
-          <div className="flex items-center gap-2 mb-3">
-            <div className={`w-2 h-2 rounded-full ${isCached ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-            <span className="text-sm text-gray-600">
-              {isCached ? 'Dados salvos offline' : 'Nenhum dado offline'}
-            </span>
-          </div>
-
-          {/* Última sincronização */}
-          {lastSync && (
-            <div className="text-xs text-gray-500 mb-3">
-              Sincronizado: {lastSync.toLocaleString()}
-            </div>
-          )}
-
-          {/* Progresso do cache */}
-          {cacheProgress > 0 && cacheProgress < 100 && (
-            <div className="mb-3">
-              <div className="text-xs text-gray-600 mb-1">Baixando dados...</div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div 
-                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
-                  style={{ width: `${cacheProgress}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">{cacheProgress}%</div>
-            </div>
-          )}
-
-          {/* Botões de ação */}
-          <div className="flex gap-2">
-            {isOnline && !isCached && (
-              <button
-                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-lg transition-colors"
-                onClick={() => {
-                  preloadBibliaData();
-                  setShowCacheMenu(false);
-                }}
-              >
-                Baixar
-              </button>
-            )}
-            
-            {isCached && (
-              <button
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm py-2 px-3 rounded-lg transition-colors"
-                onClick={() => {
-                  checkCacheStatus();
-                  setShowCacheMenu(false);
-                }}
-              >
-                Atualizar
-              </button>
-            )}
-          </div>
-
-          <button 
-            className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700" 
-            onClick={() => setShowCacheMenu(false)}
-          >
-            Fechar
-          </button>
-        </div>
-      )}
       {/* Removido campo de busca por palavra-chave e botão de tema amarelado */}
       <div className="flex gap-3 w-full max-w-md mb-2 px-2 overflow-x-auto mt-14">
         <select
@@ -643,38 +456,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       {loading && lastVersiculos.length === 0 && <div className="text-center text-[#7c3aed]">Carregando...</div>}
       {erro && <div className="text-center text-red-500 font-semibold">{erro}</div>}
       {/* Notificação de cache offline */}
-      {showOfflineNotification && (
-        <div className="fixed top-20 left-4 right-4 z-50 bg-blue-500 text-white p-4 rounded-lg shadow-lg animate-slide-down">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M12 2v8m0 0l3-3m-3 3l-3-3m9 11H3"/>
-              </svg>
-              <div>
-                <div className="font-semibold">Baixar para uso offline</div>
-                <div className="text-sm opacity-90">Leia a Bíblia sem internet</div>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-sm transition-colors"
-                onClick={() => {
-                  preloadBibliaData();
-                  setShowOfflineNotification(false);
-                }}
-              >
-                Baixar
-              </button>
-              <button
-                className="bg-white/20 hover:bg-white/30 px-3 py-1 rounded text-sm transition-colors"
-                onClick={() => setShowOfflineNotification(false)}
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
       {!loading && !erro && versiculos.length > 0 && (
         <div className="flex flex-col gap-3 px-6 sm:px-0 pb-28"> {/* padding extra para não cortar o último versículo */}

@@ -17,7 +17,11 @@ export function BottomNavBar({ activeTab, setActiveTab, glass, renderCapituloBar
         right: 0
       }}
     >
-      <div className={`flex flex-col items-center min-h-[64px] py-2 px-2 w-full ${glass ? 'bg-[#23232b]/90 backdrop-blur-md border-t border-[#18181b] shadow-xl' : 'bg-[#23232b] shadow-2xl border-t border-[#18181b]'}`}>
+      <div className={`flex flex-col items-center min-h-[64px] py-2 px-2 w-full ${glass ? 'bg-white/75 backdrop-blur-md border-t border-white/30 shadow-xl' : 'bg-white/75 backdrop-blur-md shadow-2xl border-t border-white/30'}`}
+        style={{
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+        }}>
         {renderCapituloBar && activeTab === 'biblia' && (
           <div className="flex items-center bg-white/80 rounded-full px-4 py-1 gap-2 shadow-lg border border-[#ececec] mb-2" style={{ minWidth: 220, height: 48 }}>
             <button
@@ -41,21 +45,21 @@ export function BottomNavBar({ activeTab, setActiveTab, glass, renderCapituloBar
         )}
         <div className="flex flex-row justify-around items-center w-full">
         <button
-          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'inicio' ? 'text-gray-100 font-bold' : 'text-gray-400 hover:text-gray-200'}`}
+          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'inicio' ? 'text-[#38b6ff] font-bold' : 'text-gray-600 hover:text-[#38b6ff]'}`}
           onClick={() => setActiveTab('inicio')}
         >
           <Home className="h-7 w-7 mb-1" />
           <span className="text-sm font-semibold">Início</span>
         </button>
         <button
-          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'comunidades' ? 'text-gray-100 font-bold' : 'text-gray-400 hover:text-gray-200'}`}
+          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'comunidades' ? 'text-[#38b6ff] font-bold' : 'text-gray-600 hover:text-[#38b6ff]'}`}
           onClick={() => setActiveTab('comunidades')}
         >
           <List className="h-7 w-7 mb-1" />
           <span className="text-sm font-semibold">Comunidades</span>
         </button>
         <button
-          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'biblia' ? 'text-gray-100 font-bold' : 'text-gray-400 hover:text-gray-200'}`}
+          className={`flex flex-col items-center flex-1 py-1 transition-all duration-200 z-10 ${activeTab === 'biblia' ? 'text-[#38b6ff] font-bold' : 'text-gray-600 hover:text-[#38b6ff]'}`}
           onClick={() => setActiveTab('biblia')}
         >
           <BookOpen className="h-7 w-7 mb-1" />
