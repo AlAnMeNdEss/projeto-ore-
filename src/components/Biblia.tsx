@@ -75,7 +75,19 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   // Carregar versículos quando livro ou capítulo mudar
   useEffect(() => {
     if (livro && capitulo) {
+      let cancelado = false;
+      let loadingTimeout: any;
+      setPending(true);
+      loadingTimeout = setTimeout(() => {
+        if (!cancelado) setLoading(true);
+      }, 400);
+      
       fetchVersiculos();
+      
+      return () => { 
+        cancelado = true; 
+        clearTimeout(loadingTimeout); 
+      };
     }
   }, [livro, capitulo]);
 
