@@ -94,7 +94,36 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
 
   // Carregar versículos automaticamente quando o componente é montado
   useEffect(() => {
-    fetchVersiculos();
+    // Garantir que livro e capitulo estejam definidos antes de carregar
+    if (livro && capitulo) {
+      fetchVersiculos();
+    }
+  }, [livro, capitulo]); // Executa quando livro ou capitulo mudam
+
+  // Carregar versículos imediatamente quando o componente é montado
+  useEffect(() => {
+    // Carregar com os valores padrão (Salmos 23) imediatamente
+    const livroPadrao = 'Salmos';
+    const capituloPadrao = 23;
+    
+    // Verificar se já temos versículos carregados
+    if (versiculos.length === 0 && !loading) {
+      // Carregar versículos do JSON local imediatamente
+      const versiculosLocais = buscarVersiculosLocal(livroPadrao, capituloPadrao);
+      if (versiculosLocais.length > 0) {
+        setVersiculos(versiculosLocais);
+        setLastVersiculos(versiculosLocais);
+        setErro('');
+        
+        // Salvar no cache local
+        try {
+          const cacheKey = `biblia_${livroPadrao}_${capituloPadrao}`;
+          localStorage.setItem(cacheKey, JSON.stringify(versiculosLocais));
+        } catch (cacheError) {
+          console.warn('Erro ao salvar no cache:', cacheError);
+        }
+      }
+    }
   }, []); // Executa apenas uma vez quando o componente é montado
 
   // Restaurar posição de scroll quando versículos carregarem
