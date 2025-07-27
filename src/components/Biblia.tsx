@@ -45,7 +45,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   const [erro, setErro] = useState('');
   const [busca, setBusca] = useState('');
   const [buscando, setBuscando] = useState(false);
-  const [pending, setPending] = useState(false);
   
   // Número de capítulos por livro
   const capitulosPorLivro: Record<string, number> = {
@@ -75,19 +74,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   // Carregar versículos quando livro ou capítulo mudar
   useEffect(() => {
     if (livro && capitulo) {
-      let cancelado = false;
-      let loadingTimeout: any;
-      setPending(true);
-      loadingTimeout = setTimeout(() => {
-        if (!cancelado) setLoading(true);
-      }, 400);
-      
       fetchVersiculos();
-      
-      return () => { 
-        cancelado = true; 
-        clearTimeout(loadingTimeout); 
-      };
     }
   }, [livro, capitulo]);
 
@@ -296,8 +283,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     setLoading(true);
     setErro('');
     
-    console.log('🔍 Buscando versículos para:', livro, capitulo);
-    
     try {
       const { data, error } = await supabase
         .from('versiculos_biblia')
@@ -306,24 +291,21 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         .eq('capitulo', capitulo)
         .order('versiculo', { ascending: true });
 
-      console.log('📊 Resposta do Supabase:', { data, error });
-
       if (error) {
-        console.error('❌ Erro do Supabase:', error);
         throw error;
       }
 
       if (data && data.length > 0) {
-        console.log('✅ Versículos encontrados:', data.length);
         setVersiculos(data);
         setErro('');
       } else {
-        console.log('⚠️ Nenhum versículo encontrado');
         setErro('Nenhum versículo encontrado para este livro e capítulo.');
+        setVersiculos([]);
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar versículos:', error);
-      setErro('Erro ao carregar versículos. Verifique se a tabela "versiculos_biblia" existe e se há dados.');
+      console.error('Erro ao carregar versículos:', error);
+      setErro('Erro ao carregar versículos.');
+      setVersiculos([]);
     } finally {
       setLoading(false);
     }
@@ -332,7 +314,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   useEffect(() => {
     let cancelado = false;
     let loadingTimeout: any;
-    setPending(true);
     loadingTimeout = setTimeout(() => {
       if (!cancelado) setLoading(true);
     }, 400);
@@ -451,7 +432,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       {loading && <div className="text-center text-[#7c3aed] py-8">Carregando...</div>}
       {!loading && erro && versiculos.length === 0 && <div className="text-center text-red-500 font-semibold">{erro}</div>}
 
-      {!loading && !erro && versiculos.length > 0 && (
+      {versiculos.length > 0 && (
         <div className="flex flex-col gap-3 px-6 sm:px-0 pb-28">
           {!buscando && (
             <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
