@@ -8,12 +8,6 @@ export interface Testimony {
   user_id: string;
   created_at: string;
   updated_at: string;
-  user?: {
-    email?: string;
-    user_metadata?: {
-      name?: string;
-    };
-  };
 }
 
 export function useTestimonies() {
@@ -28,13 +22,7 @@ export function useTestimonies() {
 
       const { data, error } = await supabase
         .from('testimonies')
-        .select(`
-          *,
-          user:user_id(
-            email,
-            user_metadata
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -76,10 +64,33 @@ export function useTestimonies() {
     };
   }, []);
 
+  const deleteTestimony = async (testimonyId: string) => {
+    try {
+      const { error } = await supabase
+        .from('testimonies')
+        .delete()
+        .eq('id', testimonyId);
+
+      if (error) {
+        console.error('Erro ao deletar testemunho:', error);
+        throw error;
+      }
+
+      // Atualizar a lista local
+      setTestimonies(prev => prev.filter(t => t.id !== testimonyId));
+      
+      return { success: true };
+    } catch (err) {
+      console.error('Erro ao deletar testemunho:', err);
+      return { success: false, error: err };
+    }
+  };
+
   return {
     testimonies,
     loading,
     error,
-    refreshTestimonies: fetchTestimonies
+    refreshTestimonies: fetchTestimonies,
+    deleteTestimony
   };
 } 
