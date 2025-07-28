@@ -18,6 +18,7 @@ import { useRef } from 'react';
 import loginBackground from '../assets/login-background.jpg';
 import { useLocation } from 'react-router-dom';
 import backgroundClouds from '../assets/src/assets/background-clouds.jpg';
+import { TestimonyForm } from '@/components/TestimonyForm';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -51,6 +52,7 @@ const Index = () => {
   const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
   const [entrouNoMural, setEntrouNoMural] = useState(false);
+  const [showTestimonyForm, setShowTestimonyForm] = useState(false);
   
   // Garantir que o estado seja resetado ao entrar na aba comunidades
   useEffect(() => {
@@ -342,7 +344,7 @@ const Index = () => {
                 aria-label="Adicionar Testemunho"
                 onClick={() => {
                   console.log('Botão adicionar testemunho clicado!');
-                  // Função será implementada posteriormente
+                  setShowTestimonyForm(true);
                 }}
                 style={{ position: 'fixed', bottom: 32, right: 24 }}
               >
@@ -350,6 +352,17 @@ const Index = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
               </button>
+              
+              {/* Formulário de testemunhos */}
+              {showTestimonyForm && (
+                <TestimonyForm
+                  onSent={() => {
+                    setShowTestimonyForm(false);
+                    // TODO: Recarregar testemunhos
+                  }}
+                  onCancel={() => setShowTestimonyForm(false)}
+                />
+              )}
             </>
           ) : (
             <>
