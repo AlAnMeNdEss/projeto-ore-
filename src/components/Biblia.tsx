@@ -26,25 +26,23 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   // Carregar posição salva ou usar padrão
   const [livro, setLivro] = useState(() => {
     try {
-      return localStorage.getItem('bibliaLivro') || 'Salmos';
+      return localStorage.getItem('bibliaLivro') || 'Gênesis';
     } catch {
-      return 'Salmos';
+      return 'Gênesis';
     }
   });
   
   const [capitulo, setCapitulo] = useState(() => {
     try {
-      return Number(localStorage.getItem('bibliaCapitulo')) || 23;
+      return Number(localStorage.getItem('bibliaCapitulo')) || 1;
     } catch {
-      return 23;
+      return 1;
     }
   });
   
   const [versiculos, setVersiculos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
-  const [busca, setBusca] = useState('');
-  const [buscando, setBuscando] = useState(false);
   
   // Número de capítulos por livro
   const capitulosPorLivro: Record<string, number> = {
@@ -71,12 +69,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     }
   }, [livro, capitulo, capitulosPorLivro]);
 
-  // Carregar versículos quando livro ou capítulo mudar
-  useEffect(() => {
-    if (livro && capitulo) {
-      fetchVersiculos();
-    }
-  }, [livro, capitulo]);
+
 
   // Versículos marcados com cor (favoritos) salvos no localStorage
   const [marcados, setMarcados] = useState<Record<string, string>>(() => {
@@ -244,40 +237,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     return () => window.removeEventListener('scroll', handleScrollCap);
   }, []);
 
-  async function buscarVersiculos() {
-    if (!busca.trim()) return;
-    
-    setBuscando(true);
-    setErro('');
-    
-    try {
-      // Busca os versículos no Supabase usando ilike para busca por texto
-      const { data, error } = await supabase
-        .from('versiculos_biblia')
-        .select('*')
-        .ilike('texto', `%${busca.trim()}%`)
-        .order('livro', { ascending: true })
-        .order('capitulo', { ascending: true })
-        .order('versiculo', { ascending: true })
-        .limit(100); // Limitar a 100 resultados
 
-      if (error) {
-        throw error;
-      }
-
-      if (data && data.length > 0) {
-        setVersiculos(data);
-        setBusca('');
-      } else {
-        setErro('Nenhum versículo encontrado para essa busca.');
-      }
-    } catch (error) {
-      console.error('Erro na busca:', error);
-      setErro('Erro ao buscar versículos. Verifique se a tabela "versiculos_biblia" existe e se há dados.');
-    } finally {
-      setBuscando(false);
-    }
-  }
 
   async function fetchVersiculos() {
     setLoading(true);
@@ -312,13 +272,9 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   }
 
   useEffect(() => {
-    let cancelado = false;
-    let loadingTimeout: any;
-    loadingTimeout = setTimeout(() => {
-      if (!cancelado) setLoading(true);
-    }, 400);
-    fetchVersiculos();
-    return () => { cancelado = true; clearTimeout(loadingTimeout); };
+    if (livro && capitulo) {
+      fetchVersiculos();
+    }
   }, [livro, capitulo]);
 
   function copiarVersiculo(texto: string, livro: string, capitulo: number, versiculo: string) {
@@ -384,29 +340,10 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
         </button>
       </div>
 
-      {/* Campo de busca */}
-      <div className="w-full max-w-md mb-4 px-2 mt-14">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Buscar versículos..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && buscarVersiculos()}
-            className={`flex-1 rounded-2xl border-2 p-3 text-lg focus:outline-none shadow-sm ${darkMode ? 'bg-[#2d2d35] border-[#23232b] text-white placeholder-gray-400' : whiteMode ? 'bg-white border-gray-200 text-[#23232b] placeholder-gray-500' : 'bg-white border-yellow-200 text-[#23232b] placeholder-gray-500 focus:ring-2 focus:ring-yellow-200'}`}
-          />
-          <button
-            onClick={buscarVersiculos}
-            disabled={buscando || !busca.trim()}
-            className={`px-4 py-3 rounded-2xl font-semibold transition-all ${buscando || !busca.trim() ? 'opacity-50 cursor-not-allowed' : darkMode ? 'bg-[#a084e8] text-white hover:bg-[#8b5cf6]' : whiteMode ? 'bg-[#a084e8] text-white hover:bg-[#8b5cf6]' : 'bg-[#8b5cf6] text-white hover:bg-[#7c3aed]'}`}
-          >
-            {buscando ? 'Buscando...' : 'Buscar'}
-          </button>
-        </div>
-      </div>
+
 
       {/* Seletores de livro e capítulo */}
-      <div className="flex gap-3 w-full max-w-md mb-2 px-2 overflow-x-auto">
+      <div className="flex gap-3 w-full max-w-md mb-2 px-2 overflow-x-auto mt-20">
         <select
           className={`flex-1 min-w-0 rounded-2xl border-2 text-xl font-semibold p-3 focus:outline-none shadow-sm ${darkMode ? 'bg-[#2d2d35] border-[#23232b] text-white' : whiteMode ? 'bg-white border-gray-200 text-[#23232b]' : 'bg-white border-yellow-200 text-[#23232b] focus:ring-2 focus:ring-yellow-200'}`}
           value={livro}
@@ -434,9 +371,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
 
       {versiculos.length > 0 && (
         <div className="flex flex-col gap-3 px-6 sm:px-0 pb-28">
-          {!buscando && (
-            <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
-          )}
+          <h2 className={`text-2xl font-bold mb-4 ml-2 ${darkMode ? 'text-white' : whiteMode ? 'text-[#23232b]' : 'text-[#23232b]'}`}>{livro} {capitulo}</h2>
           {versiculos.map((v: any, i: number) => {
             const id = `${livro}-${capitulo}-${v.versiculo}`;
             const cor = marcados[id];

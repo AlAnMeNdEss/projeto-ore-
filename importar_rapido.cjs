@@ -6,49 +6,56 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function importarBiblia() {
+async function importarRapido() {
   try {
-    console.log('📖 Lendo arquivo JSON...');
-    const bibliaData = JSON.parse(fs.readFileSync('./public/pt_nvi.json', 'utf8'));
+    console.log('🚀 Importação rápida iniciada...');
     
-    console.log(`✅ ${bibliaData.length} livros encontrados`);
+    // Limpar tabela primeiro
+    console.log('🧹 Limpando tabela...');
+    await supabase.from('versiculos_biblia').delete().neq('id', 0);
     
-    let totalInseridos = 0;
+    // Ler CSV
+    const csvContent = fs.readFileSync('almeida_rc (1).csv', 'utf8');
+    const linhas = csvContent.split('\n');
     
-    for (const livro of bibliaData.slice(0, 3)) { // Apenas 3 livros para teste
-      console.log(`📚 Processando ${livro.name}...`);
+    console.log(`📊 Processando ${linhas.length} linhas...`);
+    
+    // Pular cabeçalho e processar
+    const versiculos = [];
+    for (let i = 1; i < linhas.length; i++) {
+      const linha = linhas[i].trim();
+      if (!linha) continue;
       
-      for (let cap = 0; cap < livro.chapters.length; cap++) {
-        const capitulo = cap + 1;
-        const versiculos = livro.chapters[cap];
-        
-        const dados = versiculos.map((texto, index) => ({
-          livro: livro.name,
-          capitulo: capitulo,
-          versiculo: (index + 1).toString(),
-          texto: texto,
-          traducao: 'nvi'
-        }));
-        
-        const { error } = await supabase
-          .from('versiculos_biblia')
-          .insert(dados);
-        
-        if (error) {
-          console.error('❌ Erro:', error);
-          return;
-        }
-        
-        totalInseridos += dados.length;
-        console.log(`✅ ${dados.length} versículos inseridos`);
+      const campos = linha.split(',');
+      if (campos.length >= 4) {
+        versiculos.push({
+          livro: campos[0].replace(/"/g, ''),
+          capitulo: parseInt(campos[1]) || 1,
+          versiculo: campos[2].replace(/"/g, ''),
+          texto: campos[3].replace(/"/g, '')
+        });
       }
     }
     
-    console.log(`🎉 Total: ${totalInseridos} versículos inseridos!`);
+    console.log(`📖 ${versiculos.length} versículos prontos para importar`);
+    
+    // Importar em lotes grandes
+    const loteSize = 2000;
+    let total = 0;
+    
+    for (let i = 0; i < versiculos.length; i += loteSize) {
+      const lote = versiculos.slice(i, i + loteSize);
+      console.log(`📦 Lote ${Math.floor(i/loteSize) + 1}/${Math.ceil(versiculos.length/loteSize)}`);
+      
+      await supabase.from('versiculos_biblia').insert(lote);
+      total += lote.length;
+    }
+    
+    console.log(`✅ Concluído! ${total} versículos importados`);
     
   } catch (error) {
-    console.error('❌ Erro:', error);
+    console.error('❌ Erro:', error.message);
   }
 }
 
-importarBiblia(); 
+importarRapido(); 
