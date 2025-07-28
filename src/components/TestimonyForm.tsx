@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TestimonyFormProps {
   onSent: () => void;
@@ -44,11 +45,24 @@ export function TestimonyForm({ onSent, onCancel }: TestimonyFormProps) {
     setLoading(true);
     
     try {
-      // TODO: Implementar inserção no Supabase
       console.log('Criando testemunho:', { title, content, userId: user.id });
       
-      // Simular sucesso por enquanto
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase
+        .from('testimonies')
+        .insert({
+          title: title.trim(),
+          content: content.trim(),
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Erro ao inserir testemunho:', error);
+        throw error;
+      }
+
+      console.log('Testemunho criado com sucesso:', data);
       
       toast({
         title: "Testemunho compartilhado!",
