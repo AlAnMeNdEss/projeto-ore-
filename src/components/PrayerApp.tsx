@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import PrayerRequestsList from './PrayerRequestsList';
 import { PrayerRequestForm } from './PrayerRequestForm';
+import backgroundClouds from '../assets/src/assets/background-clouds.jpg';
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
@@ -94,41 +95,45 @@ export function PrayerApp({ activeTab }: { activeTab?: 'list' | 'create' }) {
 
   // Renderização SEM returns condicionais antes dos hooks
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
-
-
-      <div className="relative z-20 w-full max-w-4xl mx-auto px-2 sm:px-4 flex flex-col min-h-screen">
-        {/* Conteúdo do PrayerApp */}
-        {/* Header minimalista */}
-        <header className="flex flex-col items-center justify-center mb-4 sm:mb-8 gap-2 animate-fade-in w-full relative">
-          {/* Botão/avatar de usuário no canto superior direito */}
-        </header>
-        <div className="animate-fade-slide-in">
-          <PrayerRequestsList refreshRequests={refreshRequests} />
+    <div style={{
+      backgroundImage: `url(${backgroundClouds})`,
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'repeat',
+      minHeight: '100vh',
+      width: '100vw',
+    }}>
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative z-20 w-full max-w-4xl mx-auto px-2 sm:px-4 flex flex-col min-h-screen">
+          {/* Conteúdo do PrayerApp */}
+          {/* Header minimalista */}
+          <header className="flex flex-col items-center justify-center mb-4 sm:mb-8 gap-2 animate-fade-in w-full relative">
+            {/* Botão/avatar de usuário no canto superior direito */}
+          </header>
+          <div className="animate-fade-slide-in">
+            <PrayerRequestsList refreshRequests={refreshRequests} />
+          </div>
+          {tab === 'create' && (
+            <>
+              <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" />
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <PrayerRequestForm refreshRequests={refreshRequests} onSent={() => setTab('list')} onCancel={() => setTab('list')} />
+              </div>
+            </>
+          )}
         </div>
-        {tab === 'create' && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" />
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <PrayerRequestForm refreshRequests={refreshRequests} onSent={() => setTab('list')} onCancel={() => setTab('list')} />
-            </div>
-          </>
+        {/* Botão flutuante para criar pedido */}
+        {tab === 'list' && (
+          <button
+            className="fixed right-6 z-50 w-16 h-16 rounded-full bg-[#7c3aed] text-white text-4xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-[#a084e8]/40"
+            aria-label="Criar Pedido"
+            onClick={() => setTab('create')}
+            style={{ position: 'fixed', bottom: 32, right: 24 }}
+          >
+            <Plus className="w-8 h-8" />
+          </button>
         )}
       </div>
-
-      {/* Botão flutuante para criar pedido */}
-      {tab === 'list' && (
-        <button
-          className="fixed right-6 z-50 w-16 h-16 rounded-full bg-[#7c3aed] text-white text-4xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-[#a084e8]/40"
-          aria-label="Criar Pedido"
-          onClick={() => setTab('create')}
-          style={{ position: 'fixed', bottom: 32, right: 24 }}
-        >
-          <Plus className="w-8 h-8" />
-        </button>
-      )}
-
-
     </div>
   );
 }

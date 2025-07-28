@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, Trash2, MessageCircle, Send, X } from 'lucide-react';
+import { Heart, Trash2, MessageCircle, Send, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePrayerRequests } from '@/hooks/usePrayerRequests';
 import { supabase } from '../integrations/supabase/client';
@@ -19,6 +19,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [lastMessageSent, setLastMessageSent] = useState<string>('');
+  const [showAllComments, setShowAllComments] = useState(true);
   const { user } = useAuth();
   const cardRef = useRef(null);
 
@@ -240,8 +241,16 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     }
   };
 
+  // 1. Altere a lógica de commentsToShow:
+  // const commentsToShow = showAllComments ? [] : messages.slice(-3);
+  // 2. No botão de expandir, troque o texto/ícone para:
+  // {showAllComments ? 'Esconder comentários' : 'Mostrar comentários'}
+  // 3. O botão deve alternar entre mostrar 3 comentários e esconder todos (nenhum visível).
+  // 4. Não mostrar nenhum comentário quando expandido.
+  const commentsToShow = showAllComments ? [] : messages.slice(-3);
+
   return (
-    <Card ref={cardRef} className="relative rounded-3xl bg-white/60 backdrop-blur-md shadow-md w-full max-w-md mx-auto mb-4 p-6 flex flex-col gap-4 border border-white/30">
+    <Card ref={cardRef} className="w-full max-w-sm mx-auto mb-4 p-4 flex flex-col gap-3 bg-white rounded-2xl shadow-md">
       <div style={{zIndex: 1, position: 'relative'}}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
@@ -249,26 +258,25 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           </div>
           <div className="flex items-center gap-2">
             <button
-              className={`w-11 h-11 flex items-center justify-center rounded-full border-2 ${orou ? 'border-pink-400 bg-pink-50' : 'border-[#a084e8] bg-[#f3f4f6]'} text-xl shadow-sm hover:scale-105 transition-transform duration-150`}
+              className={`flex items-center gap-1 px-3 py-1.5 text-base font-bold rounded-md shadow-sm border-2 transition-all duration-150
+    ${orou ? 'bg-green-500 text-white border-green-600 cursor-not-allowed shadow' : 'bg-[#a084e8] text-white border-[#a084e8] hover:bg-[#7c3aed] hover:shadow-lg'}`}
               onClick={() => onPray(request.id)}
               disabled={orou}
-              style={{ background: '#f3f4f6' }}
+              aria-label="Orar por este pedido"
             >
-              <svg xmlns='http://www.w3.org/2000/svg' fill={orou ? '#ef476f' : 'none'} viewBox='0 0 24 24' stroke='currentColor' className='w-6 h-6'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z' />
-              </svg>
+              <span className={`text-xl ${orou ? 'text-white' : 'text-white'}`}>🙏</span>
+              {orou ? 'Orado' : 'Orar'}
             </button>
+            <span className="ml-2 px-2 py-0.5 rounded-md bg-white border-2 border-[#a084e8] text-[#a084e8] font-bold text-sm shadow">{request.prayer_count || 0}</span>
             {canDelete && (
               <button
-                className="w-11 h-11 flex items-center justify-center rounded-full border-2 border-[#e5e7eb] bg-[#e5e7eb] text-red-500 text-xl shadow-sm hover:bg-[#d1d5db] transition-colors duration-150"
+                className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-[#e5e7eb] bg-[#e5e7eb] text-red-500 text-base shadow-sm hover:bg-[#d1d5db] transition-colors duration-150 p-0"
                 onClick={() => onDelete(request.id)}
                 title="Apagar pedido"
               >
-                <Trash2 className="w-6 h-6" />
+                <Trash2 className="w-4 h-4" />
               </button>
             )}
-            <span className="text-2xl">🙏</span>
-            <span className="font-bold text-lg bg-white rounded-full px-3 py-1 shadow border border-[#e5e7eb]">{request.prayer_count || 0}</span>
           </div>
         </div>
         
@@ -287,61 +295,99 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         )}
         
         {!loadingMessages && messages.length > 0 && (
-          <div className="mb-4">
-            <div className="border-t border-gray-200 pt-3">
-              <div className="space-y-3">
-                {messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-3 group">
-                    <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      {getMessageAuthorName(msg).charAt(0).toUpperCase()}
+          <div className="flex items-center justify-between mt-4 mb-2">
+            <div className="flex-1 text-lg font-bold text-[#673AB7] text-center">Palavras de apoio e fé</div>
+            <button
+              onClick={() => setShowAllComments(v => !v)}
+              className="rounded-full bg-white shadow p-2 border border-gray-200 hover:bg-gray-50 transition-transform"
+              aria-label={showAllComments ? 'Esconder comentários' : 'Mostrar comentários'}
+            >
+              {showAllComments ? <ChevronUp className="w-5 h-5 text-[#a084e8] transition-transform" /> : <ChevronDown className="w-5 h-5 text-[#a084e8] transition-transform" />}
+            </button>
+          </div>
+        )}
+        
+        {!loadingMessages && commentsToShow.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg p-3 border border-gray-100">
+            <div className="space-y-4">
+              {commentsToShow.map((msg) => (
+                <div key={msg.id} className="bg-[#f7f7fa] rounded-xl p-3 flex gap-3 items-start">
+                  <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    {getMessageAuthorName(msg).charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-[#23232b]">
+                        {getMessageAuthorName(msg)}
+                      </span>
+                      {msg.user_id === user?.id && (
+                        <span className="text-xs text-blue-500 font-medium">você</span>
+                      )}
+                      {lastMessageSent === msg.message && (
+                        <span className="text-xs text-green-500 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          enviado
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#23232b]">
-                          {getMessageAuthorName(msg)}
-                        </span>
-                        {msg.user_id === user?.id && (
-                          <span className="text-xs text-blue-500 font-medium">você</span>
-                        )}
-                        {lastMessageSent === msg.message && (
-                          <span className="text-xs text-green-500 flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            enviado
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-700 mt-1 leading-relaxed break-words">
-                        {msg.message}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1 flex items-center gap-2">
-                        <span>
-                          {new Date(msg.created_at).toLocaleDateString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                        {msg.user_id === user?.id && (
-                          <button 
-                            className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => {
-                              if (confirm('Deseja apagar este comentário?')) {
-                                handleDeleteMessage(msg.id);
-                              }
-                            }}
-                            title="Apagar comentário"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
+                    <div className="text-base text-[#23232b] font-medium mt-2 mb-2 leading-relaxed break-words">{msg.message}</div>
+                    <div className="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                      <span>
+                        {new Date(msg.created_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      {msg.user_id === user?.id && (
+                        <button 
+                          className="text-red-500 hover:text-red-700 ml-1 p-1 rounded transition"
+                          onClick={() => {
+                            if (confirm('Deseja apagar este comentário?')) {
+                              handleDeleteMessage(msg.id);
+                            }
+                          }}
+                          title="Apagar comentário"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+            {/* Campo de adicionar comentário */}
+            <div className="flex gap-2 items-center mt-4 border-t border-gray-200 pt-3 bg-white rounded-xl px-2 shadow-sm">
+              <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {user?.user_metadata?.name?.charAt(0).toUpperCase() || 'U'}
               </div>
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Adicione um comentário..."
+                className="flex-1 px-3 py-2 border-2 border-[#a084e8] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#a084e8] text-sm"
+                disabled={sendingMessage}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!message.trim() || sendingMessage}
+                className="px-4 py-2 bg-[#a084e8] text-white font-bold rounded-lg shadow hover:bg-[#7c3aed] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                {sendingMessage ? (
+                  <div className="w-4 h-4 border-2 border-[#a084e8] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-3 h-3" />
+                    Enviar
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}
@@ -350,62 +396,48 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           <div className="mb-4">
             <div className="border-t border-gray-200 pt-3">
               <div className="text-center py-4">
-                <span className="text-sm text-gray-400">Seja o primeiro a comentar!</span>
+                <span className="text-sm text-gray-500 text-center">Se quiser, deixe uma palavra de apoio, fé ou encorajamento.</span>
               </div>
+            </div>
+            {/* Campo de adicionar comentário */}
+            <div className="flex gap-2 items-center mt-4 border-t border-gray-200 pt-3 bg-white rounded-xl px-2 shadow-sm">
+              <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {user?.user_metadata?.name?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Adicione um comentário..."
+                className="flex-1 px-3 py-2 border-2 border-[#a084e8] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#a084e8] text-sm"
+                disabled={sendingMessage}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!message.trim() || sendingMessage}
+                className="px-4 py-2 bg-[#a084e8] text-white font-bold rounded-lg shadow hover:bg-[#7c3aed] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              >
+                {sendingMessage ? (
+                  <div className="w-4 h-4 border-2 border-[#a084e8] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-3 h-3" />
+                    Enviar
+                  </>
+                )}
+              </button>
             </div>
           </div>
         )}
         
-        {/* Seção de Comentários */}
-        <div className="border-t border-gray-200 pt-3">
-          {/* Contador de comentários */}
-          {messages.length > 0 && (
-            <div className="mb-2">
-              <span className="text-xs text-gray-500 font-medium">
-                {messages.length} comentário{messages.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
-          
-          {/* Input para enviar comentário */}
-          <div className="flex gap-2 items-center">
-            <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
-              {user?.user_metadata?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <input
-              type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Adicione um comentário..."
-              className="flex-1 px-3 py-2 border-0 focus:outline-none text-sm bg-transparent placeholder-gray-400"
-              disabled={sendingMessage}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={!message.trim() || sendingMessage}
-              className="px-3 py-1 text-[#a084e8] font-semibold text-sm hover:text-[#8b5cf6] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-            >
-              {sendingMessage ? (
-                <div className="w-4 h-4 border-2 border-[#a084e8] border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-3 h-3" />
-                  Enviar
-                </>
-              )}
-            </button>
-          </div>
-          
-
-        </div>
       </div>
     </Card>
   );
 }
 
 export default function PrayerRequestsList({ refreshRequests }: { refreshRequests?: () => void }) {
-  const { requests, loading, prayForRequest, deleteRequest } = usePrayerRequests();
+  const { requests, loading, prayForRequest, deleteRequest, prayedRequestsIds } = usePrayerRequests();
   const { user } = useAuth();
 
   if (loading) {
@@ -427,7 +459,7 @@ export default function PrayerRequestsList({ refreshRequests }: { refreshRequest
           <PrayerRequestCard
             key={request.id}
             request={request}
-            orou={request.user_id === user?.id}
+            orou={prayedRequestsIds.includes(request.id)}
             onPray={() => prayForRequest(request.id, user?.id)}
             canDelete={request.user_id === user?.id}
             onDelete={() => deleteRequest(request.id)}

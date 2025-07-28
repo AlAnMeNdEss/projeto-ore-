@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PrayerRequest, PrayerCategory } from '@/types/prayer';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export function usePrayerRequests() {
   const [requests, setRequests] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [prayedRequestsIds, setPrayedRequestsIds] = useState<string[]>([]);
 
   const fetchRequests = async () => {
     try {
@@ -27,6 +30,17 @@ export function usePrayerRequests() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPrayedRequests = async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('prayer_interactions')
+      .select('prayer_request_id')
+      .eq('user_id', user.id);
+    if (!error && data) {
+      setPrayedRequestsIds(data.map((d: any) => d.prayer_request_id));
     }
   };
 
@@ -82,6 +96,7 @@ export function usePrayerRequests() {
           description: "Sua oração foi contabilizada com carinho."
         });
         fetchRequests(); // Refresh to show updated count
+        fetchPrayedRequests();
       } else {
         toast({
           title: "Já orou por este pedido",
@@ -130,6 +145,7 @@ export function usePrayerRequests() {
 
   useEffect(() => {
     fetchRequests();
+    fetchPrayedRequests();
 
     // Set up realtime subscription para prayer_requests
     const channelRequests = supabase
@@ -169,7 +185,7 @@ export function usePrayerRequests() {
       supabase.removeChannel(channelRequests);
       supabase.removeChannel(channelInteractions);
     };
-  }, []);
+  }, [user]);
 
   return {
     requests,
@@ -177,6 +193,7 @@ export function usePrayerRequests() {
     createRequest,
     prayForRequest,
     deleteRequest,
-    refreshRequests: fetchRequests
+    refreshRequests: fetchRequests,
+    prayedRequestsIds,
   };
 }
