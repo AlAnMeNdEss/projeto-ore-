@@ -8,6 +8,12 @@ export interface Testimony {
   user_id: string;
   created_at: string;
   updated_at: string;
+  user?: {
+    email?: string;
+    user_metadata?: {
+      name?: string;
+    };
+  };
 }
 
 export function useTestimonies() {
@@ -22,7 +28,13 @@ export function useTestimonies() {
 
       const { data, error } = await supabase
         .from('testimonies')
-        .select('*')
+        .select(`
+          *,
+          user:user_id(
+            email,
+            user_metadata
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
