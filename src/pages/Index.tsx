@@ -19,6 +19,7 @@ import loginBackground from '../assets/login-background.jpg';
 import { useLocation } from 'react-router-dom';
 import backgroundClouds from '../assets/src/assets/background-clouds.jpg';
 import { TestimonyForm } from '@/components/TestimonyForm';
+import { useTestimonies } from '@/hooks/useTestimonies';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -31,6 +32,7 @@ const Index = () => {
   // Mover todos os hooks para o topo, antes de qualquer return condicional
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
+  const { testimonies, loading: loadingTestimonies } = useTestimonies();
   const [showAuth, setShowAuth] = useState(false);
   const location = useLocation();
   
@@ -99,6 +101,24 @@ const Index = () => {
       }
     }
   }, [user, loading]);
+
+  // Função para formatar data
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'há poucos minutos';
+    if (diffInHours < 24) return `há ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `há ${diffInDays} dia${diffInDays > 1 ? 's' : ''}`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) return `há ${diffInWeeks} semana${diffInWeeks > 1 ? 's' : ''}`;
+    
+    return date.toLocaleDateString('pt-BR');
+  };
 
   const pedidosDoUsuario = user ? requests.filter(r => r.user_id === user.id) : [];
   const totalOracoesRecebidas = pedidosDoUsuario.reduce((acc, r) => acc + (r.prayer_count || 0), 0);
@@ -301,39 +321,44 @@ const Index = () => {
                     <p className="text-lg">Compartilhe e leia testemunhos de fé</p>
                     <p className="text-sm mt-2">Em breve você poderá compartilhar suas experiências aqui</p>
                   </div>
-                  {/* Placeholder para futuros testemunhos */}
+                  {/* Listagem de testemunhos reais */}
                   <div className="space-y-4">
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
-                      <div className="mb-3">
-                        <h3 className="text-[#673AB7] font-bold text-lg mb-1">Milagre no Emprego</h3>
-                        <div className="flex items-center">
-                          <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
-                            <span className="text-white text-xs font-bold">A</span>
-                          </div>
-                          <span className="text-gray-700 text-sm">Ana Silva</span>
-                          <span className="text-gray-500 text-xs ml-auto">há 2 dias</span>
-                        </div>
+                    {loadingTestimonies ? (
+                      <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#673AB7]"></div>
+                        <p className="text-gray-500 mt-2">Carregando testemunhos...</p>
                       </div>
-                      <p className="text-gray-800 text-sm leading-relaxed">
-                        "Deus respondeu minha oração de forma milagrosa! Após meses de luta, consegui o emprego que tanto sonhava. Sua fidelidade nunca falha!"
-                      </p>
-                    </div>
-                    
-                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
-                      <div className="mb-3">
-                        <h3 className="text-[#673AB7] font-bold text-lg mb-1">Família Restaurada</h3>
-                        <div className="flex items-center">
-                          <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
-                            <span className="text-white text-xs font-bold">J</span>
-                          </div>
-                          <span className="text-gray-700 text-sm">João Santos</span>
-                          <span className="text-gray-500 text-xs ml-auto">há 1 semana</span>
-                        </div>
+                    ) : testimonies.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">Nenhum testemunho compartilhado ainda.</p>
+                        <p className="text-gray-400 text-sm mt-1">Seja o primeiro a compartilhar!</p>
                       </div>
-                      <p className="text-gray-800 text-sm leading-relaxed">
-                        "Minha família estava passando por uma crise financeira, mas através da oração e da fé, Deus nos sustentou e hoje estamos melhores do que nunca!"
-                      </p>
-                    </div>
+                    ) : (
+                      testimonies.map((testimony) => {
+                        const userName = testimony.user?.user_metadata?.name || 
+                                       testimony.user?.email?.split('@')[0] || 
+                                       'Usuário';
+                        const userInitial = userName.charAt(0).toUpperCase();
+                        
+                        return (
+                          <div key={testimony.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
+                            <div className="mb-3">
+                              <h3 className="text-[#673AB7] font-bold text-lg mb-1">{testimony.title}</h3>
+                              <div className="flex items-center">
+                                <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
+                                  <span className="text-white text-xs font-bold">{userInitial}</span>
+                                </div>
+                                <span className="text-gray-700 text-sm">{userName}</span>
+                                <span className="text-gray-500 text-xs ml-auto">{formatDate(testimony.created_at)}</span>
+                              </div>
+                            </div>
+                            <p className="text-gray-800 text-sm leading-relaxed">
+                              "{testimony.content}"
+                            </p>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -358,7 +383,7 @@ const Index = () => {
                 <TestimonyForm
                   onSent={() => {
                     setShowTestimonyForm(false);
-                    // TODO: Recarregar testemunhos
+                    // Os testemunhos serão atualizados automaticamente via Realtime
                   }}
                   onCancel={() => setShowTestimonyForm(false)}
                 />
