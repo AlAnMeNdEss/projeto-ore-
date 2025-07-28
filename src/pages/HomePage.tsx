@@ -187,10 +187,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       {/* Topo estilizado igual ao exemplo da imagem, com padding lateral igual aos cards */}
       <div className="w-full max-w-md mx-auto px-2">
         <div className="flex items-start justify-between w-full px-4 pt-6 pb-4 mb-2">
-          <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1">
             <span className="text-3xl sm:text-4xl font-extrabold text-white leading-tight" style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>
-              Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
-            </span>
+                Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
+              </span>
             <span className="text-lg sm:text-xl text-white font-normal mt-1" style={{textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>
               que a paz esteja consigo!
             </span>

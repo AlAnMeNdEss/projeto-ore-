@@ -50,14 +50,14 @@ const Index = () => {
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
   const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
-  // Remover estados e lógica relacionados ao mural
-  // const [entrouNoMural, setEntrouNoMural] = useState(false);
+  const [entrouNoMural, setEntrouNoMural] = useState(false);
   
   // Garantir que o estado seja resetado ao entrar na aba comunidades
   useEffect(() => {
     if (activeTab === 'comunidades') {
       console.log('Entrou na aba comunidades - resetando estados');
       setEntrouNaComunidade(false);
+      setEntrouNoMural(false);
     }
   }, [activeTab]);
   // Sempre que mudar para a aba 'comunidades', reseta para false
@@ -76,6 +76,7 @@ const Index = () => {
     if (activeTab !== 'comunidades') {
       console.log('Resetando estados - mudou para aba:', activeTab);
       setEntrouNaComunidade(false);
+      setEntrouNoMural(false);
     }
   }, [activeTab]);
 
@@ -281,6 +282,54 @@ const Index = () => {
               {/* Botões Ver Pedidos e Criar Pedido removidos */}
               <PrayerApp activeTab={pedidosTab} />
             </div>
+          ) : entrouNoMural ? (
+            <>
+              <div className="w-full flex flex-col items-center" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
+                  <button onClick={() => setEntrouNoMural(false)} className="mr-2 p-2 rounded-full hover:bg-white/20 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                  </button>
+                  <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)' }}>Mural de Testemunhos</h1>
+                  <div style={{width: 40}} />
+                </div>
+                <div className="w-full max-w-xl mx-auto border-b border-white/30 mb-4"></div>
+                {/* Conteúdo do Mural de Testemunhos */}
+                <div className="w-full max-w-xl mx-auto px-4">
+                  <div className="text-center text-white/80 mb-8">
+                    <p className="text-lg">Compartilhe e leia testemunhos de fé</p>
+                    <p className="text-sm mt-2">Em breve você poderá compartilhar suas experiências aqui</p>
+                  </div>
+                  {/* Placeholder para futuros testemunhos */}
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-[#673AB7] rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white text-sm font-bold">A</span>
+                        </div>
+                        <span className="text-white font-semibold">Ana Silva</span>
+                        <span className="text-white/60 text-sm ml-auto">há 2 dias</span>
+                      </div>
+                      <p className="text-white/90 text-sm leading-relaxed">
+                        "Deus respondeu minha oração de forma milagrosa! Após meses de luta, consegui o emprego que tanto sonhava. Sua fidelidade nunca falha!"
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+                      <div className="flex items-center mb-2">
+                        <div className="w-8 h-8 bg-[#673AB7] rounded-full flex items-center justify-center mr-3">
+                          <span className="text-white text-sm font-bold">J</span>
+                        </div>
+                        <span className="text-white font-semibold">João Santos</span>
+                        <span className="text-white/60 text-sm ml-auto">há 1 semana</span>
+                      </div>
+                      <p className="text-white/90 text-sm leading-relaxed">
+                        "Minha família estava passando por uma crise financeira, mas através da oração e da fé, Deus nos sustentou e hoje estamos melhores do que nunca!"
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
             <>
               <div className="w-full max-w-xl mx-auto pt-8 pb-4 relative z-10">
@@ -314,7 +363,7 @@ const Index = () => {
                     }}
                     onClick={() => {
                       console.log('Botão Mural clicado!');
-                      // setEntrouNoMural(true); // Remover
+                      setEntrouNoMural(true);
                     }}
                     tabIndex={0}
                     aria-label="Acessar Mural de Testemunhos"
