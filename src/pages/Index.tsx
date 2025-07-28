@@ -371,12 +371,11 @@ const Index = () => {
                                   </button>
                                 )}
                               </div>
-                              <div className="flex items-center">
-                                <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
-                                  <span className="text-white text-xs font-bold">{userInitial}</span>
-                                </div>
-                                <span className="text-gray-700 text-sm">{userName}</span>
-                                <span className="text-gray-500 text-xs ml-auto">{formatDate(testimony.created_at)}</span>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-600 text-sm">
+                                  <span className="font-medium">Partilhado por:</span> {userName}
+                                </span>
+                                <span className="text-gray-500 text-xs">{formatDate(testimony.created_at)}</span>
                               </div>
                             </div>
                             <p className="text-gray-800 text-sm leading-relaxed">
