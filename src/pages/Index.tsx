@@ -301,34 +301,34 @@ const Index = () => {
                   </div>
                   {/* Placeholder para futuros testemunhos */}
                   <div className="space-y-4">
-                    <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
                       <div className="mb-3">
-                        <h3 className="text-white font-bold text-lg mb-1">Milagre no Emprego</h3>
+                        <h3 className="text-[#673AB7] font-bold text-lg mb-1">Milagre no Emprego</h3>
                         <div className="flex items-center">
                           <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
                             <span className="text-white text-xs font-bold">A</span>
                           </div>
-                          <span className="text-white/80 text-sm">Ana Silva</span>
-                          <span className="text-white/60 text-xs ml-auto">há 2 dias</span>
+                          <span className="text-gray-700 text-sm">Ana Silva</span>
+                          <span className="text-gray-500 text-xs ml-auto">há 2 dias</span>
                         </div>
                       </div>
-                      <p className="text-white/90 text-sm leading-relaxed">
+                      <p className="text-gray-800 text-sm leading-relaxed">
                         "Deus respondeu minha oração de forma milagrosa! Após meses de luta, consegui o emprego que tanto sonhava. Sua fidelidade nunca falha!"
                       </p>
                     </div>
                     
-                    <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+                    <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
                       <div className="mb-3">
-                        <h3 className="text-white font-bold text-lg mb-1">Família Restaurada</h3>
+                        <h3 className="text-[#673AB7] font-bold text-lg mb-1">Família Restaurada</h3>
                         <div className="flex items-center">
                           <div className="w-6 h-6 bg-[#673AB7] rounded-full flex items-center justify-center mr-2">
                             <span className="text-white text-xs font-bold">J</span>
                           </div>
-                          <span className="text-white/80 text-sm">João Santos</span>
-                          <span className="text-white/60 text-xs ml-auto">há 1 semana</span>
+                          <span className="text-gray-700 text-sm">João Santos</span>
+                          <span className="text-gray-500 text-xs ml-auto">há 1 semana</span>
                         </div>
                       </div>
-                      <p className="text-white/90 text-sm leading-relaxed">
+                      <p className="text-gray-800 text-sm leading-relaxed">
                         "Minha família estava passando por uma crise financeira, mas através da oração e da fé, Deus nos sustentou e hoje estamos melhores do que nunca!"
                       </p>
                     </div>
