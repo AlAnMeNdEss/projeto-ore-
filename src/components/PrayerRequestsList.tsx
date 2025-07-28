@@ -31,13 +31,7 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
       // Carregar do Supabase
       const { data, error } = await supabase
         .from('prayer_messages')
-        .select(`
-          id,
-          message,
-          created_at,
-          user_id,
-          profiles:user_id(name, email)
-        `)
+        .select('id, message, created_at, user_id')
         .eq('prayer_request_id', request.id)
         .order('created_at', { ascending: true });
 
@@ -165,25 +159,42 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         }, 1000);
       } else {
         console.log('❌ Erro no Supabase:', error);
-        throw new Error(error?.message || 'Erro ao enviar mensagem');
+        // Só salva localmente se estiver offline
+        if (navigator.onLine === false) {
+          const newMessage = {
+            id: Date.now().toString(),
+            message: message.trim(),
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+            profiles: { name: user.user_metadata?.name || 'Você' }
+          };
+          const currentMessages = [...messages, newMessage];
+          setMessages(currentMessages);
+          localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+          setMessage('');
+          alert('Você está offline. O comentário foi salvo apenas neste dispositivo.');
+        } else {
+          alert('Erro ao enviar comentário. Tente novamente.');
+        }
       }
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);
-      
-      // Fallback para localStorage
-      const newMessage = {
-        id: Date.now().toString(),
-        message: message.trim(),
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-        profiles: { name: user.user_metadata?.name || 'Você' }
-      };
-      
-      const currentMessages = [...messages, newMessage];
-      setMessages(currentMessages);
-      localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
-      setMessage('');
-      console.log('💾 Mensagem salva no localStorage (fallback)');
+      if (navigator.onLine === false) {
+        const newMessage = {
+          id: Date.now().toString(),
+          message: message.trim(),
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          profiles: { name: user.user_metadata?.name || 'Você' }
+        };
+        const currentMessages = [...messages, newMessage];
+        setMessages(currentMessages);
+        localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+        setMessage('');
+        alert('Você está offline. O comentário foi salvo apenas neste dispositivo.');
+      } else {
+        alert('Erro ao enviar comentário. Tente novamente.');
+      }
     }
     setSendingMessage(false);
   };
