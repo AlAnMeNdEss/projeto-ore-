@@ -329,6 +329,21 @@ const Index = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Botão flutuante para adicionar testemunho */}
+              <button
+                className="fixed right-6 z-50 w-16 h-16 rounded-full bg-[#7c3aed] text-white text-4xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-[#a084e8]/40"
+                aria-label="Adicionar Testemunho"
+                onClick={() => {
+                  console.log('Botão adicionar testemunho clicado!');
+                  // Função será implementada posteriormente
+                }}
+                style={{ position: 'fixed', bottom: 32, right: 24 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </button>
             </>
           ) : (
             <>
