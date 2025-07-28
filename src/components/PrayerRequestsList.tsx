@@ -27,12 +27,10 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     setLoadingMessages(true);
     try {
       console.log('🔄 Carregando mensagens para request:', request.id);
-      console.log('👤 Usuário atual:', user?.id);
       
-      // Tentar carregar do Supabase primeiro
-      console.log('🌐 Tentando carregar do Supabase...');
+      // Carregar do Supabase
       const { data, error } = await supabase
-        .from('prayer_messages' as any)
+        .from('prayer_messages')
         .select(`
           id,
           message,
@@ -43,34 +41,20 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         .eq('prayer_request_id', request.id)
         .order('created_at', { ascending: true });
 
-      console.log('📡 Resposta do Supabase:', { data, error });
-
       if (!error && data) {
-        console.log('✅ Mensagens carregadas do Supabase:', data);
+        console.log('✅ Mensagens carregadas:', data.length);
         setMessages(data);
         // Salvar no localStorage como backup
         localStorage.setItem(`messages_${request.id}`, JSON.stringify(data));
       } else {
         console.log('❌ Erro no Supabase:', error);
-        console.log('🔍 Detalhes do erro:', {
-          message: error?.message,
-          details: error?.details,
-          hint: error?.hint,
-          code: error?.code
-        });
-        
-        // Se for erro de tabela não encontrada, mostrar instruções
-        if (error?.message?.includes('relation "prayer_messages" does not exist')) {
-          console.log('❌ TABELA NÃO EXISTE! Execute o SQL no Supabase Dashboard.');
-          alert('❌ Tabela prayer_messages não existe!\n\nExecute o SQL no Supabase Dashboard:\n\n1. Vá para https://supabase.com/dashboard\n2. Selecione seu projeto\n3. Vá para SQL Editor\n4. Cole o conteúdo do arquivo create_prayer_messages_table_manual.sql\n5. Execute o SQL');
-        }
         
         // Fallback para localStorage
         const localMessages = localStorage.getItem(`messages_${request.id}`);
         if (localMessages) {
           try {
             const parsed = JSON.parse(localMessages);
-            console.log('📱 Usando mensagens do localStorage:', parsed);
+            console.log('📱 Usando mensagens do localStorage:', parsed.length);
             setMessages(parsed);
           } catch (e) {
             console.log('❌ Erro ao parsear localStorage:', e);
@@ -143,15 +127,11 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
 
     setSendingMessage(true);
     try {
-      console.log('=== ENVIANDO MENSAGEM ===');
-      console.log('Request ID:', request.id);
-      console.log('User ID:', user.id);
-      console.log('User Name:', user.user_metadata?.name);
-      console.log('Message:', message.trim());
+      console.log('📤 Enviando mensagem...');
       
-      // Tentar salvar no Supabase primeiro
+      // Salvar no Supabase
       const { data, error } = await supabase
-        .from('prayer_messages' as any)
+        .from('prayer_messages')
         .insert({
           prayer_request_id: request.id,
           user_id: user.id,
@@ -159,54 +139,37 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         })
         .select();
 
-      console.log('Resposta do Supabase ao enviar:', { data, error });
-
-      if (!error) {
-        console.log('✅ Mensagem enviada com sucesso para o Supabase');
-        console.log('Dados retornados:', data);
-        setMessage('');
+      if (!error && data && data[0]) {
+        console.log('✅ Mensagem enviada com sucesso');
         
         // Adicionar a mensagem imediatamente ao estado local
-        if (data && data[0]) {
-          const newMessage = {
-            id: (data[0] as any).id,
-            message: (data[0] as any).message,
-            created_at: (data[0] as any).created_at,
-            user_id: (data[0] as any).user_id,
-            profiles: { name: user.user_metadata?.name || 'Você' }
-          };
-          setMessages(prev => [...prev, newMessage]);
-          setLastMessageSent(message.trim());
-          
-          // Salvar no localStorage imediatamente
-          const currentMessages = [...messages, newMessage];
-          localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
-        }
-        
-        // Recarregar mensagens do banco após 2 segundos
-        setTimeout(() => {
-          console.log('🔄 Recarregando mensagens após envio...');
-          loadMessages();
-        }, 2000);
-      } else {
-        console.log('❌ Erro no Supabase, usando localStorage:', error);
-        // Fallback para localStorage se Supabase falhar
         const newMessage = {
-          id: Date.now().toString(),
-          message: message.trim(),
-          user_id: user.id,
-          created_at: new Date().toISOString(),
+          id: data[0].id,
+          message: data[0].message,
+          created_at: data[0].created_at,
+          user_id: data[0].user_id,
           profiles: { name: user.user_metadata?.name || 'Você' }
         };
         
-        const currentMessages = [...messages, newMessage];
-        setMessages(currentMessages);
-        localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+        setMessages(prev => [...prev, newMessage]);
         setMessage('');
-        console.log('💾 Mensagem salva no localStorage');
+        setLastMessageSent(message.trim());
+        
+        // Salvar no localStorage como backup
+        const currentMessages = [...messages, newMessage];
+        localStorage.setItem(`messages_${request.id}`, JSON.stringify(currentMessages));
+        
+        // Recarregar mensagens do banco após 1 segundo
+        setTimeout(() => {
+          loadMessages();
+        }, 1000);
+      } else {
+        console.log('❌ Erro no Supabase:', error);
+        throw new Error(error?.message || 'Erro ao enviar mensagem');
       }
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);
+      
       // Fallback para localStorage
       const newMessage = {
         id: Date.now().toString(),
@@ -236,6 +199,33 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      console.log('🗑️ Apagando mensagem:', messageId);
+      
+      const { error } = await supabase
+        .from('prayer_messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('user_id', user?.id);
+
+      if (!error) {
+        console.log('✅ Mensagem apagada com sucesso');
+        setMessages(prev => prev.filter(msg => msg.id !== messageId));
+        
+        // Atualizar localStorage
+        const updatedMessages = messages.filter(msg => msg.id !== messageId);
+        localStorage.setItem(`messages_${request.id}`, JSON.stringify(updatedMessages));
+      } else {
+        console.log('❌ Erro ao apagar mensagem:', error);
+        alert('Erro ao apagar comentário. Tente novamente.');
+      }
+    } catch (error) {
+      console.error('💥 Erro ao apagar mensagem:', error);
+      alert('Erro ao apagar comentário. Tente novamente.');
     }
   };
 
@@ -273,13 +263,24 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
         
         <div className="text-xl text-[#23232b] font-medium mb-4 break-words whitespace-pre-wrap leading-relaxed">{request.text}</div>
         
-        {/* Seção de Mensagens - Estilo Instagram */}
-        {messages.length > 0 && (
+        {/* Seção de Comentários */}
+        {loadingMessages && (
+          <div className="mb-4">
+            <div className="border-t border-gray-200 pt-3">
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#a084e8]"></div>
+                <span className="ml-2 text-sm text-gray-500">Carregando comentários...</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {!loadingMessages && messages.length > 0 && (
           <div className="mb-4">
             <div className="border-t border-gray-200 pt-3">
               <div className="space-y-3">
                 {messages.map((msg) => (
-                  <div key={msg.id} className="flex items-start gap-3">
+                  <div key={msg.id} className="flex items-start gap-3 group">
                     <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
                       {getMessageAuthorName(msg).charAt(0).toUpperCase()}
                     </div>
@@ -288,20 +289,43 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
                         <span className="text-sm font-semibold text-[#23232b]">
                           {getMessageAuthorName(msg)}
                         </span>
+                        {msg.user_id === user?.id && (
+                          <span className="text-xs text-blue-500 font-medium">você</span>
+                        )}
                         {lastMessageSent === msg.message && (
-                          <span className="text-xs text-green-500">✓</span>
+                          <span className="text-xs text-green-500 flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            enviado
+                          </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-700 mt-1 leading-relaxed">
+                      <div className="text-sm text-gray-700 mt-1 leading-relaxed break-words">
                         {msg.message}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {new Date(msg.created_at).toLocaleDateString('pt-BR', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                      <div className="text-xs text-gray-400 mt-1 flex items-center gap-2">
+                        <span>
+                          {new Date(msg.created_at).toLocaleDateString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                        {msg.user_id === user?.id && (
+                          <button 
+                            className="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              if (confirm('Deseja apagar este comentário?')) {
+                                handleDeleteMessage(msg.id);
+                              }
+                            }}
+                            title="Apagar comentário"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -311,59 +335,58 @@ function PrayerRequestCard({ request, orou, onPray, canDelete, onDelete, display
           </div>
         )}
         
-        {/* Input inline para enviar mensagem - Estilo Instagram */}
+        {!loadingMessages && messages.length === 0 && (
+          <div className="mb-4">
+            <div className="border-t border-gray-200 pt-3">
+              <div className="text-center py-4">
+                <span className="text-sm text-gray-400">Seja o primeiro a comentar!</span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Seção de Comentários */}
         <div className="border-t border-gray-200 pt-3">
-          <div className="flex gap-2">
+          {/* Contador de comentários */}
+          {messages.length > 0 && (
+            <div className="mb-2">
+              <span className="text-xs text-gray-500 font-medium">
+                {messages.length} comentário{messages.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+          
+          {/* Input para enviar comentário */}
+          <div className="flex gap-2 items-center">
+            <div className="flex-shrink-0 w-6 h-6 bg-[#a084e8] rounded-full flex items-center justify-center text-white text-xs font-bold">
+              {user?.user_metadata?.name?.charAt(0).toUpperCase() || 'U'}
+            </div>
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Adicione um comentário..."
-              className="flex-1 px-3 py-2 border-0 focus:outline-none text-sm bg-transparent"
+              className="flex-1 px-3 py-2 border-0 focus:outline-none text-sm bg-transparent placeholder-gray-400"
               disabled={sendingMessage}
             />
             <button
               onClick={handleSendMessage}
               disabled={!message.trim() || sendingMessage}
-              className="px-3 py-1 text-[#a084e8] font-semibold text-sm hover:text-[#8b5cf6] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 text-[#a084e8] font-semibold text-sm hover:text-[#8b5cf6] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
               {sendingMessage ? (
                 <div className="w-4 h-4 border-2 border-[#a084e8] border-t-transparent rounded-full animate-spin" />
               ) : (
-                'Enviar'
+                <>
+                  <Send className="w-3 h-3" />
+                  Enviar
+                </>
               )}
             </button>
           </div>
           
-          {/* Botão de debug temporário */}
-          <div className="mt-2">
-            <button
-              onClick={async () => {
-                console.log('=== DEBUG: TESTANDO TABELA ===');
-                try {
-                  const { data, error } = await supabase
-                    .from('prayer_messages' as any)
-                    .select('id')
-                    .limit(1);
-                  
-                  if (error) {
-                    console.log('❌ Erro:', error);
-                    alert('❌ Erro: ' + error.message);
-                  } else {
-                    console.log('✅ Tabela existe! Dados:', data);
-                    alert('✅ Tabela existe! Agora teste enviar uma mensagem.');
-                  }
-                } catch (err) {
-                  console.error('💥 Erro:', err);
-                  alert('💥 Erro: ' + err.message);
-                }
-              }}
-              className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
-            >
-              Debug: Testar Tabela
-            </button>
-          </div>
+
         </div>
       </div>
     </Card>
