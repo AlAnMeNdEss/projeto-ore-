@@ -346,10 +346,11 @@ const Index = () => {
                       </div>
                     ) : (
                       testimonies.map((testimony) => {
-                        // Usar nome real do usuário
-                        const userName = testimony.user?.user_metadata?.name || 
-                                       testimony.user?.email?.split('@')[0] || 
-                                       `Usuário ${testimony.user_id.slice(0, 8)}`;
+                        // Usar nome real do usuário se for o usuário logado, senão usar ID
+                        const isCurrentUser = user && testimony.user_id === user.id;
+                        const userName = isCurrentUser 
+                          ? (user.user_metadata?.name || user.email?.split('@')[0] || `Usuário ${testimony.user_id.slice(0, 8)}`)
+                          : `Usuário ${testimony.user_id.slice(0, 8)}`;
                         const userInitial = userName.charAt(0).toUpperCase();
                         
                         const canDelete = user && testimony.user_id === user.id;
