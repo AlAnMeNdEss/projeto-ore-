@@ -181,17 +181,30 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   }
 
   async function handleShareDevocional() {
-    // Prioriza compartilhar o conteúdo do modal, se aberto; caso contrário, o card
     const element = document.getElementById('devocional-modal-share') || document.getElementById('devocional-img-share');
     if (!element) return;
-    
+
     try {
-      // Aplicar classe para melhorar nitidez durante a captura
       element.classList.add('share-clean');
-      
-      // Aguardar um pouco para garantir que as imagens sejam renderizadas
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
+
+      // Aguarda todas as imagens internas carregarem
+      const images = Array.from(element.querySelectorAll('img')) as HTMLImageElement[];
+      await Promise.all(
+        images.map((img) => {
+          // Garante CORS para html2canvas
+          try { if (!img.crossOrigin) img.crossOrigin = 'anonymous'; } catch {}
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve(true);
+          return new Promise((resolve) => {
+            const onDone = () => { img.removeEventListener('load', onDone); img.removeEventListener('error', onDone); resolve(true); };
+            img.addEventListener('load', onDone);
+            img.addEventListener('error', onDone);
+          });
+        })
+      );
+
+      // Pequeno delay para render final
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
       const canvas = await html2canvas(element, {
         useCORS: true,
         allowTaint: true,
@@ -199,20 +212,16 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         logging: false,
         scale: 2,
         width: element.offsetWidth,
-        height: element.offsetHeight
+        height: element.offsetHeight,
       });
-      
+
       const dataUrl = canvas.toDataURL('image/png');
       const blob = await (await fetch(dataUrl)).blob();
-      const filesArray = [new File([blob], 'devocional.png', { type: 'image/png' })];
+      const filesArray = [new File([blob], 'devocional-ore-plus.png', { type: 'image/png' })];
       const appLink = 'https://ore-plus.vercel.app';
       const shareText = `${devocional || 'Devocional Diário'}\n\n📱 Baixe o app ORE+: ${appLink}`;
-      const shareData = {
-        files: filesArray,
-        title: 'Devocional Diário',
-        text: shareText
-      } as any;
-      
+      const shareData = { files: filesArray, title: 'Devocional Diário', text: shareText } as any;
+
       if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         await navigator.share(shareData);
       } else {
