@@ -476,12 +476,15 @@ const Index = () => {
                             </div>
 
                             {/* Conteúdo */}
-                            <div className="relative">
-                              <div className="absolute -left-1 -top-1 text-slate-300">“</div>
-                              <p className="text-slate-800 text-[15px] leading-relaxed whitespace-pre-line">
+                            <div className="relative overflow-hidden">
+                              <div className="absolute left-1 top-1 text-slate-300 select-none">“</div>
+                              <p
+                                className="text-slate-800 text-[15px] leading-relaxed whitespace-pre-wrap break-words"
+                                style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                              >
                                 {testimony.content}
                               </p>
-                              <div className="absolute -right-1 -bottom-4 text-slate-300">”</div>
+                              <div className="absolute right-1 bottom-1 text-slate-300 select-none">”</div>
                             </div>
                           </div>
                         );
