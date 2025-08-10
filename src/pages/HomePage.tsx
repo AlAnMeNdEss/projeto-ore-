@@ -456,13 +456,23 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     </span>
                   </div>
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
-                    <span className="text-white font-semibold leading-relaxed" style={{
-                      textShadow: '0 2px 8px rgba(0,0,0,.6)',
-                      fontSize: 18,
-                      maxWidth: 520
-                    }}>
+                    <p
+                      className="text-white font-semibold"
+                      style={{
+                        fontFamily: 'Cinzel, serif',
+                        fontSize: 22,
+                        lineHeight: 1.6,
+                        maxWidth: 560,
+                        margin: '0 auto',
+                        whiteSpace: 'pre-line',
+                        WebkitFontSmoothing: 'antialiased',
+                        textRendering: 'optimizeLegibility',
+                        textShadow: 'none',
+                        transform: 'translateZ(0)'
+                      }}
+                    >
                       {devocional}
-                    </span>
+                    </p>
                     {!!refUpper && (
                       <span className="brand-mark absolute bottom-8 left-1/2 -translate-x-1/2 text-white/95 font-bold tracking-widest text-xs select-none">
                         {refUpper}

@@ -462,7 +462,7 @@ All colors MUST be HSL.
     }
   }
 
-  /* Estado para captura em alta nitidez */
+  /* Nitidez para compartilhamento */
   .share-clean * {
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
