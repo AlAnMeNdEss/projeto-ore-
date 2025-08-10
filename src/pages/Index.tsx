@@ -442,31 +442,47 @@ const Index = () => {
                         
                         return (
                           <div key={testimony.id} className="mobile-card p-4">
-                            <div className="mb-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <h3 className="text-[#673AB7] font-bold text-lg">{testimony.title}</h3>
-                                {canDelete && (
-                                  <button
-                                    onClick={() => handleDeleteTestimony(testimony.id)}
-                                    className="text-red-500 hover:text-red-700 p-1 rounded transition-colors touch-ripple"
-                                    title="Apagar testemunho"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                    </svg>
-                                  </button>
-                                )}
+                            {/* Cabeçalho */}
+                            <div className="flex items-start gap-3 mb-3">
+                              <div className="relative">
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 p-[2px]">
+                                  <div className="w-full h-full rounded-[14px] bg-white/80 flex items-center justify-center">
+                                    <span className="text-teal-700 font-extrabold">{userInitial}</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-600 text-sm">
-                                  <span className="font-medium">Partilhado por:</span> {userName}
-                                </span>
-                                <span className="text-gray-500 text-xs">{formatDate(testimony.created_at)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <h3 className="text-[#0f172a] font-bold text-base truncate">{testimony.title}</h3>
+                                  {canDelete && (
+                                    <button
+                                      onClick={() => handleDeleteTestimony(testimony.id)}
+                                      className="text-red-500 hover:text-red-600 p-2 rounded-xl transition-colors touch-ripple"
+                                      title="Apagar testemunho"
+                                      aria-label="Apagar testemunho"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                                  <span className="truncate"><span className="font-medium text-slate-700">Partilhado por:</span> {userName}</span>
+                                  <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                  <span className="whitespace-nowrap">{formatDate(testimony.created_at)}</span>
+                                </div>
                               </div>
                             </div>
-                            <p className="text-gray-800 text-sm leading-relaxed">
-                              "{testimony.content}"
-                            </p>
+
+                            {/* Conteúdo */}
+                            <div className="relative">
+                              <div className="absolute -left-1 -top-1 text-slate-300">“</div>
+                              <p className="text-slate-800 text-[15px] leading-relaxed whitespace-pre-line">
+                                {testimony.content}
+                              </p>
+                              <div className="absolute -right-1 -bottom-4 text-slate-300">”</div>
+                            </div>
                           </div>
                         );
                       })
