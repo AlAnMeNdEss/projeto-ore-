@@ -110,27 +110,8 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   // Inicializar imagem selecionada quando o modal for aberto
   useEffect(() => {
     if (showDevocionalModal && !selectedImageForSharing) {
-      // Pré-carregar a imagem do dia
-      const preloadImage = async () => {
-        setImageLoading(true);
-        try {
-          await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = dailyImageUrl;
-          });
-          setSelectedImageForSharing(dailyImageUrl);
-          setCurrentImageIndex(DAILY_IMAGES.findIndex(img => img === dailyImageUrl));
-        } catch (error) {
-          console.error('Erro ao carregar imagem:', error);
-        } finally {
-          setImageLoading(false);
-        }
-      };
-      
-      preloadImage();
+      setSelectedImageForSharing(dailyImageUrl);
+      setCurrentImageIndex(DAILY_IMAGES.findIndex(img => img === dailyImageUrl));
     }
   }, [showDevocionalModal, dailyImageUrl, selectedImageForSharing]);
 
@@ -144,15 +125,6 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     setImageLoading(true);
     const nextIndex = (currentImageIndex + 1) % DAILY_IMAGES.length;
     const nextImage = DAILY_IMAGES[nextIndex];
-    
-    // Pré-carregar a próxima imagem
-    await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = nextImage;
-    });
     
     setCurrentImageIndex(nextIndex);
     setSelectedImageForSharing(nextImage);
@@ -213,33 +185,19 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     const element = document.getElementById('devocional-modal-share') || document.getElementById('devocional-img-share');
     if (!element) return;
     
-    // Se não há imagem selecionada, usa a imagem do dia
-    const imageToUse = selectedImageForSharing || dailyImageUrl;
-    
     try {
-      // Pré-carregar a imagem para garantir que esteja disponível
-      await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageToUse;
-      });
-      
-      // Aguardar um pouco para garantir que a imagem seja renderizada
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
       // Aplicar classe para melhorar nitidez durante a captura
       element.classList.add('share-clean');
+      
+      // Aguardar um pouco para garantir que as imagens sejam renderizadas
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       const canvas = await html2canvas(element, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        foreignObjectRendering: true,
-        imageTimeout: 15000,
         logging: false,
-        scale: 2, // Aumentar qualidade
+        scale: 2,
         width: element.offsetWidth,
         height: element.offsetHeight
       });
@@ -407,15 +365,16 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           onClick={() => setShowDevocionalModal(true)}
         >
           <div className="w-full aspect-[4/3] relative flex items-center justify-center">
-            <div
+            {/* Imagem de fundo como tag <img> para melhor captura */}
+            <img
+              src={dailyImageUrl}
+              alt="Imagem de fundo do devocional"
               className="absolute inset-0 w-full h-full object-cover"
               style={{
-                backgroundImage: `url(${dailyImageUrl})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
                 filter: 'brightness(0.7)',
                 zIndex: 1,
               }}
+              crossOrigin="anonymous"
             />
             {/* Marca topo (incluída na captura) */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 select-none">
@@ -461,13 +420,19 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         <div className="mobile-modal animate-fade-in">
           <div className="mobile-modal-content animate-bounce-in">
             {(() => {
-              const bgStyle = { backgroundImage: `url(${selectedImageForSharing || dailyImageUrl})` };
+              const imageToUse = selectedImageForSharing || dailyImageUrl;
               return (
                 <div
                   id="devocional-modal-share"
-                  className="w-full aspect-square bg-cover bg-center flex items-center justify-center relative rounded-2xl"
-                  style={bgStyle as any}
+                  className="w-full aspect-square relative flex items-center justify-center rounded-2xl overflow-hidden"
                 >
+                  {/* Imagem de fundo como tag <img> para melhor captura */}
+                  <img
+                    src={imageToUse}
+                    alt="Imagem de fundo do devocional"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
                   <div className="absolute inset-0 bg-black/40 rounded-2xl" />
                   {/* Marca topo (incluída na captura) */}
                   <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 select-none">
