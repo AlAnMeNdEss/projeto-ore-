@@ -1,0 +1,5 @@
+[33m7adbecd[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: implementar nome real do usuário nos testemunhos - Mostra nome real do usuário logado nos seus próprios testemunhos - Outros usuários são exibidos como 'Usuário [ID]' para privacidade - Integração completa com Supabase funcionando
+[33mdf2a423[m feat: remover ícone de perfil e alterar texto para 'Partilhado por:'
+[33mb46540e[m feat: mostrar nome real do usuário nos cards de testemunhos
+[33mc35bdfa[m feat: permitir que usuários deletem seus próprios testemunhos
+[33m3c6b348[m feat: implementar listagem de testemunhos reais do Supabase com Realtime

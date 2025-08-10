@@ -1,125 +1,111 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { X, Download, Smartphone, Gift, Star, Heart } from 'lucide-react';
-import { usePWA } from '@/hooks/usePWA';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Download, X, Smartphone, Star } from 'lucide-react';
 
-export function InstallNotification() {
-  const [showNotification, setShowNotification] = useState(true);
+interface InstallNotificationProps {
+  onInstall: () => void;
+  onDismiss: () => void;
+}
+
+export function InstallNotification({ onInstall, onDismiss }: InstallNotificationProps) {
+  const [isVisible, setIsVisible] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
-  
-  const {
-    isInstallable,
-    isInstalled,
-    isIOS,
-    isAndroid,
-    isStandalone,
-    installApp,
-  } = usePWA();
+
+  useEffect(() => {
+    // Mostrar a notificação após um pequeno delay
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInstall = async () => {
-    if (isInstallable) {
-      setIsInstalling(true);
-      try {
-        await installApp();
-      } catch (error) {
-        console.error('Erro na instalação:', error);
-      } finally {
-        setIsInstalling(false);
-      }
-    } else if (isIOS) {
-      // Mostrar instruções para iOS
-      const message = `
-📱 Como instalar o Ore+ no iPhone:
-
-1️⃣ Toque no botão "Compartilhar" (📤) no Safari
-2️⃣ Role para baixo e toque em "Adicionar à Tela Inicial"
-3️⃣ Toque em "Adicionar"
-
-Agora o Ore+ aparecerá na sua tela inicial como um app! 🎉
-      `;
-      alert(message);
+    setIsInstalling(true);
+    try {
+      await onInstall();
+    } catch (error) {
+      console.error('Erro na instalação:', error);
+    } finally {
+      setIsInstalling(false);
     }
   };
 
-  const getInstallText = () => {
-    if (isInstalling) return "Instalando...";
-    if (isIOS) return "Instalar no iPhone";
-    if (isAndroid) return "Instalar App";
-    return "Instalar App";
+  const handleDismiss = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onDismiss();
+    }, 300);
   };
-
-  const getBenefits = () => {
-    return [
-      { icon: <Heart className="h-4 w-4" />, text: "Acesso offline às orações" },
-      { icon: <Gift className="h-4 w-4" />, text: "Notificações de novas orações" },
-      { icon: <Star className="h-4 w-4" />, text: "Experiência como app nativo" },
-    ];
-  };
-
-  if (isStandalone || isInstalled || !showNotification) {
-    return null;
-  }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-sm mx-auto">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-slide-up">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] text-white p-4 relative">
-          <button
-            onClick={() => setShowNotification(false)}
-            className="absolute top-3 right-3 text-white/70 hover:text-white"
-          >
-            <X className="h-4 w-4" />
-          </button>
-          
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 rounded-full p-2">
-              <Download className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-lg">Instalar Ore+</h3>
-              <p className="text-sm opacity-90">Tenha uma experiência completa</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-4">
-          <div className="space-y-3 mb-4">
-            {getBenefits().map((benefit, index) => (
-              <div key={index} className="flex items-center gap-3 text-sm text-gray-600">
-                <div className="text-purple-500">
-                  {benefit.icon}
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="fixed bottom-20 left-4 right-4 z-50 safe-area-bottom"
+        >
+          <div className="mobile-card p-4 shadow-mobile-xl border border-gray-200/50">
+            <div className="flex items-start gap-3">
+              {/* Ícone */}
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                  <Smartphone className="w-6 h-6 text-white" />
                 </div>
-                <span>{benefit.text}</span>
               </div>
-            ))}
-          </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={handleInstall}
-              disabled={isInstalling}
-              className="flex-1 bg-gradient-to-r from-[#8b5cf6] to-[#6d28d9] hover:from-[#7c3aed] hover:to-[#5b21b6] text-white font-semibold"
-            >
-              {isInstalling ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-              ) : (
-                <Smartphone className="h-4 w-4 mr-2" />
-              )}
-              {getInstallText()}
-            </Button>
-            
-            <Button
-              onClick={() => setShowNotification(false)}
-              variant="outline"
-              className="px-3"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+              {/* Conteúdo */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="mobile-text-medium text-gray-800">Instalar App</h3>
+                  <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                </div>
+                <p className="mobile-text-caption text-gray-600 mb-3">
+                  Instale o Silent Prayers no seu dispositivo para uma experiência melhor
+                </p>
+
+                {/* Botões */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleInstall}
+                    disabled={isInstalling}
+                    className="mobile-button-primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    {isInstalling ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Instalando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        Instalar
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleDismiss}
+                    className="mobile-button-secondary px-4"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Indicador de progresso sutil */}
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 8, ease: "linear" }}
+              className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-b-2xl"
+            />
           </div>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 } 

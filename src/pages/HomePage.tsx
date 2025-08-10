@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Users, Plus, Sparkles, X, Pencil } from 'lucide-react';
+import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp } from 'lucide-react';
 import { User as UserIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -173,7 +173,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto pb-[90px]"
+      className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto pb-[100px] mobile-scroll"
       style={{
         backgroundImage: `url(${loginBackground})`,
         backgroundSize: 'cover',
@@ -184,94 +184,110 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         position: 'relative',
       }}
     >
-      {/* Topo estilizado igual ao exemplo da imagem, com padding lateral igual aos cards */}
-      <div className="w-full max-w-md mx-auto px-2">
-        <div className="flex items-start justify-between w-full px-4 pt-6 pb-4 mb-2">
-            <div className="flex flex-col gap-1">
-            <span className="text-3xl sm:text-4xl font-extrabold text-white leading-tight" style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>
-                Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
-              </span>
-            <span className="text-lg sm:text-xl text-white font-normal mt-1" style={{textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>
-              que a paz esteja consigo!
-            </span>
+      {/* Status bar mobile */}
+      <div className="mobile-status-bar safe-area-top" />
+      
+      {/* Header moderno */}
+      <div className="mobile-container w-full">
+        <div className="flex items-start justify-between w-full pt-8 pb-6 mb-4">
+          <div className="flex flex-col gap-2">
+            <motion.span 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl sm:text-4xl font-extrabold text-white leading-tight" 
+              style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}
+            >
+              Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
+            </motion.span>
+            <motion.span 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-lg sm:text-xl text-white font-normal" 
+              style={{textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}
+            >
+              que a paz esteja consigo! 🙏
+            </motion.span>
           </div>
-          <button className="rounded-full bg-white/80 p-2 mt-1 shadow border border-white/30" aria-label="Perfil" onClick={() => navigate('/perfil')}>
-            <UserIcon className="w-8 h-8 text-[#38b6ff]" />
-          </button>
+          <motion.button 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mobile-button-floating w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/30 touch-ripple" 
+            aria-label="Perfil" 
+            onClick={() => navigate('/perfil')}
+          >
+            <UserIcon className="w-6 h-6 text-blue-500" />
+          </motion.button>
         </div>
       </div>
-      {/* Saudação removida daqui, agora está no topo */}
-      {/* Container principal com padding lateral igual para todos os cards e imagem */}
-      <div className="w-full max-w-md mx-auto px-2">
+
+      {/* Container principal */}
+      <div className="mobile-container w-full">
         {/* Card de Resumo da Comunidade */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full rounded-2xl shadow-lg p-5 flex flex-col items-center mb-4 mt-8"
-          style={{
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: '0 2px 16px #23232b',
-            border: '1px solid #fff4',
-          }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mobile-card-glass w-full p-6 mb-6"
         >
-          <h2 className="text-lg font-bold text-[#38b6ff] mb-2 text-center" style={{letterSpacing: -0.5}}>Resumo da Comunidade</h2>
-          <div className="flex w-full justify-around mt-4 gap-4 border-t border-white/30 pt-3">
-            <div className="flex flex-col items-center">
-              <span className="text-3xl font-extrabold text-[#38b6ff] leading-none" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>{communitySummary.totalOracoes}</span>
-              <span className="text-xs text-[#38b6ff] mt-1">Orações Totais</span>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="mobile-text-medium text-blue-600">Resumo da Comunidade</h2>
+            <TrendingUp className="w-5 h-5 text-blue-500" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-xl">
+              <span className="mobile-text-large text-blue-600 leading-none">{communitySummary.totalOracoes}</span>
+              <p className="mobile-text-caption text-blue-600 mt-1">Orações Totais</p>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="text-3xl font-extrabold text-[#38b6ff] leading-none" style={{textShadow: '0 2px 8px rgba(56,182,255,0.18), 0 1px 2px #fff'}}>{communitySummary.totalPedidos}</span>
-              <span className="text-xs text-[#38b6ff] mt-1">Pedidos Totais</span>
+            <div className="text-center p-4 bg-green-50 rounded-xl">
+              <span className="mobile-text-large text-green-600 leading-none">{communitySummary.totalPedidos}</span>
+              <p className="mobile-text-caption text-green-600 mt-1">Pedidos Totais</p>
             </div>
           </div>
         </motion.div>
-        {/* Dois cards de ação lado a lado */}
-        <div className="w-full flex flex-row gap-4 mb-4">
-          <button
-            className="flex-1 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-white/30 hover:scale-105 transition-transform duration-200"
-            style={{
-              background: 'rgba(255,255,255,0.75)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              boxShadow: '0 2px 12px #23232b',
-            }}
+
+        {/* Cards de ação */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <motion.button
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mobile-card p-6 flex flex-col items-center justify-center touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
             onClick={onFazerPedido}
           >
-            <Plus className="w-8 h-8 text-[#38b6ff] mb-2" />
-            <span className="text-lg font-bold text-[#38b6ff] text-center leading-tight">Fazer<br/>Pedido</span>
-          </button>
-          <button
-            className="flex-1 rounded-2xl shadow-md flex flex-col items-center justify-center py-6 px-3 min-w-[110px] border border-white/30 hover:scale-105 transition-transform duration-200"
-            style={{
-              background: 'rgba(255,255,255,0.75)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              boxShadow: '0 2px 12px #23232b',
-            }}
+            <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center mb-3">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+            <span className="mobile-text-medium text-gray-800 text-center">Fazer<br/>Pedido</span>
+          </motion.button>
+          
+          <motion.button
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mobile-card p-6 flex flex-col items-center justify-center touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
             onClick={onVerComunidade}
           >
-            <Users className="w-8 h-8 text-[#38b6ff] mb-2" />
-            <span className="text-lg font-bold text-[#38b6ff] text-center leading-tight">Ver<br/>Comunidade</span>
-          </button>
+            <div className="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center mb-3">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <span className="mobile-text-medium text-gray-800 text-center">Ver<br/>Comunidade</span>
+          </motion.button>
         </div>
-        {/* Card de Devocional Diário estilo antigo, centralizado, mantendo proporções e botões na base */}
-        <div
+
+        {/* Card de Devocional Diário */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
           id="devocional-img-share"
-          className="w-full rounded-2xl shadow-lg flex flex-col items-center p-0 mb-4 overflow-hidden relative border border-white/30"
-          style={{
-            background: 'rgba(255,255,255,0.75)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: '0 4px 24px #23232b',
-          }}
+          className="mobile-card overflow-hidden relative"
         >
-          <div className="w-full aspect-[5/3] relative flex items-center justify-center">
+          <div className="w-full aspect-[4/3] relative flex items-center justify-center">
             <div
-              className="absolute inset-0 w-full h-full object-cover rounded-2xl"
+              className="absolute inset-0 w-full h-full object-cover"
               style={{
                 backgroundImage: 'url(https://th.bing.com/th/id/R.86a01e8b78df22918aff8d7f338054f0?rik=Q0Bo3%2bvuSIaRMA&pid=ImgRaw&r=0)',
                 backgroundSize: 'cover',
@@ -280,68 +296,58 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                 zIndex: 1,
               }}
             />
-            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-4 pb-4">
-              <span className="text-base font-semibold text-gray-200 mb-1 drop-shadow-lg text-center" style={{letterSpacing: 0.5}}>Versículo do Dia</span>
-              <span className="text-xl font-bold text-gray-100 mb-2 drop-shadow-lg text-center">Salmos 33:5 NTLH</span>
+            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-6 pb-20">
+              <span className="mobile-text-caption text-gray-200 mb-2 drop-shadow-lg text-center">Versículo do Dia</span>
+              <span className="mobile-text-medium text-gray-100 mb-3 drop-shadow-lg text-center">Salmos 33:5 NTLH</span>
               {devocional && (
-                <span className="px-3 py-2 bg-black/30 rounded-xl text-gray-100 text-center text-base font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-2" style={{backdropFilter: 'blur(2px)'}}>
+                <span className="px-4 py-3 bg-black/40 backdrop-blur-sm rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4">
                   {devocional}
                 </span>
               )}
             </div>
-            {/* Botões na parte de baixo da imagem com contadores simulados */}
-            <div className="w-full flex items-center justify-center gap-16 py-3 bg-gradient-to-t from-black/40 to-transparent absolute left-0 bottom-0 z-20">
-              <div className="flex flex-col items-center">
-                <button
-                  className="flex flex-col items-center text-gray-300 hover:text-pink-400 transition"
-                  aria-label="Curtir devocional"
-                  // onClick={...} // Aqui pode adicionar lógica de curtir se desejar
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                  </svg>
+            
+            {/* Botões de interação */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+              <div className="flex items-center justify-center gap-8">
+                <button className="flex flex-col items-center text-gray-300 hover:text-pink-400 transition-colors touch-ripple">
+                  <Heart className="w-6 h-6 mb-1" />
+                  <span className="mobile-text-caption">{formatarNumero(devocionalLikes)}</span>
                 </button>
-                <span className="text-gray-300 text-base font-semibold mt-1 select-none">{formatarNumero(devocionalLikes)}</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <button
-                  className="flex flex-col items-center text-gray-300 hover:text-[#a084e8] transition"
+                <button 
+                  className="flex flex-col items-center text-gray-300 hover:text-blue-400 transition-colors touch-ripple"
                   onClick={handleShareDevocional}
-                  aria-label="Compartilhar devocional"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12v.01M12 4v.01M20 12v.01M12 20v.01M8.464 8.464l.01.01M15.536 8.464l.01.01M15.536 15.536l.01.01M8.464 15.536l.01.01" />
-                  </svg>
+                  <Share2 className="w-6 h-6 mb-1" />
+                  <span className="mobile-text-caption">{formatarNumero(devocionalShares)}</span>
                 </button>
-                <span className="text-gray-300 text-base font-semibold mt-1 select-none">{formatarNumero(devocionalShares)}</span>
               </div>
             </div>
           </div>
-        </div>
-        {/* Remover botão de compartilhar abaixo da imagem */}
+        </motion.div>
       </div>
-      {/* Modal de visualização do devocional em destaque */}
+
+      {/* Modal de visualização do devocional */}
       {showDevocionalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-slide-in">
-          <div className="relative w-full max-w-md mx-auto rounded-3xl overflow-hidden shadow-2xl">
+        <div className="mobile-modal animate-fade-in">
+          <div className="mobile-modal-content animate-bounce-in">
             <div
-              className="w-full aspect-[4/5] bg-cover bg-center flex items-center justify-center relative"
+              className="w-full aspect-[4/5] bg-cover bg-center flex items-center justify-center relative rounded-2xl"
               style={{
                 backgroundImage: 'url(https://th.bing.com/th/id/R.86a01e8b78df22918aff8d7f338054f0?rik=Q0Bo3%2bvuSIaRMA&pid=ImgRaw&r=0)',
               }}
             >
-              <div className="absolute inset-0 bg-black/40 rounded-3xl" />
+              <div className="absolute inset-0 bg-black/40 rounded-2xl" />
               <div className="relative z-10 w-full flex flex-col items-center justify-center px-6">
-                <span className="text-white text-xl sm:text-2xl font-bold text-center drop-shadow-lg" style={{textShadow: '0 2px 8px #000'}}>
+                <span className="text-white mobile-text-large text-center drop-shadow-lg" style={{textShadow: '0 2px 8px #000'}}>
                   {devocional}
                 </span>
               </div>
               <button
-                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 rounded-full p-2 text-white z-20"
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 rounded-full p-2 text-white z-20 touch-ripple"
                 onClick={e => { e.stopPropagation(); setShowDevocionalModal(false); }}
                 aria-label="Fechar"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
           </div>

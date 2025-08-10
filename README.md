@@ -1,73 +1,200 @@
-# Welcome to your Lovable project
+# Silent Prayers - Comunidade de Oração
 
-## Project info
+Uma aplicação moderna de oração compartilhada com design mobile-first e experiência nativa.
 
-**URL**: https://lovable.dev/projects/03ba5493-8f2c-4717-bfa9-d1f237f22627
+## 🚀 Características
 
-## How can I edit this code?
+### ✨ Design Mobile Moderno
+- **Interface nativa**: Design inspirado em apps mobile modernos
+- **Animações suaves**: Transições e efeitos visuais fluidos
+- **Touch-friendly**: Otimizado para interação por toque
+- **Responsivo**: Adapta-se perfeitamente a diferentes tamanhos de tela
 
-There are several ways of editing your application.
+### 📱 Experiência Mobile
+- **Navegação por abas**: Interface intuitiva com navegação inferior
+- **Cards modernos**: Design de cartões com glassmorphism
+- **Botões flutuantes**: Ações principais facilmente acessíveis
+- **Safe areas**: Suporte para dispositivos com notch
+- **PWA**: Instalável como app nativo
 
-**Use Lovable**
+### 🙏 Funcionalidades de Oração
+- **Pedidos de oração**: Compartilhe suas necessidades
+- **Comunidade global**: Conecte-se com outros fiéis
+- **Bíblia integrada**: Leia e pesquise versículos
+- **Testemunhos**: Compartilhe experiências de fé
+- **Grupos privados**: Crie comunidades específicas
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/03ba5493-8f2c-4717-bfa9-d1f237f22627) and start prompting.
+### 🎨 Design System
+- **Cores modernas**: Paleta de cores mobile-first
+- **Tipografia responsiva**: Escalas de texto otimizadas
+- **Componentes reutilizáveis**: Sistema de design consistente
+- **Efeitos visuais**: Sombras, blur e gradientes modernos
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tecnologias
 
-**Use your preferred IDE**
+- **React 18** com TypeScript
+- **Tailwind CSS** com design system customizado
+- **Framer Motion** para animações
+- **Supabase** para backend e autenticação
+- **PWA** com service workers
+- **Lucide React** para ícones
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 📱 Melhorias Mobile Implementadas
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Interface
+- ✅ Barra de navegação inferior moderna
+- ✅ Cards com glassmorphism
+- ✅ Botões com efeitos de toque
+- ✅ Animações de entrada e saída
+- ✅ Status bar mobile
+- ✅ Safe areas para dispositivos com notch
 
-Follow these steps:
+### Interação
+- ✅ Efeitos de ripple nos botões
+- ✅ Transições suaves
+- ✅ Feedback visual imediato
+- ✅ Gestos de swipe
+- ✅ Scroll otimizado para touch
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Performance
+- ✅ Lazy loading de componentes
+- ✅ Animações otimizadas
+- ✅ Código dividido (code splitting)
+- ✅ Cache inteligente
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Acessibilidade
+- ✅ Navegação por teclado
+- ✅ Screen readers
+- ✅ Contraste adequado
+- ✅ Tamanhos de toque apropriados
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🚀 Como Executar
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/silent-prayers-shared-2.git
+cd silent-prayers-shared-2
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente**
+```bash
+cp env.example .env.local
+# Edite o arquivo .env.local com suas credenciais do Supabase
+```
+
+4. **Execute o projeto**
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+5. **Acesse no navegador**
+```
+http://localhost:5173
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 📱 Instalação PWA
 
-**Use GitHub Codespaces**
+### Android/Chrome
+1. Abra o site no Chrome
+2. Toque no ícone de instalação na barra de endereços
+3. Confirme a instalação
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### iOS/Safari
+1. Abra o site no Safari
+2. Toque no botão "Compartilhar"
+3. Selecione "Adicionar à Tela Inicial"
+4. Confirme a instalação
 
-## What technologies are used for this project?
+## 🎨 Componentes Mobile
 
-This project is built with:
+### Cards
+```tsx
+<div className="mobile-card p-6">
+  {/* Conteúdo do card */}
+</div>
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Botões
+```tsx
+<button className="mobile-button-primary">
+  Botão Principal
+</button>
 
-## How can I deploy this project?
+<button className="mobile-button-secondary">
+  Botão Secundário
+</button>
 
-Simply open [Lovable](https://lovable.dev/projects/03ba5493-8f2c-4717-bfa9-d1f237f22627) and click on Share -> Publish.
+<button className="mobile-button-floating">
+  Botão Flutuante
+</button>
+```
 
-## Can I connect a custom domain to my Lovable project?
+### Navegação
+```tsx
+<BottomNavBar 
+  activeTab={activeTab} 
+  setActiveTab={setActiveTab} 
+/>
+```
 
-Yes, you can!
+### Modais
+```tsx
+<div className="mobile-modal">
+  <div className="mobile-modal-content">
+    {/* Conteúdo do modal */}
+  </div>
+</div>
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 📊 Estrutura do Projeto
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+```
+src/
+├── components/          # Componentes reutilizáveis
+│   ├── ui/             # Componentes base (shadcn/ui)
+│   ├── BottomNavBar.tsx # Navegação inferior
+│   ├── HomePage.tsx    # Página inicial
+│   └── ...
+├── pages/              # Páginas da aplicação
+├── hooks/              # Hooks customizados
+├── types/              # Definições de tipos
+├── lib/                # Utilitários
+└── index.css           # Estilos globais e design system
+```
+
+## 🎯 Próximas Melhorias
+
+- [ ] Modo escuro automático
+- [ ] Notificações push
+- [ ] Sincronização offline
+- [ ] Compartilhamento de versículos
+- [ ] Áudio de orações
+- [ ] Calendário de eventos
+- [ ] Integração com redes sociais
+
+## 🤝 Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🙏 Agradecimentos
+
+- Comunidade de oração que inspira este projeto
+- Contribuidores e testadores
+- Tecnologias open source que tornam isso possível
+
+---
+
+**Silent Prayers** - Conectando corações através da oração 🙏✨

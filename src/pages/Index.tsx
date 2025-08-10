@@ -20,6 +20,8 @@ import { useLocation } from 'react-router-dom';
 import backgroundClouds from '../assets/src/assets/background-clouds.jpg';
 import { TestimonyForm } from '@/components/TestimonyForm';
 import { useTestimonies } from '@/hooks/useTestimonies';
+import { GroupForm } from '@/components/GroupForm';
+import { useGroups } from '@/hooks/useGroups';
 
 const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
 
@@ -33,6 +35,7 @@ const Index = () => {
   const { user, loading, signOut } = useAuth();
   const { requests } = usePrayerRequests();
   const { testimonies, loading: loadingTestimonies, deleteTestimony } = useTestimonies();
+  const { myGroups, loading: loadingGroups, createGroup } = useGroups();
   const [showAuth, setShowAuth] = useState(false);
   const location = useLocation();
   
@@ -54,7 +57,9 @@ const Index = () => {
   const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
   const [entrouNoMural, setEntrouNoMural] = useState(false);
+  const [entrouNosGrupos, setEntrouNosGrupos] = useState(false);
   const [showTestimonyForm, setShowTestimonyForm] = useState(false);
+  const [showGroupForm, setShowGroupForm] = useState(false);
   
   // Garantir que o estado seja resetado ao entrar na aba comunidades
   useEffect(() => {
@@ -62,6 +67,7 @@ const Index = () => {
       console.log('Entrou na aba comunidades - resetando estados');
       setEntrouNaComunidade(false);
       setEntrouNoMural(false);
+      setEntrouNosGrupos(false);
     }
   }, [activeTab]);
   // Sempre que mudar para a aba 'comunidades', reseta para false
@@ -81,6 +87,7 @@ const Index = () => {
       console.log('Resetando estados - mudou para aba:', activeTab);
       setEntrouNaComunidade(false);
       setEntrouNoMural(false);
+      setEntrouNosGrupos(false);
     }
   }, [activeTab]);
 
@@ -265,8 +272,8 @@ const Index = () => {
           <HomePage user={user} onFazerPedido={() => setShowCreateModalInicio(true)} onVerComunidade={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }} />
           {showCreateModalInicio && (
             <>
-              <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" />
-              <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="mobile-modal" />
+              <div className="mobile-modal-content">
                 <PrayerRequestForm onSent={() => setShowCreateModalInicio(false)} onCancel={() => setShowCreateModalInicio(false)} />
               </div>
             </>
@@ -277,7 +284,7 @@ const Index = () => {
     }
     if (activeTab === 'comunidades') {
       return (
-        <div className={`min-h-screen w-full flex flex-col items-center px-0 ${entrouNaComunidade ? 'relative' : ''}`}
+        <div className={`min-h-screen w-full flex flex-col items-center px-0 ${entrouNaComunidade ? 'relative' : 'overflow-y-auto'}`}
           style={entrouNaComunidade ? { 
             background: "#23232b url('https://todoendios.com/wp-content/uploads/2021/09/web3-cross-easter-sunrise-dark-shutterstock_381056461-shutterstock.jpg') center center / cover no-repeat", 
             backgroundAttachment: 'fixed' 
@@ -304,8 +311,8 @@ const Index = () => {
               position: 'relative',
               zIndex: 1,
             }} className="w-full flex flex-col items-center">
-              <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
-                <button onClick={() => setEntrouNaComunidade(false)} className="mr-2 p-2 rounded-full hover:bg-white/20 transition">
+              <div className="mobile-container w-full pt-8 pb-4 flex items-center">
+                <button onClick={() => setEntrouNaComunidade(false)} className="mr-3 p-2 rounded-2xl hover:bg-white/20 transition-all duration-200 touch-ripple">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                 </button>
                 <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)' }}>Comunidade Global</h1>
@@ -315,11 +322,94 @@ const Index = () => {
               {/* Botões Ver Pedidos e Criar Pedido removidos */}
               <PrayerApp activeTab={pedidosTab} />
             </div>
+          ) : entrouNosGrupos ? (
+            <>
+              <div className="w-full flex flex-col items-center" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="mobile-container w-full pt-8 pb-4 flex items-center">
+                  <button onClick={() => setEntrouNosGrupos(false)} className="mr-3 p-2 rounded-2xl hover:bg-white/20 transition-all duration-200 touch-ripple">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                  </button>
+                  <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)' }}>Meus Grupos</h1>
+                  <div style={{width: 40}} />
+                </div>
+                <div className="w-full max-w-xl mx-auto border-b border-white/30 mb-4"></div>
+                {/* Conteúdo dos Meus Grupos */}
+                <div className="mobile-container w-full">
+                  <div className="text-center text-white/80 mb-8">
+                    <p className="text-lg">Gerencie seus grupos de oração</p>
+                    <p className="text-sm mt-2">Crie e participe de grupos privados</p>
+                  </div>
+                  
+                  {/* Lista de grupos */}
+                  <div className="mobile-spacing mb-6">
+                    {loadingGroups ? (
+                      <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <p className="text-white/60 mt-2">Carregando grupos...</p>
+                      </div>
+                    ) : myGroups.length === 0 ? (
+                      <div className="mobile-card-glass p-6 border border-white/20">
+                        <div className="text-center text-white/80">
+                          <p className="text-lg font-semibold mb-2">Nenhum grupo ainda</p>
+                          <p className="text-sm">Crie seu primeiro grupo de oração</p>
+                        </div>
+                      </div>
+                    ) : (
+                      myGroups.map((group) => (
+                        <div key={group.id} className="mobile-card-glass p-4 border border-white/20">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-white font-semibold text-lg">{group.name}</h3>
+                              {group.description && (
+                                <p className="text-white/70 text-sm mt-1">{group.description}</p>
+                              )}
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className={`mobile-badge ${
+                                  group.is_private 
+                                    ? 'mobile-badge-error' 
+                                    : 'mobile-badge-success'
+                                }`}>
+                                  {group.is_private ? 'Privado' : 'Público'}
+                                </span>
+                                <span className="text-white/50 text-xs">
+                                  Criado em {new Date(group.created_at).toLocaleDateString('pt-BR')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  
+                  {/* Botão para criar novo grupo */}
+                  <div className="text-center">
+                    <button
+                      onClick={() => setShowGroupForm(true)}
+                      className="mobile-button-primary"
+                    >
+                      + Criar Novo Grupo
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Formulário de criação de grupos */}
+              {showGroupForm && (
+                <GroupForm
+                  onSent={() => {
+                    setShowGroupForm(false);
+                    // Os grupos serão atualizados automaticamente via Realtime
+                  }}
+                  onCancel={() => setShowGroupForm(false)}
+                />
+              )}
+            </>
           ) : entrouNoMural ? (
             <>
               <div className="w-full flex flex-col items-center" style={{ position: 'relative', zIndex: 1 }}>
-                <div className="w-full max-w-xl mx-auto pt-8 pb-4 flex items-center">
-                  <button onClick={() => setEntrouNoMural(false)} className="mr-2 p-2 rounded-full hover:bg-white/20 transition">
+                <div className="mobile-container w-full pt-8 pb-4 flex items-center">
+                  <button onClick={() => setEntrouNoMural(false)} className="mr-3 p-2 rounded-2xl hover:bg-white/20 transition-all duration-200 touch-ripple">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-7 h-7 text-[#23232b]"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
                   </button>
                   <h1 className="text-3xl font-extrabold text-white mb-4 text-center flex-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)' }}>Mural de Testemunhos</h1>
@@ -327,13 +417,13 @@ const Index = () => {
                 </div>
                 <div className="w-full max-w-xl mx-auto border-b border-white/30 mb-4"></div>
                 {/* Conteúdo do Mural de Testemunhos */}
-                <div className="w-full max-w-xl mx-auto px-4">
+                <div className="mobile-container w-full">
                   <div className="text-center text-white/80 mb-8">
                     <p className="text-lg">Compartilhe e leia testemunhos de fé</p>
                     <p className="text-sm mt-2">Em breve você poderá compartilhar suas experiências aqui</p>
                   </div>
                   {/* Listagem de testemunhos reais */}
-                  <div className="space-y-4">
+                  <div className="mobile-spacing">
                     {loadingTestimonies ? (
                       <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#673AB7]"></div>
@@ -349,21 +439,21 @@ const Index = () => {
                         // Usar nome real do usuário se for o usuário logado, senão usar ID
                         const isCurrentUser = user && testimony.user_id === user.id;
                         const userName = isCurrentUser 
-                          ? (user.user_metadata?.name || user.email?.split('@')[0] || `Usuário ${testimony.user_id.slice(0, 8)}`)
+                          ? (user.user_metadata?.username || user.user_metadata?.name || user.email?.split('@')[0] || `Usuário ${testimony.user_id.slice(0, 8)}`)
                           : `Usuário ${testimony.user_id.slice(0, 8)}`;
                         const userInitial = userName.charAt(0).toUpperCase();
                         
                         const canDelete = user && testimony.user_id === user.id;
                         
                         return (
-                          <div key={testimony.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-md">
+                          <div key={testimony.id} className="mobile-card p-4">
                             <div className="mb-3">
                               <div className="flex items-center justify-between mb-1">
                                 <h3 className="text-[#673AB7] font-bold text-lg">{testimony.title}</h3>
                                 {canDelete && (
                                   <button
                                     onClick={() => handleDeleteTestimony(testimony.id)}
-                                    className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                                    className="text-red-500 hover:text-red-700 p-1 rounded transition-colors touch-ripple"
                                     title="Apagar testemunho"
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -392,15 +482,14 @@ const Index = () => {
               
               {/* Botão flutuante para adicionar testemunho */}
               <button
-                className="fixed right-6 z-50 w-16 h-16 rounded-full bg-[#7c3aed] text-white text-4xl flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-[#a084e8]/40"
+                className="mobile-button-floating"
                 aria-label="Adicionar Testemunho"
                 onClick={() => {
                   console.log('Botão adicionar testemunho clicado!');
                   setShowTestimonyForm(true);
                 }}
-                style={{ position: 'fixed', bottom: 32, right: 24 }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
               </button>
@@ -418,12 +507,12 @@ const Index = () => {
             </>
           ) : (
             <>
-              <div className="w-full max-w-xl mx-auto pt-8 pb-4 relative z-10">
+              <div className="mobile-container w-full pt-8 pb-4 relative z-10 overflow-y-auto min-h-screen">
                 <h1 className="text-4xl font-extrabold text-white mb-2 text-center" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>Comunidades</h1>
                 <p className="text-lg text-white mb-6 text-center font-semibold" style={{textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>Participe num grupo de oração</p>
                 <div className="w-full flex flex-col items-center justify-center">
                   <button
-                    className="max-w-md w-full flex flex-col sm:flex-row items-center justify-center gap-3 bg-[#673AB7] text-white text-2xl font-bold px-8 py-6 rounded-2xl border border-[#673AB7] hover:bg-[#5e35b1] transition-all duration-200 mb-6 cursor-pointer"
+                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
                     style={{ 
                       minHeight: 90,
                       boxShadow: '0 8px 32px rgba(103, 58, 183, 0.4), 0 4px 16px rgba(103, 58, 183, 0.3), 0 2px 8px rgba(103, 58, 183, 0.2)',
@@ -441,7 +530,7 @@ const Index = () => {
                   
                   {/* Botão Mural de Testemunhos */}
                   <button
-                    className="max-w-md w-full flex flex-col sm:flex-row items-center justify-center gap-3 bg-white text-[#673AB7] text-2xl font-bold px-8 py-6 rounded-2xl border border-white hover:bg-gray-50 transition-all duration-200 mb-6 cursor-pointer"
+                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
                     style={{ 
                       minHeight: 90,
                       boxShadow: '0 8px 32px rgba(255, 255, 255, 0.4), 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(255, 255, 255, 0.2)',
@@ -459,8 +548,30 @@ const Index = () => {
                     </span>
                     <span className="text-center w-full">Mural de Testemunhos</span>
                   </button>
+                  
+                  {/* Botão Meus Grupos */}
+                  <button
+                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
+                    style={{ 
+                      minHeight: 90,
+                      boxShadow: '0 8px 32px rgba(255, 255, 255, 0.4), 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(255, 255, 255, 0.2)',
+                      filter: 'drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3))'
+                    }}
+                    onClick={() => {
+                      console.log('Botão Meus Grupos clicado!');
+                      setEntrouNosGrupos(true);
+                    }}
+                    tabIndex={0}
+                    aria-label="Acessar Meus Grupos"
+                  >
+                    <span className="flex items-center justify-center mb-2 sm:mb-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-[#673AB7] mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
+                    </span>
+                    <span className="text-center w-full">Meus Grupos</span>
+                  </button>
                 </div>
               </div>
+              <div className="pb-20"></div>
               <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
             </>
           )}
@@ -471,6 +582,56 @@ const Index = () => {
       return (
         <div className="min-h-screen w-full bg-[#f6eaff]">
           <Biblia />
+          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
+      );
+    }
+    if (activeTab === 'perfil') {
+      return (
+        <div
+          {...handlers}
+          className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden mobile-scroll"
+          style={{ background: '#18181b' }}
+        >
+          <div className="mobile-container w-full">
+            <div className="text-center mb-8">
+              <h1 className="mobile-text-large text-white mb-2">Perfil</h1>
+              <p className="mobile-text-caption text-gray-400">Gerencie suas configurações</p>
+            </div>
+            
+            {/* Card de informações do usuário */}
+            <div className="mobile-card p-6 mb-6">
+              <div className="flex items-center mb-4">
+                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                  <UserIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="mobile-text-medium text-gray-800">{user?.user_metadata?.name || user?.email || 'Usuário'}</h2>
+                  <p className="mobile-text-caption text-gray-500">{user?.email}</p>
+                </div>
+              </div>
+              
+              {/* Estatísticas do usuário */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-4 bg-blue-50 rounded-xl">
+                  <span className="mobile-text-large text-blue-600">{pedidosDoUsuario.length}</span>
+                  <p className="mobile-text-caption text-blue-600">Pedidos Criados</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-xl">
+                  <span className="mobile-text-large text-green-600">{totalOracoesRecebidas}</span>
+                  <p className="mobile-text-caption text-green-600">Orações Recebidas</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Botão de logout */}
+            <button
+              onClick={signOut}
+              className="mobile-button-secondary w-full"
+            >
+              Sair da Conta
+            </button>
+          </div>
           <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
       );

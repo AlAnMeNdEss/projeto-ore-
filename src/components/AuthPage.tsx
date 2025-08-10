@@ -16,7 +16,7 @@ const fadeUp = {
 export function AuthPage() {
   const { signIn, signUp, user } = useAuth();
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [signupForm, setSignupForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [signupForm, setSignupForm] = useState({ username: '', name: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [resetEmail, setResetEmail] = useState('');
@@ -63,18 +63,28 @@ export function AuthPage() {
     e.preventDefault();
     setSignupError(null);
     setSignupSuccess(false);
+    if (!signupForm.username.trim()) {
+      setSignupError('Nome de usuário é obrigatório.');
+      return;
+    }
+    
+    if (signupForm.username.length < 3) {
+      setSignupError('Nome de usuário deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    
     if (signupForm.password !== signupForm.confirmPassword) {
       setSignupError('As senhas não coincidem.');
       return;
     }
     setLoading(true);
-    const { error } = await signUp(signupForm.email, signupForm.password, signupForm.name);
+    const { error } = await signUp(signupForm.email, signupForm.password, signupForm.username, signupForm.name);
     setLoading(false);
     if (error) {
       setSignupError(error.message || 'Erro ao criar conta.');
     } else {
       setSignupSuccess(true);
-      setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
+      setSignupForm({ username: '', name: '', email: '', password: '', confirmPassword: '' });
     }
   };
 
@@ -187,7 +197,20 @@ export function AuthPage() {
           <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.1 }}>
             <Input
               type="text"
-              placeholder="Nome (opcional)"
+              placeholder="Nome de usuário *"
+              value={signupForm.username}
+              onChange={e => setSignupForm({ ...signupForm, username: e.target.value })}
+              required
+              className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
+              style={{ boxShadow: '0 2px 16px #ede9fe' }}
+              autoComplete="username"
+              disabled={loading}
+            />
+          </motion.div>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.15 }}>
+            <Input
+              type="text"
+              placeholder="Nome completo (opcional)"
               value={signupForm.name}
               onChange={e => setSignupForm({ ...signupForm, name: e.target.value })}
               className="py-4 rounded-lg bg-white/70 text-gray-700 text-lg shadow-md border-none focus:ring-2 focus:ring-[#9575CD] placeholder:text-gray-400"
@@ -209,7 +232,7 @@ export function AuthPage() {
               disabled={loading}
             />
           </motion.div>
-          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.3 }}>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.25 }}>
             <Input
               type="password"
               placeholder="Senha"
@@ -222,7 +245,7 @@ export function AuthPage() {
               disabled={loading}
             />
           </motion.div>
-          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.4 }}>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.3 }}>
             <Input
               type="password"
               placeholder="Confirmar senha"
@@ -243,7 +266,7 @@ export function AuthPage() {
               Cadastro realizado! Verifique seu e-mail para confirmar sua conta.
             </div>
           )}
-          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.5 }}>
+          <motion.div initial={fadeUp.initial} animate={fadeUp.animate} transition={{ duration: 0.6, delay: 0.35 }}>
             <Button
               type="submit"
               className="w-full bg-[#673AB7] hover:bg-[#5e35b1] text-white font-bold text-xl py-4 rounded-lg shadow-lg transition-all duration-200 mt-2"
