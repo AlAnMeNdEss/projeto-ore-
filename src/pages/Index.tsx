@@ -12,7 +12,6 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as BarTooltip, CartesianGrid, Resp
 import { PRAYER_CATEGORIES } from '@/types/prayer';
 import { useSwipeable } from 'react-swipeable';
 import HomePage from '@/pages/HomePage';
-import { PrayerRequestForm } from '@/components/PrayerRequestForm';
 import { Biblia } from '@/components/Biblia';
 import { useRef } from 'react';
 import loginBackground from '../assets/login-background.jpg';
@@ -54,7 +53,6 @@ const Index = () => {
   
   const [activeTab, setActiveTab] = useState<Tab>(getInitialTab);
   const [pedidosTab, setPedidosTab] = useState<'list' | 'create'>('list');
-  const [showCreateModalInicio, setShowCreateModalInicio] = useState(false);
   const [entrouNaComunidade, setEntrouNaComunidade] = useState(false);
   const [entrouNoMural, setEntrouNoMural] = useState(false);
   const [entrouNosGrupos, setEntrouNosGrupos] = useState(false);
@@ -269,15 +267,12 @@ const Index = () => {
     if (activeTab === 'inicio') {
       return <>
         <div className="relative">
-          <HomePage user={user} onFazerPedido={() => setShowCreateModalInicio(true)} onVerComunidade={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }} />
-          {showCreateModalInicio && (
-            <>
-              <div className="mobile-modal" />
-              <div className="mobile-modal-content">
-                <PrayerRequestForm onSent={() => setShowCreateModalInicio(false)} onCancel={() => setShowCreateModalInicio(false)} />
-              </div>
-            </>
-          )}
+          <HomePage
+            user={user}
+            onFazerPedido={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }}
+            onVerComunidade={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }}
+          />
+          {/* Modal antigo removido */}
         </div>
         <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} />
       </>;

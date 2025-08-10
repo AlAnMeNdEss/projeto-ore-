@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp } from 'lucide-react';
+import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import loginBackground from '../assets/login-background.jpg';
@@ -20,12 +20,31 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     totalPedidos: 0,
     totalUsuarios: 0,
   });
+  const [loadingSummary, setLoadingSummary] = useState(false);
   const [devocional, setDevocional] = useState<string | null>(null);
+  const [devocionalRef, setDevocionalRef] = useState<string>('');
   const [loadingDevocional, setLoadingDevocional] = useState(false);
   const [showDevocionalModal, setShowDevocionalModal] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.user_metadata?.name || '');
   const [savingName, setSavingName] = useState(false);
+  const [dailyImageUrl, setDailyImageUrl] = useState<string>('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
+
+  // Banco de imagens royalty-free (Unsplash License)
+  const DAILY_IMAGES: string[] = [
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1499084732479-de2c02d45fc4?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1441829266145-b8c5d2cf0f52?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&q=80',
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1600&q=80'
+  ];
 
   // Contadores simulados para curtidas e compartilhamentos
   const [devocionalLikes] = useState(1031000); // 1.031M
@@ -37,78 +56,70 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     return n.toString();
   }
 
-  const DEVOCIONAIS = [
-    '"Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento." (Provérbios 3:5)',
-    '"O Senhor é o meu pastor; nada me faltará." (Salmos 23:1)',
-    '"Entrega o teu caminho ao Senhor; confia nele, e o mais ele fará." (Salmos 37:5)',
-    '"Buscai primeiro o Reino de Deus e a sua justiça, e todas estas coisas vos serão acrescentadas." (Mateus 6:33)',
-    '"Tudo posso naquele que me fortalece." (Filipenses 4:13)',
-    '"Alegrai-vos na esperança, sede pacientes na tribulação, perseverai na oração." (Romanos 12:12)',
-    '"O Senhor está perto de todos os que o invocam, de todos os que o invocam com sinceridade." (Salmos 145:18)',
-    '"Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus." (Isaías 41:10)',
-    '"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho." (Salmos 119:105)',
-    '"Deem graças ao Senhor porque ele é bom; o seu amor dura para sempre." (Salmos 136:1)',
-    '"O choro pode durar uma noite, mas a alegria vem pela manhã." (Salmos 30:5)',
-    '"Sede fortes e corajosos. Não temais, nem vos atemorizeis." (Deuteronômio 31:6)',
-    '"O Senhor lutará por vocês; tão somente acalmem-se." (Êxodo 14:14)',
-    '"Deleita-te no Senhor, e ele concederá os desejos do teu coração." (Salmos 37:4)',
-    '"Aquietai-vos e sabei que eu sou Deus." (Salmos 46:10)',
-    '"O Senhor é bom, um refúgio em tempos de angústia." (Naum 1:7)',
-    '"Aquele que habita no esconderijo do Altíssimo, à sombra do Onipotente descansará." (Salmos 91:1)',
-    '"O Senhor te abençoe e te guarde." (Números 6:24)',
-    '"O Senhor é a minha luz e a minha salvação; de quem terei medo?" (Salmos 27:1)',
-    '"Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia." (Salmos 46:1)',
-  ];
+  // Seleção diária determinística
+  const getDailySeed = () => Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
 
-  // Função para obter o versículo/reflexão do dia, sempre igual para todos os usuários
-  function getDevocionalDoDia() {
-    const hoje = new Date();
-    const idx = (hoje.getFullYear() * 1000 + hoje.getMonth() * 31 + hoje.getDate()) % DEVOCIONAIS.length;
-    return DEVOCIONAIS[idx];
+  function selecionarImagemDia() {
+    const seed = getDailySeed();
+    const idx = seed % DAILY_IMAGES.length;
+    setDailyImageUrl(DAILY_IMAGES[idx]);
   }
 
-  useEffect(() => {
-    setDevocional(getDevocionalDoDia());
-  }, []);
+  // Versículo do dia
+  async function carregarVersiculoDoDia() {
+    setLoadingDevocional(true);
+    try {
+      const res = await fetch('/pt_nvi.json');
+      const livros = await res.json();
+      if (!Array.isArray(livros) || livros.length === 0) throw new Error('JSON de Bíblia inválido');
 
-  useEffect(() => {
-    async function fetchCommunitySummary() {
-      // Data de hoje no formato YYYY-MM-DD
+      const seed = getDailySeed();
+      const livroIndex = seed % livros.length;
+      const livro = livros[livroIndex];
+      const capitulos = Array.isArray(livro.chapters) ? livro.chapters : [];
+      if (capitulos.length === 0) throw new Error('Livro sem capítulos');
+
+      const capIndex = Math.floor(seed / 3) % capitulos.length;
+      const capObj = capitulos[capIndex];
+      const capKey = Object.keys(capObj)[0];
+      const versosMap = capObj[capKey] || {};
+      const versoKeys = Object.keys(versosMap);
+      if (versoKeys.length === 0) throw new Error('Capítulo sem versículos');
+
+      const versoIndex = Math.floor(seed / 7) % versoKeys.length;
+      const versoKey = versoKeys[versoIndex];
+
+      const texto = versosMap[versoKey];
+      const referencia = `${livro.book} ${capKey}:${versoKey}`;
+
+      setDevocional(texto);
+      setDevocionalRef(referencia);
+    } catch (e) {
+      setDevocional('"O Senhor é o meu pastor; nada me faltará."');
+      setDevocionalRef('Salmos 23:1');
+    } finally {
+      setLoadingDevocional(false);
+    }
+  }
+
+  function gerarDevocional() {
+    selecionarImagemDia();
+    carregarVersiculoDoDia();
+  }
+
+  // Resumo da comunidade (global)
+  const fetchCommunitySummary = async () => {
+    setLoadingSummary(true);
+    try {
       const hoje = new Date().toISOString().slice(0, 10);
-      
-      // Buscar número de pedidos de oração criados hoje
-      const { count: novosPedidos } = await supabase
-        .from('prayer_requests')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', `${hoje}T00:00:00.000Z`)
-        .lte('created_at', `${hoje}T23:59:59.999Z`);
-      
-      // Buscar número de orações feitas hoje
-      const { count: oracoesHoje } = await supabase
-        .from('prayer_interactions')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', `${hoje}T00:00:00.000Z`)
-        .lte('created_at', `${hoje}T23:59:59.999Z`);
-      
-      // Buscar total global de pedidos
-      const { count: totalPedidos } = await supabase
-        .from('prayer_requests')
-        .select('id', { count: 'exact', head: true });
-      
-      // Buscar total global de orações feitas pelos usuários (todas as interações de oração)
-      const { count: totalOracoes } = await supabase
-        .from('prayer_interactions')
-        .select('id', { count: 'exact', head: true });
-      
-      // Buscar total de usuários únicos que fizeram login no app
-      // Vamos usar uma abordagem mais simples: contar usuários únicos que criaram pedidos
-      const { data: usuariosUnicos } = await supabase
-        .from('prayer_requests')
-        .select('user_id')
-        .not('user_id', 'is', null);
-
+      const [{ count: novosPedidos }, { count: oracoesHoje }, { count: totalPedidos }, { count: totalOracoes }, { data: usuariosUnicos }] = await Promise.all([
+        supabase.from('prayer_requests').select('id', { count: 'exact', head: true }).gte('created_at', `${hoje}T00:00:00.000Z`).lte('created_at', `${hoje}T23:59:59.999Z`),
+        supabase.from('prayer_interactions').select('id', { count: 'exact', head: true }).gte('created_at', `${hoje}T00:00:00.000Z`).lte('created_at', `${hoje}T23:59:59.999Z`),
+        supabase.from('prayer_requests').select('id', { count: 'exact', head: true }),
+        supabase.from('prayer_interactions').select('id', { count: 'exact', head: true }),
+        supabase.from('prayer_requests').select('user_id').not('user_id', 'is', null)
+      ]);
       const totalUsuarios = usuariosUnicos ? new Set(usuariosUnicos.map(u => u.user_id)).size : 0;
-      
       setCommunitySummary({
         oracoesHoje: oracoesHoje || 0,
         novosPedidos: novosPedidos || 0,
@@ -116,17 +127,24 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         totalPedidos: totalPedidos || 0,
         totalUsuarios: totalUsuarios || 0,
       });
+    } finally {
+      setLoadingSummary(false);
     }
-    fetchCommunitySummary();
-  }, []);
+  };
 
-  function gerarDevocional() {
-    setLoadingDevocional(true);
-    setTimeout(() => {
-      setDevocional('"Confie no Senhor de todo o seu coração e não se apoie em seu próprio entendimento." (Provérbios 3:5)');
-      setLoadingDevocional(false);
-    }, 1200);
-  }
+  // Inicialização
+  useEffect(() => {
+    selecionarImagemDia();
+    carregarVersiculoDoDia();
+    fetchCommunitySummary();
+
+    const id = setInterval(() => {
+      selecionarImagemDia();
+      carregarVersiculoDoDia();
+      fetchCommunitySummary();
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   async function handleSaveName() {
     if (!user) return;
@@ -139,7 +157,8 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   }
 
   async function handleShareDevocional() {
-    const element = document.getElementById('devocional-img-share');
+    // Prioriza compartilhar o conteúdo do modal, se aberto; caso contrário, o card
+    const element = document.getElementById('devocional-modal-share') || document.getElementById('devocional-img-share');
     if (!element) return;
     try {
       const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, scale: 2});
@@ -149,12 +168,11 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       const shareData = {
         files: filesArray,
         title: 'Devocional Diário',
-        text: devocional
+        text: devocional || undefined
       };
       if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         await navigator.share(shareData);
       } else {
-        // Fallback: baixar imagem
         const a = document.createElement('a');
         a.href = dataUrl;
         a.download = 'devocional.png';
@@ -167,6 +185,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   }
 
   const nomeOuEmail = user?.user_metadata?.name || user?.email || 'Usuário';
+  const primeiroNome = ((nomeOuEmail?.includes('@') ? nomeOuEmail.split('@')[0] : nomeOuEmail) || 'Usuário').split(' ')[0];
 
   return (
     <div
@@ -195,16 +214,16 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
               className="text-3xl sm:text-4xl font-extrabold text-white leading-tight" 
               style={{letterSpacing: -1, textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}
             >
-              Olá, {user?.user_metadata?.name || user?.email || 'Usuário'}!
+              Bem-vindo(a), {primeiroNome}
             </motion.span>
             <motion.span 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-lg sm:text-xl text-white font-normal" 
+              className="text-lg sm:text-xl text-white/90 font-normal" 
               style={{textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}
             >
-              que a paz esteja consigo! 🙏
+              É bom tê-lo(a) aqui.
             </motion.span>
           </div>
 
@@ -221,17 +240,42 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           className="mobile-card-glass w-full p-6 mb-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="mobile-text-medium text-blue-600">Resumo da Comunidade</h2>
-            <TrendingUp className="w-5 h-5 text-blue-500" />
+            <h2 className="mobile-text-medium text-gray-800">Resumo da Comunidade</h2>
+            <div className="flex items-center gap-2">
+              <button
+                className={`p-2 rounded-lg border border-gray-200 transition ${loadingSummary ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 active:scale-95'}`}
+                onClick={() => !loadingSummary && fetchCommunitySummary()}
+                aria-label="Atualizar resumo"
+                title="Atualizar resumo"
+                disabled={loadingSummary}
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingSummary ? 'animate-spin text-gray-700' : 'text-gray-700'}`} />
+              </button>
+              <TrendingUp className="w-5 h-5 text-gray-700" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-xl">
-              <span className="mobile-text-large text-blue-600 leading-none">{communitySummary.totalOracoes}</span>
-              <p className="mobile-text-caption text-blue-600 mt-1">Orações Totais</p>
+            <div className="mobile-card p-4 text-center">
+              <div className="mx-auto mb-2 w-12 h-12 rounded-2xl bg-blue-500 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              {loadingSummary ? (
+                <div className="mx-auto h-7 w-16 rounded-md bg-gray-200 animate-pulse" />
+              ) : (
+                <span className="mobile-text-large text-gray-900 leading-none">{formatarNumero(communitySummary.totalOracoes)}</span>
+              )}
+              <p className="mobile-text-medium text-gray-800 mt-1">Orações Totais</p>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl">
-              <span className="mobile-text-large text-green-600 leading-none">{communitySummary.totalPedidos}</span>
-              <p className="mobile-text-caption text-green-600 mt-1">Pedidos Totais</p>
+            <div className="mobile-card p-4 text-center">
+              <div className="mx-auto mb-2 w-12 h-12 rounded-2xl bg-purple-500 flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              {loadingSummary ? (
+                <div className="mx-auto h-7 w-16 rounded-md bg-gray-200 animate-pulse" />
+              ) : (
+                <span className="mobile-text-large text-gray-900 leading-none">{formatarNumero(communitySummary.totalPedidos)}</span>
+              )}
+              <p className="mobile-text-medium text-gray-800 mt-1">Pedidos Totais</p>
             </div>
           </div>
         </motion.div>
@@ -271,13 +315,14 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
           id="devocional-img-share"
-          className="mobile-card overflow-hidden relative"
+          className="mobile-card overflow-hidden relative cursor-pointer"
+          onClick={() => setShowDevocionalModal(true)}
         >
           <div className="w-full aspect-[4/3] relative flex items-center justify-center">
             <div
               className="absolute inset-0 w-full h-full object-cover"
               style={{
-                backgroundImage: 'url(https://th.bing.com/th/id/R.86a01e8b78df22918aff8d7f338054f0?rik=Q0Bo3%2bvuSIaRMA&pid=ImgRaw&r=0)',
+                backgroundImage: `url(${dailyImageUrl})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 filter: 'brightness(0.7)',
@@ -286,7 +331,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             />
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-6 pb-20">
               <span className="mobile-text-caption text-gray-200 mb-2 drop-shadow-lg text-center">Versículo do Dia</span>
-              <span className="mobile-text-medium text-gray-100 mb-3 drop-shadow-lg text-center">Salmos 33:5 NTLH</span>
+              <span className="mobile-text-medium text-gray-100 mb-3 drop-shadow-lg text-center">{devocionalRef || '...'}</span>
               {devocional && (
                 <span className="px-4 py-3 bg-black/40 backdrop-blur-sm rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4">
                   {devocional}
@@ -297,13 +342,13 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             {/* Botões de interação */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
               <div className="flex items-center justify-center gap-8">
-                <button className="flex flex-col items-center text-gray-300 hover:text-pink-400 transition-colors touch-ripple">
+                <button className="flex flex-col items-center text-gray-300 hover:text-pink-400 transition-colors touch-ripple" onClick={(e) => e.stopPropagation()}>
                   <Heart className="w-6 h-6 mb-1" />
                   <span className="mobile-text-caption">{formatarNumero(devocionalLikes)}</span>
                 </button>
                 <button 
                   className="flex flex-col items-center text-gray-300 hover:text-blue-400 transition-colors touch-ripple"
-                  onClick={handleShareDevocional}
+                  onClick={(e) => { e.stopPropagation(); handleShareDevocional(); }}
                 >
                   <Share2 className="w-6 h-6 mb-1" />
                   <span className="mobile-text-caption">{formatarNumero(devocionalShares)}</span>
@@ -319,9 +364,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         <div className="mobile-modal animate-fade-in">
           <div className="mobile-modal-content animate-bounce-in">
             <div
+              id="devocional-modal-share"
               className="w-full aspect-[4/5] bg-cover bg-center flex items-center justify-center relative rounded-2xl"
               style={{
-                backgroundImage: 'url(https://th.bing.com/th/id/R.86a01e8b78df22918aff8d7f338054f0?rik=Q0Bo3%2bvuSIaRMA&pid=ImgRaw&r=0)',
+                backgroundImage: `url(${dailyImageUrl})`,
               }}
             >
               <div className="absolute inset-0 bg-black/40 rounded-2xl" />
@@ -330,13 +376,23 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                   {devocional}
                 </span>
               </div>
-              <button
-                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 rounded-full p-2 text-white z-20 touch-ripple"
-                onClick={e => { e.stopPropagation(); setShowDevocionalModal(false); }}
-                aria-label="Fechar"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                <button
+                  className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
+                  onClick={e => { e.stopPropagation(); handleShareDevocional(); }}
+                  aria-label="Compartilhar"
+                  title="Compartilhar"
+                >
+                  <Share2 className="w-5 h-5" />
+                </button>
+                <button
+                  className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
+                  onClick={e => { e.stopPropagation(); setShowDevocionalModal(false); }}
+                  aria-label="Fechar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

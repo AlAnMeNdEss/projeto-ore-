@@ -1,5 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Settings, ArrowLeft } from 'lucide-react';
+import { LogOut, ArrowLeft, RefreshCw, TrendingUp, Sparkles, CalendarDays, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [pedidos, setPedidos] = useState<number>(0);
   const [oracoesRecebidas, setOracoesRecebidas] = useState<number>(0);
   const [mediaOracoesPorPedido, setMediaOracoesPorPedido] = useState<number>(0);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const diasAtivo = useMemo(() => {
     if (!user?.created_at) return 0;
@@ -28,45 +29,40 @@ export default function ProfilePage() {
     try {
       const hoje = new Date().toISOString().slice(0, 10);
 
-      // Oracoes feitas pelo usuário
-      const { count: feitasCount, error: feitasError } = await supabase
+      const { count: feitasCount } = await supabase
         .from('prayer_interactions')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id);
-      if (!feitasError && typeof feitasCount === 'number') setOracoesFeitas(feitasCount);
+      if (typeof feitasCount === 'number') setOracoesFeitas(feitasCount);
 
-      // Oracoes feitas hoje
-      const { count: hojeCount, error: hojeError } = await supabase
+      const { count: hojeCount } = await supabase
         .from('prayer_interactions')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .gte('created_at', `${hoje}T00:00:00.000Z`)
         .lte('created_at', `${hoje}T23:59:59.999Z`);
-      if (!hojeError && typeof hojeCount === 'number') setOracoesHoje(hojeCount);
+      if (typeof hojeCount === 'number') setOracoesHoje(hojeCount);
 
-      // Pedidos do usuário
-      const { data: pedidosData, error: pedidosError } = await supabase
+      const { data: pedidosData } = await supabase
         .from('prayer_requests')
         .select('id, prayer_count, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (!pedidosError && Array.isArray(pedidosData)) {
+      if (Array.isArray(pedidosData)) {
         const totalPedidos = pedidosData.length;
         setPedidos(totalPedidos);
 
-        // Fallback: somar prayer_count
         const totalRecebidasFallback = pedidosData.reduce((acc, p) => acc + (p.prayer_count || 0), 0);
         setOracoesRecebidas(totalRecebidasFallback);
 
-        // Preferir contagem real de interações para esses pedidos, se existirem
         if (totalPedidos > 0) {
           const pedidoIds = pedidosData.map(p => p.id);
-          const { data: interacoesData, error: interacoesError } = await supabase
+          const { data: interacoesData } = await supabase
             .from('prayer_interactions')
             .select('id, prayer_request_id')
             .in('prayer_request_id', pedidoIds);
-          if (!interacoesError && Array.isArray(interacoesData)) {
+          if (Array.isArray(interacoesData)) {
             setOracoesRecebidas(interacoesData.length);
             setMediaOracoesPorPedido(
               totalPedidos > 0 ? Math.round(interacoesData.length / totalPedidos) : 0
@@ -84,6 +80,8 @@ export default function ProfilePage() {
         setOracoesRecebidas(0);
         setMediaOracoesPorPedido(0);
       }
+
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Erro ao buscar estatísticas do perfil:', err);
     } finally {
@@ -95,17 +93,21 @@ export default function ProfilePage() {
     fetchStats();
   }, [user?.id]);
 
-  // Atualização periódica a cada 30s (opcional)
   useEffect(() => {
     if (!user?.id) return;
     const id = setInterval(fetchStats, 30000);
     return () => clearInterval(id);
   }, [user?.id]);
 
+  const formatHora = (date: Date | null) => {
+    if (!date) return '-';
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 via-white to-white">
+    <div className="min-h-screen flex flex-col bg-[#87CEEB]">
       {/* Top bar */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 px-4 py-3 flex items-center gap-2">
+      <div className="sticky top-0 z-20 bg-white/85 backdrop-blur-xl border-b border-white/40 px-4 py-3 flex items-center gap-2 shadow-sm">
         <button
           className="p-2 rounded-xl hover:bg-gray-100 active:scale-95 transition"
           onClick={() => navigate('/')}
@@ -114,11 +116,19 @@ export default function ProfilePage() {
           <ArrowLeft className="w-5 h-5 text-gray-700" />
         </button>
         <h1 className="flex-1 text-center font-bold text-gray-800">Meu Perfil</h1>
-        <div className="w-9" />
+        <button
+          className={`p-2 rounded-xl transition ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100 active:scale-95'}`}
+          onClick={() => !loading && fetchStats()}
+          aria-label="Atualizar"
+          disabled={loading}
+          title="Atualizar estatísticas"
+        >
+          <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin text-blue-500' : 'text-gray-700'}`} />
+        </button>
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+      <div className="bg-gradient-to-r from-sky-500 to-indigo-500 p-6 text-white shadow-inner">
         <div className="flex items-center">
           <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mr-4 shadow-lg border-2 border-white/30">
             <span className="text-3xl font-bold text-white">
@@ -133,81 +143,111 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+        <div className="mt-3 text-xs text-blue-100/90">
+          Última atualização: <span className="font-semibold">{formatHora(lastUpdated)}</span>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-6">
         {/* Estatísticas principais */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{loading ? '...' : oracoesRecebidas}</div>
-            <div className="text-xs text-blue-700 font-medium">Orações Recebidas</div>
-            <div className="text-xs text-blue-500 mt-1">🙏</div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-700 mb-2">Minha Atividade</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition">
+              <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-sky-100" />
+              <div className="p-4 text-center relative">
+                <div className="mx-auto mb-2 w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center ring-1 ring-white/60">
+                  <Sparkles className="w-5 h-5 text-sky-700" />
+                </div>
+                <div className="text-2xl font-extrabold text-sky-700">{loading ? '...' : oracoesRecebidas}</div>
+                <div className="text-xs text-sky-800 font-medium">Orações Recebidas</div>
+                <div className="text-[10px] text-sky-600/80 mt-1">Somatório em seus pedidos</div>
+              </div>
+            </div>
+            <div className="relative overflow-hidden rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm hover:shadow-md transition">
+              <div className="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-emerald-100" />
+              <div className="p-4 text-center relative">
+                <div className="mx-auto mb-2 w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center ring-1 ring-white/60">
+                  <TrendingUp className="w-5 h-5 text-emerald-700" />
+                </div>
+                <div className="text-2xl font-extrabold text-emerald-700">{loading ? '...' : pedidos}</div>
+                <div className="text-xs text-emerald-800 font-medium">Pedidos Criados</div>
+                <div className="text-[10px] text-emerald-700/80 mt-1">Total publicados por você</div>
+              </div>
+            </div>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
-            <div className="text-2xl font-bold text-green-600 mb-1">{loading ? '...' : pedidos}</div>
-            <div className="text-xs text-green-700 font-medium">Pedidos Criados</div>
-            <div className="text-xs text-green-500 mt-1">📝</div>
-          </div>
+          {(!loading && pedidos === 0) && (
+            <div className="mt-2 text-xs text-gray-700 bg-white/70 rounded-xl p-3 border border-white/60 backdrop-blur-xl">
+              Você ainda não criou pedidos.
+            </div>
+          )}
         </div>
 
         {/* Estatísticas adicionais */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">{loading ? '...' : oracoesFeitas}</div>
-            <div className="text-xs text-gray-600">Feitas</div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">{loading ? '...' : oracoesHoje}</div>
-            <div className="text-xs text-gray-600">Hoje</div>
-          </div>
-          <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">{loading ? '...' : mediaOracoesPorPedido}</div>
-            <div className="text-xs text-gray-600">Média/Pedido</div>
+        <div>
+          <h2 className="text-sm font-bold text-gray-700 mb-2">Detalhes</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="rounded-2xl p-3 text-center border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm">
+              <div className="mx-auto mb-1 w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center ring-1 ring-white/60">
+                <Award className="w-4 h-4 text-violet-700" />
+              </div>
+              <div className="text-lg font-extrabold text-gray-800">{loading ? '...' : oracoesFeitas}</div>
+              <div className="text-[11px] text-gray-600">Feitas</div>
+            </div>
+            <div className="rounded-2xl p-3 text-center border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm">
+              <div className="mx-auto mb-1 w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center ring-1 ring-white/60">
+                <CalendarDays className="w-4 h-4 text-amber-700" />
+              </div>
+              <div className="text-lg font-extrabold text-gray-800">{loading ? '...' : oracoesHoje}</div>
+              <div className="text-[11px] text-gray-600">Hoje</div>
+            </div>
+            <div className="rounded-2xl p-3 text-center border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm">
+              <div className="mx-auto mb-1 w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center ring-1 ring-white/60">
+                <TrendingUp className="w-4 h-4 text-sky-700" />
+              </div>
+              <div className="text-lg font-extrabold text-gray-800">{loading ? '...' : mediaOracoesPorPedido}</div>
+              <div className="text-[11px] text-gray-600">Média/Pedido</div>
+            </div>
           </div>
         </div>
 
-        {/* Informações detalhadas */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
-            <div className="text-sm text-purple-700">Data de Cadastro</div>
-            <div className="text-sm font-medium text-purple-800">{user ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}</div>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-            <div className="text-sm text-blue-700">Dias Ativo</div>
-            <div className="text-sm font-medium text-blue-800">{diasAtivo}</div>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
-            <div className="text-sm text-green-700">Status</div>
-            <div className="text-sm font-medium text-green-800">Ativo</div>
+        {/* Informações da conta */}
+        <div>
+          <h2 className="text-sm font-bold text-gray-700 mb-2">Minha Conta</h2>
+          <div className="rounded-2xl border border-white/60 bg-white/80 backdrop-blur-xl shadow-sm divide-y divide-white/60">
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-2 text-gray-700">
+                <CalendarDays className="w-4 h-4" />
+                <span className="text-sm">Data de Cadastro</span>
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{user ? new Date(user.created_at).toLocaleDateString('pt-BR') : '-'}</div>
+            </div>
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Award className="w-4 h-4" />
+                <span className="text-sm">Dias Ativo</span>
+              </div>
+              <div className="text-sm font-semibold text-gray-900">{diasAtivo}</div>
+            </div>
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm">Status</span>
+              </div>
+              <div className="text-sm font-semibold text-emerald-700">Ativo</div>
+            </div>
           </div>
         </div>
 
-        {/* Ações rápidas */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Sair */}
+        <div className="pt-1">
           <button
-            className="flex items-center gap-3 p-3 text-left text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 touch-ripple border border-blue-200 hover:border-blue-300 hover:shadow-md"
-            onClick={() => {}}
-          >
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Settings className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <div className="font-medium text-sm">Configurações</div>
-              <div className="text-xs text-blue-500">Personalizar conta</div>
-            </div>
-          </button>
-          <button
-            className="flex items-center gap-3 p-3 text-left text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 touch-ripple border border-red-200 hover:border-red-300 hover:shadow-md"
+            className="w-full flex items-center justify-center gap-3 p-4 text-left text-red-700 bg-white/80 rounded-2xl transition-all duration-200 touch-ripple border border-white/60 backdrop-blur-xl shadow-sm hover:shadow-md active:scale-[0.99]"
             onClick={() => signOut?.()}
           >
-            <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-              <LogOut className="w-4 h-4 text-red-600" />
-            </div>
-            <div>
-              <div className="font-medium text-sm">Sair da Conta</div>
-              <div className="text-xs text-red-500">Encerrar sessão</div>
-            </div>
+            <LogOut className="w-4 h-4 text-red-700" />
+            <div className="font-semibold text-sm">Sair da Conta</div>
           </button>
         </div>
       </div>
