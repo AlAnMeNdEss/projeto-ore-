@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp } from 'lucide-react';
-import { User as UserIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import loginBackground from '../assets/login-background.jpg';
@@ -25,7 +23,6 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const [devocional, setDevocional] = useState<string | null>(null);
   const [loadingDevocional, setLoadingDevocional] = useState(false);
   const [showDevocionalModal, setShowDevocionalModal] = useState(false);
-  const navigate = useNavigate();
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.user_metadata?.name || '');
   const [savingName, setSavingName] = useState(false);
@@ -210,16 +207,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
               que a paz esteja consigo! 🙏
             </motion.span>
           </div>
-          <motion.button 
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mobile-button-floating w-12 h-12 bg-white/90 backdrop-blur-xl rounded-2xl shadow-lg border border-white/30 touch-ripple" 
-            aria-label="Perfil" 
-            onClick={() => navigate('/perfil')}
-          >
-            <UserIcon className="w-6 h-6 text-blue-500" />
-          </motion.button>
+
         </div>
       </div>
 

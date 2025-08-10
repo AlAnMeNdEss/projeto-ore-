@@ -23,7 +23,7 @@ import { useTestimonies } from '@/hooks/useTestimonies';
 import { GroupForm } from '@/components/GroupForm';
 import { useGroups } from '@/hooks/useGroups';
 
-const tabs = ['inicio', 'comunidades', 'biblia', 'perfil'] as const;
+const tabs = ['inicio', 'comunidades', 'biblia'] as const;
 
 type Tab = typeof tabs[number];
 
@@ -279,7 +279,7 @@ const Index = () => {
             </>
           )}
         </div>
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} />
       </>;
     }
     if (activeTab === 'comunidades') {
@@ -510,32 +510,36 @@ const Index = () => {
               <div className="mobile-container w-full pt-8 pb-4 relative z-10 overflow-y-auto min-h-screen">
                 <h1 className="text-4xl font-extrabold text-white mb-2 text-center" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3)'}}>Comunidades</h1>
                 <p className="text-lg text-white mb-6 text-center font-semibold" style={{textShadow: '0 2px 4px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)'}}>Participe num grupo de oração</p>
-                <div className="w-full flex flex-col items-center justify-center">
+                <div className="w-full flex flex-col items-center justify-center space-y-6">
+                  {/* Botão Comunidade Global */}
                   <button
-                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
-                    style={{ 
-                      minHeight: 90,
-                      boxShadow: '0 8px 32px rgba(103, 58, 183, 0.4), 0 4px 16px rgba(103, 58, 183, 0.3), 0 2px 8px rgba(103, 58, 183, 0.2)',
-                      filter: 'drop-shadow(0 4px 12px rgba(103, 58, 183, 0.3))'
-                    }}
+                    className="group relative w-full h-24 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700 rounded-3xl overflow-hidden cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-300 shadow-2xl"
                     onClick={() => setEntrouNaComunidade(true)}
                     tabIndex={0}
                     aria-label="Entrar na Comunidade Global"
                   >
-                    <span className="flex items-center justify-center mb-2 sm:mb-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755-.5-5.5-1.5-7.5" /></svg>
-                    </span>
-                    <span className="text-center w-full">Comunidade Global</span>
+                    {/* Efeito de brilho */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
+                    {/* Conteúdo do botão */}
+                    <div className="relative z-10 h-full flex items-center justify-center px-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.5.5 7.5 1.5M12 3C9.245 3 6.5 3.5 4.5 4.5M12 3v18m0 0c2.755 0 5.5-.5 7.5-1.5M12 21c-2.755 0-5.5-.5-7.5-1.5M21 12c0 2.755-.5 5.5-1.5 7.5M21 12c0-2.755-.5-5.5-1.5-7.5M21 12H3m0 0c0 2.755.5 5.5 1.5 7.5M3 12c0-2.755-.5-5.5-1.5-7.5" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-xl font-bold text-white">Comunidade Global</h3>
+                          <p className="text-white/80 text-sm">Conecte-se com fiéis do mundo todo</p>
+                        </div>
+                      </div>
+                    </div>
                   </button>
                   
                   {/* Botão Mural de Testemunhos */}
                   <button
-                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
-                    style={{ 
-                      minHeight: 90,
-                      boxShadow: '0 8px 32px rgba(255, 255, 255, 0.4), 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(255, 255, 255, 0.2)',
-                      filter: 'drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3))'
-                    }}
+                    className="group relative w-full h-24 bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 rounded-3xl overflow-hidden cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-300 shadow-2xl"
                     onClick={() => {
                       console.log('Botão Mural clicado!');
                       setEntrouNoMural(true);
@@ -543,20 +547,28 @@ const Index = () => {
                     tabIndex={0}
                     aria-label="Acessar Mural de Testemunhos"
                   >
-                    <span className="flex items-center justify-center mb-2 sm:mb-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-[#673AB7] mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" /></svg>
-                    </span>
-                    <span className="text-center w-full">Mural de Testemunhos</span>
+                    {/* Efeito de brilho */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
+                    {/* Conteúdo do botão */}
+                    <div className="relative z-10 h-full flex items-center justify-center px-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-xl font-bold text-white">Mural de Testemunhos</h3>
+                          <p className="text-white/80 text-sm">Compartilhe e leia experiências de fé</p>
+                        </div>
+                      </div>
+                    </div>
                   </button>
                   
                   {/* Botão Meus Grupos */}
                   <button
-                    className="mobile-card w-full p-6 flex flex-col sm:flex-row items-center justify-center gap-3 text-2xl font-bold mb-6 cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-200"
-                    style={{ 
-                      minHeight: 90,
-                      boxShadow: '0 8px 32px rgba(255, 255, 255, 0.4), 0 4px 16px rgba(255, 255, 255, 0.3), 0 2px 8px rgba(255, 255, 255, 0.2)',
-                      filter: 'drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3))'
-                    }}
+                    className="group relative w-full h-24 bg-gradient-to-br from-orange-500 via-red-500 to-orange-600 rounded-3xl overflow-hidden cursor-pointer touch-ripple hover:scale-105 active:scale-95 transition-all duration-300 shadow-2xl"
                     onClick={() => {
                       console.log('Botão Meus Grupos clicado!');
                       setEntrouNosGrupos(true);
@@ -564,15 +576,28 @@ const Index = () => {
                     tabIndex={0}
                     aria-label="Acessar Meus Grupos"
                   >
-                    <span className="flex items-center justify-center mb-2 sm:mb-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-[#673AB7] mr-0 sm:mr-2"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>
-                    </span>
-                    <span className="text-center w-full">Meus Grupos</span>
+                    {/* Efeito de brilho */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
+                    {/* Conteúdo do botão */}
+                    <div className="relative z-10 h-full flex items-center justify-center px-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-white">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-xl font-bold text-white">Meus Grupos</h3>
+                          <p className="text-white/80 text-sm">Gerencie seus grupos de oração</p>
+                        </div>
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
               <div className="pb-20"></div>
-              <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+              <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} />
             </>
           )}
         </div>
@@ -582,60 +607,11 @@ const Index = () => {
       return (
         <div className="min-h-screen w-full bg-[#f6eaff]">
           <Biblia />
-          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} />
         </div>
       );
     }
-    if (activeTab === 'perfil') {
-      return (
-        <div
-          {...handlers}
-          className="min-h-screen w-full flex flex-col items-center justify-center px-4 relative overflow-hidden mobile-scroll"
-          style={{ background: '#18181b' }}
-        >
-          <div className="mobile-container w-full">
-            <div className="text-center mb-8">
-              <h1 className="mobile-text-large text-white mb-2">Perfil</h1>
-              <p className="mobile-text-caption text-gray-400">Gerencie suas configurações</p>
-            </div>
-            
-            {/* Card de informações do usuário */}
-            <div className="mobile-card p-6 mb-6">
-              <div className="flex items-center mb-4">
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mr-4">
-                  <UserIcon className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h2 className="mobile-text-medium text-gray-800">{user?.user_metadata?.name || user?.email || 'Usuário'}</h2>
-                  <p className="mobile-text-caption text-gray-500">{user?.email}</p>
-                </div>
-              </div>
-              
-              {/* Estatísticas do usuário */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-xl">
-                  <span className="mobile-text-large text-blue-600">{pedidosDoUsuario.length}</span>
-                  <p className="mobile-text-caption text-blue-600">Pedidos Criados</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-xl">
-                  <span className="mobile-text-large text-green-600">{totalOracoesRecebidas}</span>
-                  <p className="mobile-text-caption text-green-600">Orações Recebidas</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Botão de logout */}
-            <button
-              onClick={signOut}
-              className="mobile-button-secondary w-full"
-            >
-              Sair da Conta
-            </button>
-          </div>
-          <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
-        </div>
-      );
-    }
+
     // ...perfil ou outros...
     return (
       <div
@@ -656,7 +632,7 @@ const Index = () => {
             {/* Conteúdo do resumo da comunidade aqui */}
           </div>
         </div>
-        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} glass />
+        <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} user={user} signOut={signOut} glass />
       </div>
     );
   }
