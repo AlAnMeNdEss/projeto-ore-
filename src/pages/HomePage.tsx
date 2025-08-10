@@ -31,6 +31,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const [dailyImageUrl, setDailyImageUrl] = useState<string>('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
   const [selectedImageForSharing, setSelectedImageForSharing] = useState<string>('');
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [imageLoading, setImageLoading] = useState(false);
   const refUpper = devocionalRef ? devocionalRef.toUpperCase() : '';
 
   // Banco de imagens royalty-free (Unsplash License)
@@ -109,8 +110,27 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   // Inicializar imagem selecionada quando o modal for aberto
   useEffect(() => {
     if (showDevocionalModal && !selectedImageForSharing) {
-      setSelectedImageForSharing(dailyImageUrl);
-      setCurrentImageIndex(DAILY_IMAGES.findIndex(img => img === dailyImageUrl));
+      // Pré-carregar a imagem do dia
+      const preloadImage = async () => {
+        setImageLoading(true);
+        try {
+          await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = dailyImageUrl;
+          });
+          setSelectedImageForSharing(dailyImageUrl);
+          setCurrentImageIndex(DAILY_IMAGES.findIndex(img => img === dailyImageUrl));
+        } catch (error) {
+          console.error('Erro ao carregar imagem:', error);
+        } finally {
+          setImageLoading(false);
+        }
+      };
+      
+      preloadImage();
     }
   }, [showDevocionalModal, dailyImageUrl, selectedImageForSharing]);
 
@@ -120,9 +140,23 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   }
 
   // Função para trocar a imagem
-  function cycleImage() {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % DAILY_IMAGES.length);
-    setSelectedImageForSharing(DAILY_IMAGES[(currentImageIndex + 1) % DAILY_IMAGES.length]);
+  async function cycleImage() {
+    setImageLoading(true);
+    const nextIndex = (currentImageIndex + 1) % DAILY_IMAGES.length;
+    const nextImage = DAILY_IMAGES[nextIndex];
+    
+    // Pré-carregar a próxima imagem
+    await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = nextImage;
+    });
+    
+    setCurrentImageIndex(nextIndex);
+    setSelectedImageForSharing(nextImage);
+    setImageLoading(false);
   }
 
   // Resumo da comunidade (global)
@@ -183,9 +217,33 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     const imageToUse = selectedImageForSharing || dailyImageUrl;
     
     try {
+      // Pré-carregar a imagem para garantir que esteja disponível
+      await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageToUse;
+      });
+      
+      // Aguardar um pouco para garantir que a imagem seja renderizada
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Aplicar classe para melhorar nitidez durante a captura
       element.classList.add('share-clean');
-      const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, foreignObjectRendering: true});
+      
+      const canvas = await html2canvas(element, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        foreignObjectRendering: true,
+        imageTimeout: 15000,
+        logging: false,
+        scale: 2, // Aumentar qualidade
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+      
       const dataUrl = canvas.toDataURL('image/png');
       const blob = await (await fetch(dataUrl)).blob();
       const filesArray = [new File([blob], 'devocional.png', { type: 'image/png' })];
@@ -196,6 +254,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         title: 'Devocional Diário',
         text: shareText
       } as any;
+      
       if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         await navigator.share(shareData);
       } else {
@@ -206,7 +265,8 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         alert(`Compartilhamento nativo indisponível. Baixamos a imagem para você compartilhar.\n\n📱 Baixe o app ORE+: ${appLink}`);
       }
     } catch (e) {
-      alert('Erro ao compartilhar imagem.');
+      console.error('Erro ao compartilhar:', e);
+      alert('Erro ao compartilhar imagem. Tente novamente.');
     } finally {
       element.classList.remove('share-clean');
     }
@@ -437,10 +497,15 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                         e.stopPropagation(); 
                         cycleImage();
                       }}
-                      className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded-xl text-white text-sm transition-all duration-200 touch-ripple"
+                      disabled={imageLoading}
+                      className={`px-4 py-2 rounded-xl text-sm transition-all duration-200 touch-ripple ${
+                        imageLoading 
+                          ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                          : 'bg-black/60 hover:bg-black/80 text-white'
+                      }`}
                       title="Trocar imagem"
                     >
-                      Trocar Imagem
+                      {imageLoading ? 'Carregando...' : 'Trocar Imagem'}
                     </button>
                   </div>
                 </div>
