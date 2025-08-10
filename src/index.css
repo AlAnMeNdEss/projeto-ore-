@@ -463,12 +463,15 @@ All colors MUST be HSL.
   }
 
   /* Nitidez para compartilhamento */
+  .share-clean,
   .share-clean * {
     -webkit-font-smoothing: antialiased !important;
     -moz-osx-font-smoothing: grayscale !important;
     text-rendering: optimizeLegibility !important;
     filter: none !important;
     backdrop-filter: none !important;
+    animation: none !important;
+    transform: none !important;
   }
 
   /* Utilitários mobile */

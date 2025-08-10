@@ -480,7 +480,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     className="absolute inset-0 w-full h-full object-cover"
                     crossOrigin="anonymous"
                   />
-                  <div className="absolute inset-0 bg-black/40 rounded-2xl" />
+                  <div className="absolute inset-0 bg-black/45 rounded-2xl" />
                   {/* Marca topo (incluída na captura) */}
                   <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 select-none">
                     <span className="brand-mark text-white drop-shadow-lg font-extrabold uppercase" style={{ fontSize: 24 }}>
@@ -506,6 +506,12 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     >
                       {devocional}
                     </p>
+                    {/* Fundo sutil para legibilidade do texto */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-6 right-6"
+                      style={{ bottom: '25%', top: '25%', borderRadius: 16, background: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.24) 100%)' }}
+                    />
                     {!!refUpper && (
                       <span className="brand-mark absolute bottom-8 left-1/2 -translate-x-1/2 text-white/95 font-bold tracking-widest text-xs select-none">
                         {refUpper}
