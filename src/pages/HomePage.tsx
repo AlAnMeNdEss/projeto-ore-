@@ -413,7 +413,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                 </button>
                 <button 
                   className="flex flex-col items-center text-gray-300 hover:text-blue-400 transition-colors touch-ripple"
-                  onClick={(e) => { e.stopPropagation(); handleShareDevocional(); }}
+                  onClick={(e) => { e.stopPropagation(); setShowDevocionalModal(true); }}
                 >
                   <Share2 className="w-6 h-6 mb-1" />
                   <span className="mobile-text-caption">{formatarNumero(devocionalShares)}</span>
