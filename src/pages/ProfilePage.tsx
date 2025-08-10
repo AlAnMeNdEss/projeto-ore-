@@ -1,10 +1,106 @@
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, Settings, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [oracoesFeitas, setOracoesFeitas] = useState<number>(0);
+  const [oracoesHoje, setOracoesHoje] = useState<number>(0);
+  const [pedidos, setPedidos] = useState<number>(0);
+  const [oracoesRecebidas, setOracoesRecebidas] = useState<number>(0);
+  const [mediaOracoesPorPedido, setMediaOracoesPorPedido] = useState<number>(0);
+
+  const diasAtivo = useMemo(() => {
+    if (!user?.created_at) return 0;
+    const ms = new Date().getTime() - new Date(user.created_at).getTime();
+    return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+  }, [user?.created_at]);
+
+  const fetchStats = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+
+    try {
+      const hoje = new Date().toISOString().slice(0, 10);
+
+      // Oracoes feitas pelo usuário
+      const { count: feitasCount, error: feitasError } = await supabase
+        .from('prayer_interactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      if (!feitasError && typeof feitasCount === 'number') setOracoesFeitas(feitasCount);
+
+      // Oracoes feitas hoje
+      const { count: hojeCount, error: hojeError } = await supabase
+        .from('prayer_interactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', `${hoje}T00:00:00.000Z`)
+        .lte('created_at', `${hoje}T23:59:59.999Z`);
+      if (!hojeError && typeof hojeCount === 'number') setOracoesHoje(hojeCount);
+
+      // Pedidos do usuário
+      const { data: pedidosData, error: pedidosError } = await supabase
+        .from('prayer_requests')
+        .select('id, prayer_count, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!pedidosError && Array.isArray(pedidosData)) {
+        const totalPedidos = pedidosData.length;
+        setPedidos(totalPedidos);
+
+        // Fallback: somar prayer_count
+        const totalRecebidasFallback = pedidosData.reduce((acc, p) => acc + (p.prayer_count || 0), 0);
+        setOracoesRecebidas(totalRecebidasFallback);
+
+        // Preferir contagem real de interações para esses pedidos, se existirem
+        if (totalPedidos > 0) {
+          const pedidoIds = pedidosData.map(p => p.id);
+          const { data: interacoesData, error: interacoesError } = await supabase
+            .from('prayer_interactions')
+            .select('id, prayer_request_id')
+            .in('prayer_request_id', pedidoIds);
+          if (!interacoesError && Array.isArray(interacoesData)) {
+            setOracoesRecebidas(interacoesData.length);
+            setMediaOracoesPorPedido(
+              totalPedidos > 0 ? Math.round(interacoesData.length / totalPedidos) : 0
+            );
+          } else {
+            setMediaOracoesPorPedido(
+              totalPedidos > 0 ? Math.round(totalRecebidasFallback / totalPedidos) : 0
+            );
+          }
+        } else {
+          setMediaOracoesPorPedido(0);
+        }
+      } else {
+        setPedidos(0);
+        setOracoesRecebidas(0);
+        setMediaOracoesPorPedido(0);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar estatísticas do perfil:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [user?.id]);
+
+  // Atualização periódica a cada 30s (opcional)
+  useEffect(() => {
+    if (!user?.id) return;
+    const id = setInterval(fetchStats, 30000);
+    return () => clearInterval(id);
+  }, [user?.id]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 via-white to-white">
@@ -33,7 +129,7 @@ export default function ProfilePage() {
             <div className="text-lg font-bold">{user?.user_metadata?.name || 'Usuário'}</div>
             <div className="text-sm text-blue-100">{user?.email}</div>
             <div className="mt-1 text-xs text-blue-100">
-              Membro há {user ? Math.ceil((new Date().getTime() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0} dias
+              Membro há {diasAtivo} dias
             </div>
           </div>
         </div>
@@ -44,12 +140,12 @@ export default function ProfilePage() {
         {/* Estatísticas principais */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
-            <div className="text-2xl font-bold text-blue-600 mb-1">-</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">{loading ? '...' : oracoesRecebidas}</div>
             <div className="text-xs text-blue-700 font-medium">Orações Recebidas</div>
             <div className="text-xs text-blue-500 mt-1">🙏</div>
           </div>
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
-            <div className="text-2xl font-bold text-green-600 mb-1">-</div>
+            <div className="text-2xl font-bold text-green-600 mb-1">{loading ? '...' : pedidos}</div>
             <div className="text-xs text-green-700 font-medium">Pedidos Criados</div>
             <div className="text-xs text-green-500 mt-1">📝</div>
           </div>
@@ -58,16 +154,16 @@ export default function ProfilePage() {
         {/* Estatísticas adicionais */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">-</div>
+            <div className="text-lg font-bold text-gray-700">{loading ? '...' : oracoesFeitas}</div>
             <div className="text-xs text-gray-600">Feitas</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">-</div>
+            <div className="text-lg font-bold text-gray-700">{loading ? '...' : oracoesHoje}</div>
             <div className="text-xs text-gray-600">Hoje</div>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <div className="text-lg font-bold text-gray-700">-</div>
-            <div className="text-xs text-gray-600">Total</div>
+            <div className="text-lg font-bold text-gray-700">{loading ? '...' : mediaOracoesPorPedido}</div>
+            <div className="text-xs text-gray-600">Média/Pedido</div>
           </div>
         </div>
 
@@ -79,7 +175,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
             <div className="text-sm text-blue-700">Dias Ativo</div>
-            <div className="text-sm font-medium text-blue-800">{user ? Math.ceil((new Date().getTime() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0}</div>
+            <div className="text-sm font-medium text-blue-800">{diasAtivo}</div>
           </div>
           <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
             <div className="text-sm text-green-700">Status</div>
