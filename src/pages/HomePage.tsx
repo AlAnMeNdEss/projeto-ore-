@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp, RefreshCw } from 'lucide-react';
@@ -248,6 +248,34 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const nomeOuEmail = user?.user_metadata?.name || user?.email || 'Usuário';
   const primeiroNome = ((nomeOuEmail?.includes('@') ? nomeOuEmail.split('@')[0] : nomeOuEmail) || 'Usuário').split(' ')[0];
 
+  // Auto-ajuste do tamanho do texto do devocional no modal
+  const modalShareRef = useRef<HTMLDivElement | null>(null);
+  const devocionalTextRef = useRef<HTMLParagraphElement | null>(null);
+
+  useEffect(() => {
+    if (!showDevocionalModal) return;
+    const container = modalShareRef.current;
+    const textEl = devocionalTextRef.current;
+    if (!container || !textEl) return;
+
+    // Tenta encaixar o texto no espaço disponível do modal
+    const availableHeight = Math.max(120, Math.floor(container.clientHeight * 0.68));
+    let fontSize = 20; // tamanho base
+    const minFont = 14;
+
+    textEl.style.fontSize = `${fontSize}px`;
+    textEl.style.lineHeight = '1.5';
+    textEl.style.wordBreak = 'break-word';
+    textEl.style.overflowWrap = 'anywhere';
+
+    // Reduz até caber
+    // Limite de iterações para evitar loops longos
+    for (let i = 0; i < 12 && textEl.scrollHeight > availableHeight && fontSize > minFont; i += 1) {
+      fontSize -= 1;
+      textEl.style.fontSize = `${fontSize}px`;
+    }
+  }, [showDevocionalModal, devocional]);
+
   return (
     <div
       className="min-h-screen w-full flex flex-col items-center justify-start px-0 relative overflow-x-hidden overflow-y-auto pb-[100px] mobile-scroll"
@@ -399,7 +427,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             </div>
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-6 pb-20">
               {devocional && (
-                <span className="px-4 py-3 bg-black/40 rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4">
+                <span
+                  className="px-4 py-3 bg-black/40 rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4"
+                  style={{ fontSize: 15, lineHeight: 1.5, wordBreak: 'break-word' as const, overflowWrap: 'anywhere' as const }}
+                >
                   {devocional}
                 </span>
               )}
@@ -440,6 +471,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                 <div
                   id="devocional-modal-share"
                   className="w-full aspect-square relative flex items-center justify-center rounded-2xl overflow-hidden"
+                  ref={modalShareRef}
                 >
                   {/* Imagem de fundo como tag <img> para melhor captura */}
                   <img
@@ -457,10 +489,11 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                   </div>
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
                     <p
+                      ref={devocionalTextRef}
                       className="text-white font-semibold"
                       style={{
                         fontFamily: 'Cinzel, serif',
-                        fontSize: 22,
+                        fontSize: 20,
                         lineHeight: 1.6,
                         maxWidth: 560,
                         margin: '0 auto',
