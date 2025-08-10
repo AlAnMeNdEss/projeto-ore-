@@ -30,8 +30,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const [savingName, setSavingName] = useState(false);
   const [dailyImageUrl, setDailyImageUrl] = useState<string>('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
   const [selectedImageForSharing, setSelectedImageForSharing] = useState<string>('');
-  const [shareTemplate, setShareTemplate] = useState<'image' | 'gradient' | 'minimal'>('image');
-  const [shareAspect, setShareAspect] = useState<'square' | 'story'>('square');
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const refUpper = devocionalRef ? devocionalRef.toUpperCase() : '';
 
   // Banco de imagens royalty-free (Unsplash License)
@@ -111,12 +110,19 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   useEffect(() => {
     if (showDevocionalModal && !selectedImageForSharing) {
       setSelectedImageForSharing(dailyImageUrl);
+      setCurrentImageIndex(DAILY_IMAGES.findIndex(img => img === dailyImageUrl));
     }
   }, [showDevocionalModal, dailyImageUrl, selectedImageForSharing]);
 
   function gerarDevocional() {
     selecionarImagemDia();
     carregarVersiculoDoDia();
+  }
+
+  // Função para trocar a imagem
+  function cycleImage() {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % DAILY_IMAGES.length);
+    setSelectedImageForSharing(DAILY_IMAGES[(currentImageIndex + 1) % DAILY_IMAGES.length]);
   }
 
   // Resumo da comunidade (global)
@@ -395,31 +401,25 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         <div className="mobile-modal animate-fade-in">
           <div className="mobile-modal-content animate-bounce-in">
             {(() => {
-              const aspectClass = shareAspect === 'square' ? 'aspect-square' : 'aspect-[9/16]';
-              const bgStyle = shareTemplate === 'image' 
-                ? { backgroundImage: `url(${selectedImageForSharing || dailyImageUrl})` }
-                : shareTemplate === 'gradient'
-                  ? { backgroundImage: 'linear-gradient(135deg, #4338CA, #7C3AED, #06B6D4)' }
-                  : { backgroundColor: '#0f172a' };
-              const overlayClass = shareTemplate === 'image' ? 'bg-black/40' : 'bg-black/20';
+              const bgStyle = { backgroundImage: `url(${selectedImageForSharing || dailyImageUrl})` };
               return (
                 <div
                   id="devocional-modal-share"
-                  className={`w-full ${aspectClass} bg-cover bg-center flex items-center justify-center relative rounded-2xl`}
+                  className="w-full aspect-square bg-cover bg-center flex items-center justify-center relative rounded-2xl"
                   style={bgStyle as any}
                 >
-                  <div className={`absolute inset-0 ${overlayClass} rounded-2xl`} />
+                  <div className="absolute inset-0 bg-black/40 rounded-2xl" />
                   {/* Marca topo (incluída na captura) */}
                   <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 select-none">
-                    <span className="brand-mark text-white drop-shadow-lg font-extrabold uppercase" style={{ fontSize: shareAspect==='story'?28:24 }}>
+                    <span className="brand-mark text-white drop-shadow-lg font-extrabold uppercase" style={{ fontSize: 24 }}>
                       ORE+
                     </span>
                   </div>
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
                     <span className="text-white font-semibold leading-relaxed" style={{
                       textShadow: '0 2px 8px rgba(0,0,0,.6)',
-                      fontSize: shareAspect === 'square' ? 18 : 20,
-                      maxWidth: shareAspect==='story'? 540 : 520
+                      fontSize: 18,
+                      maxWidth: 520
                     }}>
                       {devocional}
                     </span>
@@ -429,78 +429,20 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                       </span>
                     )}
                   </div>
-                  {/* Controles sutis */}
-                  <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1 bg-black/30 rounded-xl p-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareAspect('square'); }}
-                        className={`px-2 py-1 rounded-lg text-xs ${shareAspect==='square'?'bg-white text-gray-800':'text-white'}`}
-                      >Quadrado</button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareAspect('story'); }}
-                        className={`px-2 py-1 rounded-lg text-xs ${shareAspect==='story'?'bg-white text-gray-800':'text-white'}`}
-                      >Story</button>
-                    </div>
-                    <div className="flex items-center gap-1 bg-black/30 rounded-xl p-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareTemplate('minimal'); }}
-                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='minimal'?'bg-white text-gray-800':'text-white'}`}
-                      >Simples</button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareTemplate('gradient'); }}
-                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='gradient'?'bg-white text-gray-800':'text-white'}`}
-                      >Gradiente</button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setShareTemplate('image'); }}
-                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='image'?'bg-white text-gray-800':'text-white'}`}
-                      >Imagem</button>
-                    </div>
-                  </div>
                   
-                  {/* Seletor de imagens */}
-                  {shareTemplate === 'image' && (
-                    <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-black/60 backdrop-blur-sm rounded-2xl p-3">
-                      <div className="text-center mb-2 flex items-center justify-between gap-3">
-                        <span className="text-white text-xs font-medium">Escolha a imagem</span>
-                        <button
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            setSelectedImageForSharing(dailyImageUrl);
-                          }}
-                          className={`px-2 py-1 rounded-lg text-xs transition-all duration-200 ${
-                            selectedImageForSharing === dailyImageUrl 
-                              ? 'bg-white text-gray-800' 
-                              : 'bg-white/20 text-white hover:bg-white/30'
-                          }`}
-                          title="Usar imagem do dia"
-                        >
-                          Dia
-                        </button>
-                      </div>
-                      <div className="flex gap-2 max-w-[280px] overflow-x-auto pb-2">
-                        {DAILY_IMAGES.map((imageUrl, index) => (
-                          <button
-                            key={index}
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              setSelectedImageForSharing(imageUrl);
-                            }}
-                            className={`flex-shrink-0 w-12 h-12 rounded-lg border-2 transition-all duration-200 ${
-                              (selectedImageForSharing || dailyImageUrl) === imageUrl 
-                                ? 'border-white shadow-lg scale-110' 
-                                : 'border-white/30 hover:border-white/60'
-                            }`}
-                            style={{
-                              backgroundImage: `url(${imageUrl})`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center'
-                            }}
-                            title={`Imagem ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Botão simples para trocar imagem */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20">
+                    <button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        cycleImage();
+                      }}
+                      className="px-4 py-2 bg-black/60 hover:bg-black/80 rounded-xl text-white text-sm transition-all duration-200 touch-ripple"
+                      title="Trocar imagem"
+                    >
+                      Trocar Imagem
+                    </button>
+                  </div>
                 </div>
               );
             })()}
