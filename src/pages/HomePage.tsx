@@ -187,11 +187,16 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     try {
       element.classList.add('share-clean');
 
-      // Aguarda todas as imagens internas carregarem
+      // Garante que a área de captura seja quadrada e medida corretamente
+      const rect = element.getBoundingClientRect();
+      const targetSize = Math.round(rect.width);
+      const previousInlineHeight = (element as HTMLElement).style.height;
+      (element as HTMLElement).style.height = `${targetSize}px`;
+
+      // Aguarda imagens internas
       const images = Array.from(element.querySelectorAll('img')) as HTMLImageElement[];
       await Promise.all(
         images.map((img) => {
-          // Garante CORS para html2canvas
           try { if (!img.crossOrigin) img.crossOrigin = 'anonymous'; } catch {}
           if (img.complete && img.naturalWidth > 0) return Promise.resolve(true);
           return new Promise((resolve) => {
@@ -202,8 +207,8 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         })
       );
 
-      // Pequeno delay para render final
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Pequeno delay para reflow
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(element, {
         useCORS: true,
@@ -211,8 +216,6 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         backgroundColor: null,
         logging: false,
         scale: 2,
-        width: element.offsetWidth,
-        height: element.offsetHeight,
       });
 
       const dataUrl = canvas.toDataURL('image/png');
@@ -231,6 +234,9 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         a.click();
         alert(`Compartilhamento nativo indisponível. Baixamos a imagem para você compartilhar.\n\n📱 Baixe o app ORE+: ${appLink}`);
       }
+
+      // restaura altura inline
+      (element as HTMLElement).style.height = previousInlineHeight;
     } catch (e) {
       console.error('Erro ao compartilhar:', e);
       alert('Erro ao compartilhar imagem. Tente novamente.');
