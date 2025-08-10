@@ -1,27 +1,42 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+import { getReadingNotifyConfig, startDailyReadingNotifications } from '@/notifications/dailyReading'
+import { initOneSignal } from '@/notifications/onesignal'
 import './index.css'
 import ProfilePage from './pages/ProfilePage.tsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="/perfil" element={<ProfilePage />} />
-    </Routes>
-  </BrowserRouter>
-);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
 
-// Registrar o service worker para PWA
+// Registrar Service Worker para PWA
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
-      .then(registration => {
-        console.log('Service Worker registrado:', registration);
-      })
-      .catch(error => {
-        console.error('Erro ao registrar o Service Worker:', error);
-      });
-  });
+  navigator.serviceWorker.register('/sw.js').then(async (reg) => {
+    try {
+      // OneSignal Web SDK (push real)
+      initOneSignal();
+      // Inicializa notificações diárias se estiverem ativadas e após SW pronto
+      const cfg = getReadingNotifyConfig();
+      if (cfg.enabled) {
+        await navigator.serviceWorker.ready;
+        startDailyReadingNotifications();
+      }
+    } catch {}
+  }).catch(() => {
+    // fallback: inicializar sem SW (apenas se permitido)
+    try {
+      const cfg = getReadingNotifyConfig();
+      if (cfg.enabled) startDailyReadingNotifications();
+    } catch {}
+  })
+} else {
+  // Sem suporte a SW
+  try {
+    const cfg = getReadingNotifyConfig();
+    if (cfg.enabled) startDailyReadingNotifications();
+  } catch {}
 }

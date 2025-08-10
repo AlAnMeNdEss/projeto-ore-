@@ -271,6 +271,7 @@ const Index = () => {
             user={user}
             onFazerPedido={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }}
             onVerComunidade={() => { setActiveTab('comunidades'); setEntrouNaComunidade(true); }}
+            onVerBiblia={() => { setActiveTab('biblia'); setEntrouNoMural(true); }}
           />
           {/* Modal antigo removido */}
         </div>
@@ -415,7 +416,6 @@ const Index = () => {
                 <div className="mobile-container w-full">
                   <div className="text-center text-white/80 mb-8">
                     <p className="text-lg">Compartilhe e leia testemunhos de fé</p>
-                    <p className="text-sm mt-2">Em breve você poderá compartilhar suas experiências aqui</p>
                   </div>
                   {/* Listagem de testemunhos reais */}
                   <div className="mobile-spacing">

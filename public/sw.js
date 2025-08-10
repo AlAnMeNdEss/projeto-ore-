@@ -20,42 +20,12 @@ const CSS_JS_ASSETS = [
 ];
 
 // Instalação do service worker
-self.addEventListener('install', event => {
-  console.log('Service Worker: Installing...');
-  event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE).then(cache => {
-        console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      }),
-      caches.open(DYNAMIC_CACHE).then(cache => {
-        console.log('Service Worker: Caching CSS/JS assets');
-        return cache.addAll(CSS_JS_ASSETS);
-      }),
-      caches.open(BIBLIA_CACHE).then(cache => {
-        console.log('Service Worker: Bible cache ready');
-        return cache;
-      })
-    ])
-  );
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
 // Ativação do service worker
-self.addEventListener('activate', event => {
-  console.log('Service Worker: Activating...');
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== BIBLIA_CACHE) {
-            console.log('Service Worker: Deleting old cache', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
@@ -197,15 +167,19 @@ self.addEventListener('push', event => {
 });
 
 // Clique em notificação
-self.addEventListener('notificationclick', event => {
-  console.log('Service Worker: Notification clicked');
+self.addEventListener('notificationclick', (event) => {
+  const url = event.notification?.data?.url || '/';
   event.notification.close();
-
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      const hadWindow = clientsArr.some((win) => {
+        if ('focus' in win) win.focus();
+        if ('navigate' in win) win.navigate(url);
+        return true;
+      });
+      if (!hadWindow && clients.openWindow) return clients.openWindow(url);
+    })
+  );
 });
 
 async function doBackgroundSync() {

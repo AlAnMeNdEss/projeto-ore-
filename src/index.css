@@ -499,3 +499,29 @@ All colors MUST be HSL.
     @apply text-xs text-gray-500;
   }
 }
+
+/* PWA/mobile-like refinements */
+html, body, #root { height: 100%; }
+body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
+
+/***** Safe areas *****/
+:root { 
+  --safe-top: env(safe-area-inset-top); 
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-top { padding-top: var(--safe-top); }
+.safe-area-bottom { padding-bottom: var(--safe-bottom); }
+
+/* 100dvh fix for mobile browsers */
+.min-h-screen { min-height: 100dvh; }
+
+/* Hide scrollbars for mobile app-like feel */
+.mobile-scroll { scrollbar-width: none; }
+.mobile-scroll::-webkit-scrollbar { display: none; }
+
+/* PWA specific */
+body.pwa-mode { background-color: #0f172a; }
+body.pwa-mode .mobile-status-bar { height: calc(var(--safe-top)); }
+
+/* Buttons touch target */
+button { touch-action: manipulation; }

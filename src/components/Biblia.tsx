@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { generateYearPlan, dayIndexFromStart, getTodayKey, ChapterRef } from '@/lib/readingPlan';
+import { CHAPTERS_PER_BOOK } from '@/lib/bibleBooks';
+import { useAuth } from '@/hooks/useAuth';
+import { BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, RefreshCcw } from 'lucide-react';
+
+const ENABLE_CLOUD_SYNC = false; // salvar localmente apenas
 
 const livros = [
   'Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute', '1 Samuel', '2 Samuel',
@@ -23,6 +30,7 @@ function limparTexto(texto: string) {
 }
 
 export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispatch<SetStateAction<boolean>>; onShowNavBar?: (show: boolean) => void }) {
+  const { user } = useAuth();
   // Carregar posição salva ou usar padrão
   const [livro, setLivro] = useState(() => {
     try {
@@ -51,6 +59,124 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     'Mateus': 28, 'Marcos': 16, 'Lucas': 24, 'João': 21, 'Atos': 28, 'Romanos': 16, '1 Coríntios': 16, '2 Coríntios': 13, 'Gálatas': 6, 'Efésios': 6, 'Filipenses': 4, 'Colossenses': 4, '1 Tessalonicenses': 5, '2 Tessalonicenses': 3, '1 Timóteo': 6, '2 Timóteo': 4, 'Tito': 3, 'Filemom': 1, 'Hebreus': 13, 'Tiago': 5, '1 Pedro': 5, '2 Pedro': 3, '1 João': 5, '2 João': 1, '3 João': 1, 'Judas': 1, 'Apocalipse': 22
   };
 
+  // --- PLANO DE LEITURA EM 1 ANO (contínuo do início ao fim, baseado na data de início do usuário) ---
+  type CapRef = ChapterRef;
+  const totalCaps = React.useMemo(() => Object.values(CHAPTERS_PER_BOOK).reduce((a,b)=>a+b,0), []);
+  const basePerDay = 3;
+  const extras = Math.max(0, totalCaps - basePerDay * 365); // 94 dias terão 4 capítulos
+
+  // Data de início do plano (definida pelo usuário na primeira visita)
+  const [planStart, setPlanStart] = useState<string>(() => {
+    try { return localStorage.getItem('biblePlanStart') || new Date().toISOString().slice(0,10); } catch { return new Date().toISOString().slice(0,10); }
+  });
+
+  // Calcula o índice do dia desde o início do plano
+  function getDayIndexFromStart(today = new Date(), startIso = planStart) {
+    const [y,m,d] = startIso.split('-').map(Number);
+    const start = new Date(y!, (m!-1), d!, 0, 0, 0, 0);
+    const diff = today.getTime() - start.getTime();
+    return Math.max(0, Math.floor(diff / (1000*60*60*24)));
+  }
+
+  // Distribuir uniformemente os 94 dias de 4 capítulos
+  function chaptersCountForDay(dayZeroBased: number) {
+    const prev = Math.round((dayZeroBased) * (extras/365));
+    const curr = Math.round((dayZeroBased + 1) * (extras/365));
+    const isExtra = curr - prev >= 1; // adiciona 1 capítulo extra neste dia
+    return basePerDay + (isExtra ? 1 : 0);
+  }
+
+  function sumChaptersUntil(dayZeroBased: number) {
+    let sum = 0;
+    for (let i = 0; i < dayZeroBased; i++) sum += chaptersCountForDay(i);
+    return sum;
+  }
+
+  const plan = React.useMemo(() => generateYearPlan(planStart), [planStart]);
+  const todayKey = getTodayKey(planStart);
+  const [readDays, setReadDays] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem('biblePlanReadDays') || '{}'); } catch { return {}; }
+  });
+
+  const baseDayIndex = dayIndexFromStart(planStart);
+  const [viewOffset, setViewOffset] = useState(0); // permite navegar entre os dias
+  const viewDayIndex = Math.max(0, Math.min(plan.length - 1, baseDayIndex + viewOffset));
+  const todayChapters = plan[viewDayIndex].chapters;
+
+  // Sync opcional com Supabase (se a tabela existir). Ignora erros.
+  async function syncProgressCloud(dayIdx: number, completed: boolean) {
+    if (!ENABLE_CLOUD_SYNC || !user) return;
+    try {
+      const { error } = await supabase.from('bible_reading_progress').upsert({
+        user_id: user.id,
+        plan_start: planStart,
+        day_index: dayIdx,
+        completed,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,plan_start,day_index' });
+      if (error) throw error;
+    } catch (e) {
+      // tabela pode não existir; ignorar silenciosamente
+      // console.debug('syncProgressCloud ignorado:', e);
+    }
+  }
+
+  async function loadCloudProgressIfAny() {
+    if (!ENABLE_CLOUD_SYNC || !user) return;
+    try {
+      const { data, error } = await supabase
+        .from('bible_reading_progress')
+        .select('day_index, completed')
+        .eq('user_id', user.id)
+        .eq('plan_start', planStart);
+      if (error) throw error;
+      if (Array.isArray(data)) {
+        setReadDays(prev => {
+          const next = { ...prev } as Record<string, boolean>;
+          for (const r of data) {
+            if (r && typeof r.day_index === 'number') next[String(r.day_index)] = !!r.completed;
+          }
+          localStorage.setItem('biblePlanReadDays', JSON.stringify(next));
+          return next;
+        });
+      }
+    } catch (e) {
+      // silencioso
+    }
+  }
+
+  const completed = Object.keys(readDays).filter(k => readDays[k]).length;
+  const progress = Math.min(100, Math.round((completed / 365) * 100));
+
+  function toggleTodayRead() {
+    setReadDays(prev => {
+      const key = String(viewDayIndex);
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('biblePlanReadDays', JSON.stringify(next));
+      // sync cloud (não bloqueante)
+      syncProgressCloud(viewDayIndex, next[key]);
+      return next;
+    });
+  }
+
+  function resetPlanToToday() {
+    const iso = new Date().toISOString().slice(0,10);
+    setPlanStart(iso);
+    try { localStorage.setItem('biblePlanStart', iso); } catch {}
+    setViewOffset(0);
+  }
+
+  useEffect(() => { loadCloudProgressIfAny(); }, [user?.id, planStart]);
+
+  function irPara(ref: CapRef) {
+    setLivro(ref.livro);
+    setCapitulo(ref.capitulo);
+    // rolar até o topo dos versículos
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  }
+
   // Salvar posição quando livro ou capítulo mudar
   useEffect(() => {
     try {
@@ -69,8 +195,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     }
   }, [livro, capitulo, capitulosPorLivro]);
 
-
-
   // Versículos marcados com cor (favoritos) salvos no localStorage
   const [marcados, setMarcados] = useState<Record<string, string>>(() => {
     try {
@@ -82,10 +206,22 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
   const [menuCor, setMenuCor] = useState<{id: string, top: number, left: number, showCores: boolean} | null>(null);
   const [iaPergunta, setIaPergunta] = useState<{id: string, pergunta: string, resposta: string, loading: boolean} | null>(null);
   const [showVersaoMenu, setShowVersaoMenu] = useState(false);
-  // 0 = amarelo, 1 = escuro, 2 = branco
-  const [themeMode, setThemeMode] = useState(0);
+  // 0 = amarelo, 1 = escuro, 2 = branco (persistente)
+  const [themeMode, setThemeMode] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('bibliaThemeMode');
+      return saved !== null ? Number(saved) : 0;
+    } catch {
+      return 0;
+    }
+  });
   const darkMode = themeMode === 1;
   const whiteMode = themeMode === 2;
+
+  // Persistir tema ao alterar
+  useEffect(() => {
+    try { localStorage.setItem('bibliaThemeMode', String(themeMode)); } catch {}
+  }, [themeMode]);
 
   // Adicionar estado para mostrar botão de marcação
   const [showMarkButton, setShowMarkButton] = useState<string | null>(null);
@@ -113,8 +249,8 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       top = touch.clientY;
       left = touch.clientX;
     } else if ('clientY' in e) {
-      top = e.clientY;
-      left = e.clientX;
+      top = e.clientY as number;
+      left = e.clientX as number;
     }
     setMenuCor(prev => {
       if (!prev || prev.id !== id) {
@@ -140,8 +276,8 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
       top = touch.clientY;
       left = touch.clientX;
     } else if ('clientY' in e) {
-      top = e.clientY;
-      left = e.clientX;
+      top = e.clientY as number;
+      left = e.clientX as number;
     }
     
     setMenuCor(prev => {
@@ -237,8 +373,6 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     return () => window.removeEventListener('scroll', handleScrollCap);
   }, []);
 
-
-
   async function fetchVersiculos() {
     setLoading(true);
     setErro('');
@@ -325,14 +459,28 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
     document.body.removeChild(textArea);
   }
 
+  const [showPlan, setShowPlan] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('openBiblePlan') === '1') {
+        setShowPlan(true);
+        localStorage.removeItem('openBiblePlan');
+      }
+    } catch {}
+  }, []);
+
   return (
     <div className={`min-h-screen w-full flex flex-col items-center px-2 pt-6 overflow-y-auto relative ${darkMode ? 'bg-[#23232b]' : whiteMode ? 'bg-white' : 'bg-[#fdf6e3]'} pb-28` }>
-      {/* Botão de tema */}
+      {/* Botões flutuantes (tema e plano) */}
       <div className="absolute top-4 right-4 z-30 flex gap-2">
         <button
           className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
           title="Alternar tema de leitura"
-          onClick={() => setThemeMode(m => (m + 1) % 3)}
+          onClick={() => setThemeMode(m => {
+            const next = (m + 1) % 3; 
+            try { localStorage.setItem('bibliaThemeMode', String(next)); } catch {}
+            return next;
+          })}
           aria-label="Alternar tema de leitura"
         >
           {themeMode === 0 && (
@@ -345,9 +493,86 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
             <svg width="22" height="22" fill="none" stroke="#23232b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           )}
         </button>
+        <button
+          className="bg-white/70 hover:bg-white/90 rounded-full p-2 shadow transition-opacity opacity-80 hover:opacity-100"
+          title="Plano de leitura em 1 ano"
+          onClick={() => setShowPlan(v => !v)}
+          aria-label="Plano de leitura"
+        >
+          <BookOpen className="w-5 h-5 text-[#23232b]" />
+        </button>
       </div>
 
-
+      {/* Popover do Plano de Leitura */}
+      {showPlan && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setShowPlan(false)} />
+          <div className="fixed top-16 right-2 z-40 w-[92vw] max-w-md px-2">
+            <div className={`rounded-3xl overflow-hidden shadow-2xl border ${darkMode ? 'border-[#23232b] bg-[#161a24]' : 'border-emerald-100 bg-white'}`}>
+              {/* Cabeçalho com gradiente e badges */}
+              <div className={`px-4 py-4 ${darkMode ? 'bg-gradient-to-r from-emerald-600/80 to-teal-600/80 text-white' : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'}`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold tracking-wide">Plano de Leitura (1 ano)</h3>
+                  <button onClick={() => setShowPlan(false)} aria-label="Fechar" className="rounded-full hover:bg-white/20 p-1">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </button>
+                </div>
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span className="px-2 py-0.5 rounded-full bg-white/25">Dia {viewDayIndex + 1}/365</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/25">Início: {planStart}</span>
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-white/25">{progress}%</span>
+                </div>
+                <div className="mt-3 w-full h-2 rounded-full bg-white/25">
+                  <div className="h-2 rounded-full bg-white" style={{ width: `${progress}%` }} />
+                </div>
+              </div>
+              {/* Corpo */}
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm shadow ${darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'}`}
+                    onClick={() => setViewOffset(o => Math.max(-365, o - 1))}
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Anterior
+                  </button>
+                  <div className="text-sm opacity-80">Leituras do dia</div>
+                  <button
+                    className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm shadow ${darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'}`}
+                    onClick={() => setViewOffset(o => Math.min(365, o + 1))}
+                  >
+                    Próximo <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {todayChapters.map((ref, idx) => (
+                    <button
+                      key={`${ref.livro}-${ref.capitulo}-${idx}`}
+                      onClick={() => { irPara(ref); setShowPlan(false); }}
+                      className={`px-3 py-2 rounded-full text-sm border shadow-sm transition ${darkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-emerald-50 border-emerald-100 text-emerald-800 hover:bg-emerald-100'}`}
+                    >
+                      <span className="font-semibold">{ref.livro}</span> <span className="opacity-70">{ref.capitulo}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={toggleTodayRead}
+                    className={`flex items-center justify-center gap-2 py-2 rounded-2xl font-semibold transition shadow ${readDays[String(viewDayIndex)] ? 'bg-emerald-500 text-white' : (darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20')}`}
+                  >
+                    <CheckCircle2 className="w-5 h-5" /> {readDays[String(viewDayIndex)] ? 'Marcado como lido' : 'Marcar como lido'}
+                  </button>
+                  <button
+                    onClick={resetPlanToToday}
+                    className={`flex items-center justify-center gap-2 py-2 rounded-2xl text-sm transition shadow ${darkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-teal-50 text-teal-800 hover:bg-teal-100'}`}
+                  >
+                    <RefreshCcw className="w-5 h-5" /> Reiniciar do hoje
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Seletores de livro e capítulo */}
       <div className="flex gap-3 w-full max-w-md mb-2 px-2 overflow-x-auto mt-20">
@@ -407,7 +632,7 @@ export function Biblia({ setShowNavBar, onShowNavBar }: { setShowNavBar?: Dispat
                   onClick={() => setShowMarkButton(showMarkButton === id ? null : id)}
                   className={`ml-2 p-2 rounded-full transition-all ${
                     darkMode 
-                      ? 'text-white hover:bg-white/10' 
+                      ? 'text-white hover:bg:white/10' 
                       : whiteMode
                         ? 'text-[#a084e8] hover:bg-gray-100'
                         : 'text-[#8b5cf6] hover:bg-yellow-100'

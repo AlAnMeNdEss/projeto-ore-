@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp, RefreshCw } from 'lucide-react';
+import { Users, Plus, Sparkles, X, Pencil, Heart, Share2, TrendingUp, RefreshCw, BookOpen } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import html2canvas from 'html2canvas';
 import loginBackground from '../assets/login-background.jpg';
@@ -10,9 +10,10 @@ interface HomePageProps {
   user: any;
   onFazerPedido: () => void;
   onVerComunidade: () => void;
+  onVerBiblia: () => void;
 }
 
-export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomePageProps) {
+export default function HomePage({ user, onFazerPedido, onVerComunidade, onVerBiblia }: HomePageProps) {
   const [communitySummary, setCommunitySummary] = useState({
     oracoesHoje: 0,
     novosPedidos: 0,
@@ -166,7 +167,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       selecionarImagemDia();
       carregarVersiculoDoDia();
       fetchCommunitySummary();
-    }, 60_000);
+    }, 5_000);
     return () => clearInterval(id);
   }, []);
 
@@ -384,6 +385,21 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
               <Users className="w-6 h-6 text-white" />
             </div>
             <span className="mobile-text-medium text-gray-800 text-center">Ver<br/>Comunidade</span>
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="mobile-card p-6 flex flex-col items-center justify-center touch-ripple hover:scale-105 active:scale-95 transition-all duration-200 col-span-2"
+            onClick={() => {
+              try { localStorage.setItem('openBiblePlan', '1'); } catch {}
+              onVerBiblia();
+            }}
+          >
+            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center mb-3">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <span className="mobile-text-medium text-gray-800 text-center">Plano de Leitura (1 ano)</span>
           </motion.button>
         </div>
 

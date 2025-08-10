@@ -59,8 +59,14 @@ export function useTestimonies() {
       )
       .subscribe();
 
+    // Polling a cada 5s como redundância
+    const intervalId = setInterval(() => {
+      fetchTestimonies();
+    }, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, []);
 

@@ -174,16 +174,21 @@ export function usePrayerRequests() {
           table: 'prayer_interactions'
         },
         () => {
-      fetchRequests();
+          fetchRequests();
         }
       )
       .subscribe();
 
-    // Removido o polling por intervalo
+    // Polling a cada 5s como redundância
+    const intervalId = setInterval(() => {
+      fetchRequests();
+      fetchPrayedRequests();
+    }, 5000);
 
     return () => {
       supabase.removeChannel(channelRequests);
       supabase.removeChannel(channelInteractions);
+      clearInterval(intervalId);
     };
   }, [user]);
 

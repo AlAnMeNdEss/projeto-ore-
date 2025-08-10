@@ -195,8 +195,15 @@ export function useGroups() {
       })
       .subscribe();
 
+    // Polling a cada 5s
+    const intervalId = setInterval(() => {
+      fetchGroups();
+      fetchMyGroups();
+    }, 5000);
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, [user]);
 
