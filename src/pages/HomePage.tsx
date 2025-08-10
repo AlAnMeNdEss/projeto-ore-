@@ -29,6 +29,9 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const [nameInput, setNameInput] = useState(user?.user_metadata?.name || '');
   const [savingName, setSavingName] = useState(false);
   const [dailyImageUrl, setDailyImageUrl] = useState<string>('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
+  const [shareTemplate, setShareTemplate] = useState<'image' | 'gradient' | 'minimal'>('image');
+  const [shareAspect, setShareAspect] = useState<'square' | 'story'>('square');
+  const refUpper = devocionalRef ? devocionalRef.toUpperCase() : '';
 
   // Banco de imagens royalty-free (Unsplash License)
   const DAILY_IMAGES: string[] = [
@@ -161,7 +164,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     const element = document.getElementById('devocional-modal-share') || document.getElementById('devocional-img-share');
     if (!element) return;
     try {
-      const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, scale: 2});
+      // Aplicar classe para melhorar nitidez durante a captura
+      element.classList.add('share-clean');
+      const scale = Math.max(2, (window.devicePixelRatio || 1) * 1.5);
+      const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, scale, foreignObjectRendering: true});
       const dataUrl = canvas.toDataURL('image/png');
       const blob = await (await fetch(dataUrl)).blob();
       const filesArray = [new File([blob], 'devocional.png', { type: 'image/png' })];
@@ -169,7 +175,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         files: filesArray,
         title: 'Devocional Diário',
         text: devocional || undefined
-      };
+      } as any;
       if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         await navigator.share(shareData);
       } else {
@@ -177,10 +183,12 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
         a.href = dataUrl;
         a.download = 'devocional.png';
         a.click();
-        alert('Compartilhamento não suportado neste dispositivo. Imagem baixada.');
+        alert('Compartilhamento nativo indisponível. Baixamos a imagem para você compartilhar.');
       }
     } catch (e) {
       alert('Erro ao compartilhar imagem.');
+    } finally {
+      element.classList.remove('share-clean');
     }
   }
 
@@ -329,12 +337,21 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                 zIndex: 1,
               }}
             />
+            {/* Marca topo (incluída na captura) */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 select-none">
+              <span className="brand-mark text-white drop-shadow-lg font-extrabold uppercase" style={{ fontSize: 22 }}>
+                ORE+
+              </span>
+            </div>
             <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 pt-6 pb-20">
-              <span className="mobile-text-caption text-gray-200 mb-2 drop-shadow-lg text-center">Versículo do Dia</span>
-              <span className="mobile-text-medium text-gray-100 mb-3 drop-shadow-lg text-center">{devocionalRef || '...'}</span>
               {devocional && (
-                <span className="px-4 py-3 bg-black/40 backdrop-blur-sm rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4">
+                <span className="px-4 py-3 bg-black/40 rounded-2xl text-gray-100 text-center mobile-text-small font-medium shadow-lg max-w-full drop-shadow-lg animate-fade-slide-in mb-4">
                   {devocional}
+                </span>
+              )}
+              {!!refUpper && (
+                <span className="brand-mark absolute bottom-4 left-1/2 -translate-x-1/2 text-white/90 font-bold tracking-widest text-[10px] select-none">
+                  {refUpper}
                 </span>
               )}
             </div>
@@ -363,36 +380,87 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       {showDevocionalModal && (
         <div className="mobile-modal animate-fade-in">
           <div className="mobile-modal-content animate-bounce-in">
-            <div
-              id="devocional-modal-share"
-              className="w-full aspect-[4/5] bg-cover bg-center flex items-center justify-center relative rounded-2xl"
-              style={{
-                backgroundImage: `url(${dailyImageUrl})`,
-              }}
-            >
-              <div className="absolute inset-0 bg-black/40 rounded-2xl" />
-              <div className="relative z-10 w-full flex flex-col items-center justify-center px-6">
-                <span className="text-white mobile-text-large text-center drop-shadow-lg" style={{textShadow: '0 2px 8px #000'}}>
-                  {devocional}
-                </span>
-              </div>
-              <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-                <button
-                  className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
-                  onClick={e => { e.stopPropagation(); handleShareDevocional(); }}
-                  aria-label="Compartilhar"
-                  title="Compartilhar"
+            {(() => {
+              const aspectClass = shareAspect === 'square' ? 'aspect-square' : 'aspect-[9/16]';
+              const bgStyle = shareTemplate === 'image' 
+                ? { backgroundImage: `url(${dailyImageUrl})` }
+                : shareTemplate === 'gradient'
+                  ? { backgroundImage: 'linear-gradient(135deg, #4338CA, #7C3AED, #06B6D4)' }
+                  : { backgroundColor: '#0f172a' };
+              const overlayClass = shareTemplate === 'image' ? 'bg-black/40' : 'bg-black/20';
+              return (
+                <div
+                  id="devocional-modal-share"
+                  className={`w-full ${aspectClass} bg-cover bg-center flex items-center justify-center relative rounded-2xl`}
+                  style={bgStyle as any}
                 >
-                  <Share2 className="w-5 h-5" />
-                </button>
-                <button
-                  className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
-                  onClick={e => { e.stopPropagation(); setShowDevocionalModal(false); }}
-                  aria-label="Fechar"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                  <div className={`absolute inset-0 ${overlayClass} rounded-2xl`} />
+                  {/* Marca topo (incluída na captura) */}
+                  <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 select-none">
+                    <span className="brand-mark text-white drop-shadow-lg font-extrabold uppercase" style={{ fontSize: shareAspect==='story'?28:24 }}>
+                      ORE+
+                    </span>
+                  </div>
+                  <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
+                    <span className="text-white font-semibold leading-relaxed" style={{
+                      textShadow: '0 2px 8px rgba(0,0,0,.6)',
+                      fontSize: shareAspect === 'square' ? 22 : 26,
+                      maxWidth: shareAspect==='story'? 540 : 520
+                    }}>
+                      {devocional}
+                    </span>
+                    {!!refUpper && (
+                      <span className="brand-mark absolute bottom-8 left-1/2 -translate-x-1/2 text-white/95 font-bold tracking-widest text-xs select-none">
+                        {refUpper}
+                      </span>
+                    )}
+                  </div>
+                  {/* Controles sutis */}
+                  <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1 bg-black/30 rounded-xl p-1">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareAspect('square'); }}
+                        className={`px-2 py-1 rounded-lg text-xs ${shareAspect==='square'?'bg-white text-gray-800':'text-white'}`}
+                      >Quadrado</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareAspect('story'); }}
+                        className={`px-2 py-1 rounded-lg text-xs ${shareAspect==='story'?'bg-white text-gray-800':'text-white'}`}
+                      >Story</button>
+                    </div>
+                    <div className="flex items-center gap-1 bg-black/30 rounded-xl p-1">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareTemplate('minimal'); }}
+                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='minimal'?'bg-white text-gray-800':'text-white'}`}
+                      >Simples</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareTemplate('gradient'); }}
+                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='gradient'?'bg-white text-gray-800':'text-white'}`}
+                      >Gradiente</button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShareTemplate('image'); }}
+                        className={`px-2 py-1 rounded-lg text-xs ${shareTemplate==='image'?'bg-white text-gray-800':'text-white'}`}
+                      >Imagem</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+              <button
+                className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
+                onClick={e => { e.stopPropagation(); handleShareDevocional(); }}
+                aria-label="Compartilhar"
+                title="Compartilhar"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
+              <button
+                className="bg-black/60 hover:bg-black/80 rounded-full p-2 text-white touch-ripple"
+                onClick={e => { e.stopPropagation(); setShowDevocionalModal(false); }}
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
