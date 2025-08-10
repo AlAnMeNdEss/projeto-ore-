@@ -185,8 +185,6 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     if (!element) return;
 
     try {
-      element.classList.add('share-clean');
-
       // Garante que a área de captura seja quadrada e medida corretamente
       const rect = element.getBoundingClientRect();
       const targetSize = Math.round(rect.width);
@@ -241,7 +239,6 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       console.error('Erro ao compartilhar:', e);
       alert('Erro ao compartilhar imagem. Tente novamente.');
     } finally {
-      element.classList.remove('share-clean');
     }
   }
 
@@ -480,9 +477,15 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     </span>
                   </div>
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
+                    {/* Fundo sutil por trás do texto (z-0) */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-6 right-6 z-0"
+                      style={{ bottom: '25%', top: '25%', borderRadius: 16, background: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.24) 100%)' }}
+                    />
                     <div
                       ref={devocionalTextRef}
-                      className="text-white font-semibold rounded-2xl"
+                      className="relative z-10 text-white font-semibold rounded-2xl"
                       style={{
                         fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
                         fontSize: 18,
@@ -505,6 +508,10 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                         {refUpper}
                       </span>
                     )}
+                    {/* Rodapé com link do app (incluído na captura) */}
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-white/90 text-[11px] px-3 py-1 rounded-full bg-black/40 select-none">
+                      📱 Baixe o app ORE+: ore-plus.vercel.app
+                    </div>
                   </div>
                   
                   {/* Botão simples para trocar imagem */}
