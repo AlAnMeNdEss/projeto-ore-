@@ -29,6 +29,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
   const [nameInput, setNameInput] = useState(user?.user_metadata?.name || '');
   const [savingName, setSavingName] = useState(false);
   const [dailyImageUrl, setDailyImageUrl] = useState<string>('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80');
+  const [selectedImageForSharing, setSelectedImageForSharing] = useState<string>('');
   const [shareTemplate, setShareTemplate] = useState<'image' | 'gradient' | 'minimal'>('image');
   const [shareAspect, setShareAspect] = useState<'square' | 'story'>('square');
   const refUpper = devocionalRef ? devocionalRef.toUpperCase() : '';
@@ -98,12 +99,20 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
       setDevocional(texto);
       setDevocionalRef(referencia);
     } catch (e) {
-      setDevocional('"O Senhor é o meu pastor; nada me faltará."');
+      console.error('Erro ao carregar versículo:', e);
+      setDevocional('O Senhor é meu pastor, nada me faltará.');
       setDevocionalRef('Salmos 23:1');
     } finally {
       setLoadingDevocional(false);
     }
   }
+
+  // Inicializar imagem selecionada quando o modal for aberto
+  useEffect(() => {
+    if (showDevocionalModal && !selectedImageForSharing) {
+      setSelectedImageForSharing(dailyImageUrl);
+    }
+  }, [showDevocionalModal, dailyImageUrl, selectedImageForSharing]);
 
   function gerarDevocional() {
     selecionarImagemDia();
@@ -163,27 +172,32 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     // Prioriza compartilhar o conteúdo do modal, se aberto; caso contrário, o card
     const element = document.getElementById('devocional-modal-share') || document.getElementById('devocional-img-share');
     if (!element) return;
+    
+    // Se não há imagem selecionada, usa a imagem do dia
+    const imageToUse = selectedImageForSharing || dailyImageUrl;
+    
     try {
       // Aplicar classe para melhorar nitidez durante a captura
       element.classList.add('share-clean');
-      const scale = Math.max(2, (window.devicePixelRatio || 1) * 1.5);
-      const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, scale, foreignObjectRendering: true});
+      const canvas = await html2canvas(element, {useCORS: true, backgroundColor: null, foreignObjectRendering: true});
       const dataUrl = canvas.toDataURL('image/png');
       const blob = await (await fetch(dataUrl)).blob();
       const filesArray = [new File([blob], 'devocional.png', { type: 'image/png' })];
+      const appLink = 'https://ore-plus.vercel.app';
+      const shareText = `${devocional || 'Devocional Diário'}\n\n📱 Baixe o app ORE+: ${appLink}`;
       const shareData = {
         files: filesArray,
         title: 'Devocional Diário',
-        text: devocional || undefined
+        text: shareText
       } as any;
       if (navigator.canShare && navigator.canShare({ files: filesArray })) {
         await navigator.share(shareData);
       } else {
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = 'devocional.png';
+        a.download = 'devocional-ore-plus.png';
         a.click();
-        alert('Compartilhamento nativo indisponível. Baixamos a imagem para você compartilhar.');
+        alert(`Compartilhamento nativo indisponível. Baixamos a imagem para você compartilhar.\n\n📱 Baixe o app ORE+: ${appLink}`);
       }
     } catch (e) {
       alert('Erro ao compartilhar imagem.');
@@ -383,7 +397,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
             {(() => {
               const aspectClass = shareAspect === 'square' ? 'aspect-square' : 'aspect-[9/16]';
               const bgStyle = shareTemplate === 'image' 
-                ? { backgroundImage: `url(${dailyImageUrl})` }
+                ? { backgroundImage: `url(${selectedImageForSharing || dailyImageUrl})` }
                 : shareTemplate === 'gradient'
                   ? { backgroundImage: 'linear-gradient(135deg, #4338CA, #7C3AED, #06B6D4)' }
                   : { backgroundColor: '#0f172a' };
@@ -404,7 +418,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
                     <span className="text-white font-semibold leading-relaxed" style={{
                       textShadow: '0 2px 8px rgba(0,0,0,.6)',
-                      fontSize: shareAspect === 'square' ? 22 : 26,
+                      fontSize: shareAspect === 'square' ? 18 : 20,
                       maxWidth: shareAspect==='story'? 540 : 520
                     }}>
                       {devocional}
@@ -442,6 +456,51 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                       >Imagem</button>
                     </div>
                   </div>
+                  
+                  {/* Seletor de imagens */}
+                  {shareTemplate === 'image' && (
+                    <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 bg-black/60 backdrop-blur-sm rounded-2xl p-3">
+                      <div className="text-center mb-2 flex items-center justify-between gap-3">
+                        <span className="text-white text-xs font-medium">Escolha a imagem</span>
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setSelectedImageForSharing(dailyImageUrl);
+                          }}
+                          className={`px-2 py-1 rounded-lg text-xs transition-all duration-200 ${
+                            selectedImageForSharing === dailyImageUrl 
+                              ? 'bg-white text-gray-800' 
+                              : 'bg-white/20 text-white hover:bg-white/30'
+                          }`}
+                          title="Usar imagem do dia"
+                        >
+                          Dia
+                        </button>
+                      </div>
+                      <div className="flex gap-2 max-w-[280px] overflow-x-auto pb-2">
+                        {DAILY_IMAGES.map((imageUrl, index) => (
+                          <button
+                            key={index}
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setSelectedImageForSharing(imageUrl);
+                            }}
+                            className={`flex-shrink-0 w-12 h-12 rounded-lg border-2 transition-all duration-200 ${
+                              (selectedImageForSharing || dailyImageUrl) === imageUrl 
+                                ? 'border-white shadow-lg scale-110' 
+                                : 'border-white/30 hover:border-white/60'
+                            }`}
+                            style={{
+                              backgroundImage: `url(${imageUrl})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
+                            title={`Imagem ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
