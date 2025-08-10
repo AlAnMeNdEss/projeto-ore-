@@ -250,7 +250,7 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
 
   // Auto-ajuste do tamanho do texto do devocional no modal
   const modalShareRef = useRef<HTMLDivElement | null>(null);
-  const devocionalTextRef = useRef<HTMLParagraphElement | null>(null);
+  const devocionalTextRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!showDevocionalModal) return;
@@ -258,22 +258,14 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
     const textEl = devocionalTextRef.current;
     if (!container || !textEl) return;
 
-    // Tenta encaixar o texto no espaço disponível do modal
-    const availableHeight = Math.max(120, Math.floor(container.clientHeight * 0.68));
-    let fontSize = 20; // tamanho base
-    const minFont = 14;
-
-    textEl.style.fontSize = `${fontSize}px`;
-    textEl.style.lineHeight = '1.5';
+    // Define limites de tamanho e deixa o CSS fazer o wrap
+    const base = 18;
+    const min = 14;
+    const max = 22;
+    textEl.style.fontSize = `${Math.min(max, Math.max(min, base))}px`;
+    textEl.style.lineHeight = '1.6';
     textEl.style.wordBreak = 'break-word';
     textEl.style.overflowWrap = 'anywhere';
-
-    // Reduz até caber
-    // Limite de iterações para evitar loops longos
-    for (let i = 0; i < 12 && textEl.scrollHeight > availableHeight && fontSize > minFont; i += 1) {
-      fontSize -= 1;
-      textEl.style.fontSize = `${fontSize}px`;
-    }
   }, [showDevocionalModal, devocional]);
 
   return (
@@ -488,30 +480,26 @@ export default function HomePage({ user, onFazerPedido, onVerComunidade }: HomeP
                     </span>
                   </div>
                   <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-6 text-center">
-                    <p
+                    <div
                       ref={devocionalTextRef}
-                      className="text-white font-semibold"
+                      className="text-white font-semibold rounded-2xl"
                       style={{
-                        fontFamily: 'Cinzel, serif',
-                        fontSize: 20,
+                        fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
+                        fontSize: 18,
                         lineHeight: 1.6,
                         maxWidth: 560,
+                        padding: '14px 16px',
                         margin: '0 auto',
+                        background: 'rgba(0,0,0,0.35)',
+                        backdropFilter: 'none',
                         whiteSpace: 'pre-line',
                         WebkitFontSmoothing: 'antialiased',
                         textRendering: 'optimizeLegibility',
-                        textShadow: 'none',
-                        transform: 'translateZ(0)'
+                        textShadow: 'none'
                       }}
                     >
                       {devocional}
-                    </p>
-                    {/* Fundo sutil para legibilidade do texto */}
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute left-6 right-6"
-                      style={{ bottom: '25%', top: '25%', borderRadius: 16, background: 'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.24) 100%)' }}
-                    />
+                    </div>
                     {!!refUpper && (
                       <span className="brand-mark absolute bottom-8 left-1/2 -translate-x-1/2 text-white/95 font-bold tracking-widest text-xs select-none">
                         {refUpper}

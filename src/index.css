@@ -471,7 +471,7 @@ All colors MUST be HSL.
     filter: none !important;
     backdrop-filter: none !important;
     animation: none !important;
-    transform: none !important;
+    /* não remover transform para não quebrar centralizações */
   }
 
   /* Utilitários mobile */
